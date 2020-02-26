@@ -4,96 +4,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace MeshCutter {
+namespace MeshUtils {
 
     static class Util {
-
-        // Credits: https://www.geeksforgeeks.org/how-to-check-if-a-given-point-lies-inside-a-polygon/
-        /*static class Vec2D {
-
-            // Given three colinear points p, q, r,  
-            // the function checks if point q lies 
-            // on line segment 'pr'
-            static bool OnSegment(Vector2 p, Vector2 q, Vector2 r)  
-            { 
-                if (q.x <= Math.Max(p.x, r.x) && 
-                    q.x >= Math.Min(p.x, r.x) && 
-                    q.y <= Math.Max(p.y, r.y) && 
-                    q.y >= Math.Min(p.y, r.y)) 
-                { 
-                    return true; 
-                } 
-                return false; 
-            } 
-        
-            // To find Orientation of ordered triplet (p, q, r). 
-            // The function returns following values 
-            // 0 --> p, q and r are colinear 
-            // 1 --> Clockwise 
-            // 2 --> Counterclockwise 
-            static int Orientation(Vector2 p, Vector2 q, Vector2 r)  
-            { 
-                int val = (q.y - p.y) * (r.x - q.x) -  
-                        (q.x - p.x) * (r.y - q.y); 
-        
-                if (val == 0)  
-                { 
-                    return 0; // colinear 
-                } 
-                return (val > 0) ? 1 : 2; // clock or counterclock wise 
-            } 
-        
-            // The function that returns true if  
-            // line segment 'p1q1' and 'p2q2' intersect. 
-            public static bool DoIntersect(Vector2 p1, Vector2 q1,  
-                                    Vector2 p2, Vector2 q2)  
-            { 
-                // Find the four orientations needed for  
-                // general and special cases 
-                int o1 = Orientation(p1, q1, p2); 
-                int o2 = Orientation(p1, q1, q2); 
-                int o3 = Orientation(p2, q2, p1); 
-                int o4 = Orientation(p2, q2, q1); 
-        
-                // General case 
-                if (o1 != o2 && o3 != o4) 
-                { 
-                    return true; 
-                } 
-        
-                // Special Cases 
-                // p1, q1 and p2 are colinear and 
-                // p2 lies on segment p1q1 
-                if (o1 == 0 && OnSegment(p1, p2, q1))  
-                { 
-                    return true; 
-                } 
-        
-                // p1, q1 and p2 are colinear and 
-                // q2 lies on segment p1q1 
-                if (o2 == 0 && OnSegment(p1, q2, q1))  
-                { 
-                    return true; 
-                } 
-        
-                // p2, q2 and p1 are colinear and 
-                // p1 lies on segment p2q2 
-                if (o3 == 0 && OnSegment(p2, p1, q2)) 
-                { 
-                    return true; 
-                } 
-        
-                // p2, q2 and q1 are colinear and 
-                // q1 lies on segment p2q2 
-                if (o4 == 0 && OnSegment(p2, q1, q2)) 
-                { 
-                    return true; 
-                } 
-        
-                // Doesn't fall in any of the above cases 
-                return false;  
-            } 
-        }*/
 
         // ------------------------------------------------------
         // Create a unit vector perpendicular to a given vector
@@ -156,23 +69,6 @@ namespace MeshCutter {
             Debug.Log("{"+String.Join(",",topStrings)+"}");
         }
 
-        // --------------------------------------------------
-        // Remove excess points that lie in a straight line
-        // Note: broken (probably rounding errors)
-        // --------------------------------------------------
-        /*public static void SimplifyRing(List<Vector3> ring) {
-            int i = 0;
-            while (i < ring.Count && ring.Count > 3) {
-                if (
-                    Vector3.Cross(
-                        ring[i]-ring[(i+2)%ring.Count],
-                        ring[i]-ring[(i+1)%ring.Count]
-                    ) == Vector3.zero
-                ) ring.RemoveAt((i+1)%ring.Count);
-                else i++;
-            }
-        }*/
-
         // ------------------------------------------------------------------------------------
         // Use pseudo inverse matrix to decompose vector to barycentric coordinates
         // If 's' and 't' fall in the range [0,1] and s+t <= 1, then v is in the triangle
@@ -215,7 +111,7 @@ namespace MeshCutter {
         // -----------------------------------------------------------
         public static void GenTriangles(
             CuttingPlane plane,
-            API.MeshPart pos, API.MeshPart neg,
+            MeshPart pos, MeshPart neg,
             Vector3 a, Vector3 b,Vector3 c,
             int i_a, int i_b, int i_c,
             RingGenerator rings
@@ -263,17 +159,11 @@ namespace MeshCutter {
 
         }
 
-        /*public static void AddTriangleIndices(List<int> triangles, Dictionary<int,int> map, int i_a, int i_b, int i_c) {
-            triangles.Add(map[i_a]);
-            triangles.Add(map[i_b]);
-            triangles.Add(map[i_c]);
-        }*/
-
         // -----------------------------------------------------
         // Generate triangle mesh within possibly concave ring
         // -----------------------------------------------------
         public static void GenerateRingMesh(
-            List<Vector3> ring, API.MeshPart part, Vector3 normal
+            List<Vector3> ring, MeshPart part, Vector3 normal
         ) {
 
             // List<List<Vector3>> reduceHist = new List<List<Vector3>>();
@@ -342,6 +232,122 @@ namespace MeshCutter {
                 // reduceHist.Add(set.ConvertAll(s=>s.Item1));
 
             }
+
+        }
+
+        public class MeshPart {
+            public readonly List<Vector3> vertices = new List<Vector3>();
+            public readonly List<int> indices = new List<int>();
+            
+            // Map from original indices to new indices
+            public readonly Dictionary<int,int> indexMap = new Dictionary<int, int>();
+            public readonly bool side;
+            public MeshPart (bool side) {
+                this.side = side;
+            }
+            public void AddMeshTo(GameObject obj) {
+                var mesh = obj.AddComponent<MeshFilter>().mesh;
+                mesh.vertices = vertices.ToArray();
+                mesh.triangles = indices.ToArray();
+                mesh.RecalculateNormals();
+                mesh.RecalculateTangents();
+            }
+
+        }
+
+        public static List<MeshPart> PolySep(MeshPart mesh) {
+
+            List<List<int>> list = new List<List<int>>();
+
+            // create index groups
+            for (int i = 0; i < mesh.indices.Count; i += 3) {
+                int i0 = mesh.indices[i], i1 = mesh.indices[i+1], i2 = mesh.indices[i+2];
+                Vector3 v0 = mesh.vertices[i0], v1 = mesh.vertices[i1], v2 = mesh.vertices[i2];
+                AddIndices(list,mesh.vertices,v0,v1,v2,i0,i1,i2);
+            }
+
+            // Debug.Log("sets:"+list.Count);
+
+            //MeshPart part = new MeshPart(mesh.side);
+            //part.vertices.AddRange(mesh.vertices);
+            //part.indices.AddRange(list[0]);
+            //return new List<MeshPart>() {part};
+            // create new meshes
+            return list.ConvertAll(indices=>{
+
+                MeshPart part = new MeshPart(mesh.side);
+
+                foreach (int ind in indices) {
+                    if (part.indexMap.ContainsKey(ind)) part.indices.Add(part.indexMap[ind]);
+                    else {
+                        Debug.Log(part.vertices.Count+" => "+ind);
+                        part.indexMap.Add(ind,part.vertices.Count);
+                        part.indices.Add(part.vertices.Count);
+                        part.vertices.Add(mesh.vertices[ind]);
+                    }
+                }
+
+                return part;
+
+            });
+
+        }
+        
+        public static void AddIndices(
+            List<List<int>> list,
+            List<Vector3> verts,
+            Vector3 v0, Vector3 v1, Vector3 v2,
+            int i0, int i1, int i2
+        ) {
+
+            List<int> l0 = null, l1 = null, l2 = null;
+
+            // find the set that each vertex belongs to
+            foreach (List<int> set in list) {
+                foreach (int i in set){
+                    Vector3 v = verts[i];
+                    if (v == v0 && l0 == null)
+                        l0 = set;
+                    if (v == v1 && l1 == null)
+                        l1 = set;
+                    if (v == v2 && l2 == null)
+                        l2 = set;
+                }
+                if (l0 != null && l1 != null && l2 != null) break;
+            }
+
+            // if no sets were found, make a new set
+            if (l0 == null && l1 == null && l2 == null) {
+                list.Add(new List<int>() {i0,i1,i2});
+                return;
+            }
+
+            // this ensures that if we get lists A,B,A, then we do not add A onto A+B again
+            List<int> mergedFrom = null;
+
+            // merge l0 into l1
+            if (l0 != null) {
+                if (l1 == null) l1 = l0;
+                else if (l0 != l1) {
+                    list.Remove(l0);
+                    l1.AddRange(l0);
+                    mergedFrom = l0;
+                }
+            }
+
+            // merge l1 into l2
+            if (l1 != null) {
+                if (l2 == null) l2 = l1;
+                else if (l1 != l2 && mergedFrom != l2) {
+                    list.Remove(l1);
+                    l2.AddRange(l1);
+                }
+            }
+
+            // add to l2
+            l2.Add(i0);
+            l2.Add(i1);
+            l2.Add(i2);
 
         }
 

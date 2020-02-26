@@ -2,7 +2,7 @@
 using System;
 using UnityEngine;
 
-namespace MeshCutter {
+namespace MeshUtils {
 
     // ---------------------------------------------
     // Used to define a plane to seperate meshes
