@@ -126,6 +126,8 @@ namespace MeshUtils {
 
             return true;
 
+            // Crucial formula for future algorithm: d=|(p-x1)x(p-x2)|/|x2-x1|
+
             // The following is a nescesary check that is disabled right now
             // It handles the edge case where a boundary check is not good enough (U shaped ring around another ring)
             // for now we assume this doesn't happen

@@ -69,6 +69,15 @@ namespace MeshUtils {
             Debug.Log("{"+String.Join(",",topStrings)+"}");
         }
 
+        // ------------------------------
+        // Debugging util to log a list
+        // ------------------------------
+        public static string LogList(List<int> list) {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            foreach (int i in list) sb.Append(i.ToString()+" ");
+            return sb.ToString();
+        }
+
         // ------------------------------------------------------------------------------------
         // Use pseudo inverse matrix to decompose vector to barycentric coordinates
         // If 's' and 't' fall in the range [0,1] and s+t <= 1, then v is in the triangle

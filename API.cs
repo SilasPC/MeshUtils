@@ -76,13 +76,6 @@ namespace MeshUtils {
                 obj.transform.position = this.pos;
                 obj.transform.rotation = this.rot;
                 obj.transform.localScale = this.scl;
-                
-                /*Material newMat = renderer.material;
-                Material oldMat = original.GetComponent<Renderer>().material;
-                newMat.color = oldMat.color;
-                newMat.mainTexture = oldMat.mainTexture;
-                
-                return new CutResult(obj,orig_verts);*/
 
                 return obj;
 
@@ -213,12 +206,6 @@ namespace MeshUtils {
             if (param.destroyOriginal) MonoBehaviour.Destroy(target);
 
             return true;
-        }
-
-        private static string LogList(List<int> list) {
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            foreach (int i in list) sb.Append(i.ToString()+" ");
-            return sb.ToString();
         }
 
     }
