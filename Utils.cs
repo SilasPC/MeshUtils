@@ -6,6 +6,12 @@ using UnityEngine;
 
 namespace MeshUtils {
 
+    class OperationException : Exception {
+        public static ZeroNormal() : base("The supplied normal vector was of zero length") {}
+        public static MalformedMesh() : base("The supplied object contains a malformed mesh") {}
+        public static Internal(string msg) : base("Internal error: " + msg) {}
+    }
+
     static class Util {
 
         // ------------------------------------------------------
@@ -16,8 +22,7 @@ namespace MeshUtils {
             if (v.x != 0) return new Vector3(1,1,-(v.y+v.z)/v.x).normalized;
             if (v.y != 0) return new Vector3(1,1,-(v.x+v.z)/v.y).normalized;
             if (v.z != 0) return new Vector3(1,1,-(v.x+v.y)/v.z).normalized;
-            // fail silently
-            return new Vector3(0,0,0);
+            throw OperationException.ZeroNormal();
         }
 
         // ------------------------------------
@@ -132,7 +137,11 @@ namespace MeshUtils {
 
             // if e == d, the three vertices lie in a line,
             //   and thus do not make up a triangle
-            if (e == d) return;
+            if (e == d) {
+                return;
+                // not sure if this is nescessary
+                throw OperationException.MalformedMesh();
+            }
 
             // new indices
             int pi0 = pos.vertices.Count, ni0 = neg.vertices.Count;
@@ -168,6 +177,46 @@ namespace MeshUtils {
 
         }
 
+        // ---------------------------------------------------------------
+        // Determine shortest distance to ring perimeter
+        // Formula for point/line distance: d=|(p-x1)x(p-x2)|/|x2-x1|
+        // i0 and i1 are indices for vertexes around closest line in ring
+        // ---------------------------------------------------------------
+        public static float DistanceToRingPerimeter(List<Vector3> ring, Vector3 v, out int i0, out int i1) {
+            int prevIndex = ring.Count - 1;
+            i0 = prevIndex;
+            i1 = 0;
+            float dMin = float.PositiveInfinity;
+            for (int i = 0; i < ring.Count; i++) {
+                Vector3 x1 = ring[prevIndex], x2 = ring[i];
+                float d1 = (x1-v).magnitude, d2 = (x2-v).magnitude;
+                float d0 = Vector3.cross(v-x1,v-x2).magnitude/(x2-x1).magnitude;
+                float d = Math.Min(Math.Min(d1,d2),d0);
+                if (d < dMin) {
+                    dMin = d;
+                    i0 = prevIndex;
+                    i1 = i;
+                }
+                prevIndex = i;
+            }
+            return dMin;
+        }
+
+        // -------------------------------------
+        // Check if a point lies within a ring
+        // -------------------------------------
+        public static bool CheckPointInsideRing(List<Vector3> ring, Vector3 v, Vector3 normal) {
+            int i0, i1;
+            DistanceToRingPerimeter(ring,v,out i0, out i1);
+            Vector3 side = ring[i0] - ring[i1];
+            Vector3 toSide = ring[i0] - v;
+            return
+                Vector3.Dot(
+                    Vector3.cross(side,toSide),
+                    normal
+                ) > 0;
+        }
+
         // -----------------------------------------------------
         // Generate triangle mesh within possibly concave ring
         // -----------------------------------------------------
@@ -194,7 +243,7 @@ namespace MeshUtils {
                             // DebugRings(reduceHist);
                             // Debug.Log("normal "+(normal*1000));
                             // DebugRing(set.ConvertAll(s=>s.Item1));
-                            return;
+                            throw OperationException.Internal("Ear clipping failed");
                         }
                         didInf = true;
                     } else didInf = false;

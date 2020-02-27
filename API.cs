@@ -143,7 +143,7 @@ namespace MeshUtils {
                     neg.indices.Add(neg.indexMap[i_c]);
                 } else {
                     // triangle crosses plane
-                    // call Util.GenTriangles 
+                    // call Util.GenTriangles
                     if (aAbove == bAbove) {
                         // a, b, c
                         GenTriangles(
@@ -174,13 +174,6 @@ namespace MeshUtils {
                         );
                     }
                 }
-            }
-
-            // discard cut if any incomplete rings were found
-            //   as assumptions for mesh then do not hold
-            if (rings.HasPartials()) {
-                result = null;
-                return false;
             }
 
             var reduced = Hierarchy.Analyse(rings.GetRings(), cutting_plane);

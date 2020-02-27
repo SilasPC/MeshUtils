@@ -17,8 +17,10 @@ namespace MeshUtils {
         private List<List<Vector3>> complete = new List<List<Vector3>>();
         private List<List<Vector3>> partials = new List<List<Vector3>>();
 
-        public bool HasPartials() {return this.partials.Count > 0;}
-        public List<List<Vector3>> GetRings() {return this.complete;}
+        public List<List<Vector3>> GetRings() {
+            if (this.partials.Count > 0) throw OperationException.MalformedMesh();
+            return this.complete;
+        }
 
         public void MyDebugLog() {
             Debug.Log(complete.Count + " complete rings, " +  partials.Count + " partial rings");

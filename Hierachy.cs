@@ -14,7 +14,7 @@ namespace MeshUtils {
         
         public static List<List<Vector3>> Analyse(List<List<Vector3>> rings, CuttingPlane plane) {
             List<Hierarchy> siblings = new List<Hierarchy>();
-            List<Hierarchy> list = rings.ConvertAll(r => new Hierarchy(r/*, r.ConvertAll(v=>plane.Project(v))*/));
+            List<Hierarchy> list = rings.ConvertAll(r => new Hierarchy(r,plane.normal));
             // sort from largest to smallest
             // when looping forwards, if the next is not contained
             //   within any previous, it will never be contained,
@@ -33,14 +33,9 @@ namespace MeshUtils {
             return result;
         }
 
-        /*private readonly Vector2
-            // x,y minimum of ring bounding box
-            min2 = new Vector2(float.PositiveInfinity,float.PositiveInfinity),
-            // x,y maximum of ring bounding box
-            max2 = new Vector2(float.NegativeInfinity,float.NegativeInfinity),
-            // x,y size of ring bounding box
-            size2;*/
         private readonly Vector3
+            // plane normal is used for various things
+            normal,
             // x,y minimum of ring bounding box
             min = new Vector3(float.PositiveInfinity,float.PositiveInfinity,float.PositiveInfinity),
             // x,y maximum of ring bounding box
@@ -48,18 +43,10 @@ namespace MeshUtils {
             // x,y size of ring bounding box
             size;
         private readonly List<Vector3> ring;
-        // private readonly List<Vector2> projectedRing;
-        // private Vector2 pointOutsideProjection;
         private readonly List<Hierarchy> children = new List<Hierarchy>();
-        private Hierarchy (List<Vector3> ring/*, List<Vector2> projectedRing*/) {
+        private Hierarchy (List<Vector3> ring, Vector3 normal) {
             this.ring = ring;
-            //this.projectedRing = projectedRing;
-            /*foreach (Vector2 v in projectedRing) {
-                if (v.x < min.x) min.x = v.x;
-                if (v.y < min.y) min.y = v.y;
-                if (v.x > max.x) max.x = v.x;
-                if (v.y > max.y) max.y = v.y;
-            }*/
+            this.normal = normal;
             foreach (Vector3 v in ring) {
                 if (v.x < min.x) min.x = v.x;
                 if (v.y < min.y) min.y = v.y;
@@ -69,8 +56,6 @@ namespace MeshUtils {
                 if (v.z > max.z) max.z = v.z;
             }
             size = max-min;
-            //pointOutsideProjection = min;
-            // pointOutsideProjection.x -= 100;
         }
 
         // ------------------------------------
@@ -124,37 +109,25 @@ namespace MeshUtils {
                 min.z < sub.min.z;
             if (!bb) return false;
 
+            // comment this out when ready for debugging ...
             return true;
 
-            // Crucial formula for future algorithm: d=|(p-x1)x(p-x2)|/|x2-x1|
+            // handle case where boundary check is not good enough
+            //   say, a U-shaped ring
 
-            // The following is a nescesary check that is disabled right now
-            // It handles the edge case where a boundary check is not good enough (U shaped ring around another ring)
-            // for now we assume this doesn't happen
-
-            /*if (sub.projectedRing.Count > projectedRing.Count)
-                return ContainsProjectedPoint(sub.projectedRing[0]);
-                
-            return sub.ContainsProjectedPoint(projectedRing[0]);*/
+            // small optimization by looping over the smallest ring
+            if (sub.ring.Count > ring.Count)
+                return ContainsPoint(sub.ring[0]);
+            return sub.ContainsPoint(ring[0]);
 
         }
 
         // ----------------------------------------------------------
         // Check if a point is contained within the projected ring
         // ----------------------------------------------------------
-        /*private bool ContainsProjectedPoint(Vector2 p) {
-            bool doesContain = false;
-            int j = projectedRing.Count - 1;
-            for (int i = 0; i < projectedRing.Count; i++) {
-                if (Util.Vec2D.DoIntersect(
-                    pointOutsideProjection,
-                    p,
-                    projectedRing[j],
-                    projectedRing[i]
-                )) doesContain = !doesContain;
-            }
-            return doesContain;
-        }*/
+        private bool ContainsPoint(Vector3 p) {
+            return Util.CheckPointInsideRing(this.ring,p,this.normal);
+        }
 
         // --------------------------------------------------------
         // Check if hierarchy size-wise can be contained by this
