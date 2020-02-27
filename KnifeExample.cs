@@ -20,14 +20,15 @@ namespace MeshUtils {
 			CutParams param = new CutParams(true, true);
 
 			List<CutResult> result;
-			if (PerformCut(transform.gameObject,plane,param,out result)) {
+			if (PerformCut(col.gameObject,plane,param,out result)) {
+				Debug.Log("success");
 				foreach (CutResult res in result)
 					res
-						.WithColor(new Color(0,0.7,0.3))
+						.WithColor(new Color(0,0.7f,0.3f))
 						.WithCollider()
 						.WithRigidbody()
 						.Create();
-			}
+			} else Debug.Log("failure");
 
 		}
 

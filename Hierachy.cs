@@ -97,7 +97,7 @@ namespace MeshUtils {
         // Initial check is done with bounding boxes,
         // Complete check is done by checking
         //   if a point is strictly contained
-        //   within the other ring (not implemented yet)
+        //   within the other ring
         // -----------------------------------------------
         public bool Contains(Hierarchy sub) {
             bool bb = 
@@ -108,9 +108,6 @@ namespace MeshUtils {
                 min.y < sub.min.y &&
                 min.z < sub.min.z;
             if (!bb) return false;
-
-            // comment this out when ready for debugging ...
-            return true;
 
             // handle case where boundary check is not good enough
             //   say, a U-shaped ring

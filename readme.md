@@ -3,4 +3,6 @@
 
 ### Problems so far
  - Sorting siblings
- - Ring boundary check
+
+### Things fixed from old version
+ - Boundary checks

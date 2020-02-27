@@ -7,9 +7,16 @@ using UnityEngine;
 namespace MeshUtils {
 
     class OperationException : Exception {
-        public static ZeroNormal() : base("The supplied normal vector was of zero length") {}
-        public static MalformedMesh() : base("The supplied object contains a malformed mesh") {}
-        public static Internal(string msg) : base("Internal error: " + msg) {}
+        private OperationException(string msg) : base(msg) {}
+        public static OperationException ZeroNormal() {
+            return new OperationException("The supplied normal vector was of zero length");
+        }
+        public static OperationException MalformedMesh() {
+            return new OperationException("The supplied object contains a malformed mesh");
+        }
+        public static OperationException Internal(string msg) {
+            return new OperationException("Internal error: " + msg);
+        }
     }
 
     static class Util {
@@ -190,7 +197,7 @@ namespace MeshUtils {
             for (int i = 0; i < ring.Count; i++) {
                 Vector3 x1 = ring[prevIndex], x2 = ring[i];
                 float d1 = (x1-v).magnitude, d2 = (x2-v).magnitude;
-                float d0 = Vector3.cross(v-x1,v-x2).magnitude/(x2-x1).magnitude;
+                float d0 = Vector3.Cross(v-x1,v-x2).magnitude/(x2-x1).magnitude;
                 float d = Math.Min(Math.Min(d1,d2),d0);
                 if (d < dMin) {
                     dMin = d;
@@ -212,9 +219,9 @@ namespace MeshUtils {
             Vector3 toSide = ring[i0] - v;
             return
                 Vector3.Dot(
-                    Vector3.cross(side,toSide),
+                    Vector3.Cross(side,toSide),
                     normal
-                ) > 0;
+                ) < 0;
         }
 
         // -----------------------------------------------------
