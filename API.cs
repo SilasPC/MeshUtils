@@ -26,14 +26,17 @@ namespace MeshUtils {
             private readonly MeshPart part;
             private readonly Vector3 pos, scl;
             private readonly Quaternion rot;
-            
+            private readonly Vector3? vel;
+                        
+            private bool addVelocity = false;
             private bool addRenderer = false;
             private bool addCollider = false;
             private bool addRigidbody = false;
             private Color? addColor = null;
             
-            public CutResult(MeshPart part, Transform orig) {
+            public CutResult(MeshPart part, Transform orig, Vector3? vel) {
                 this.part = part;
+                this.vel = vel;
                 this.pos = orig.position;
                 this.rot = orig.rotation;
                 this.scl = orig.localScale;
@@ -60,11 +63,21 @@ namespace MeshUtils {
                 return this;
             }
 
+            public CutResult CopyVelocity() {
+                this.addRigidbody = true;
+                this.addVelocity = true;
+                return this;
+            }
+
             public GameObject Create() {
                 GameObject obj = new GameObject();
                 this.part.AddMeshTo(obj);
-                if (this.addRigidbody)
-                    obj.AddComponent<Rigidbody>();
+                if (this.addRigidbody) {
+                    Rigidbody rb = obj.AddComponent<Rigidbody>();
+                    if (this.addVelocity) {
+                        if (this.vel is Vector3 vel) rb.velocity = vel;
+                    }
+                }
                 if (this.addCollider)
                     obj.AddComponent<MeshCollider>().convex = true;
                 if (this.addRenderer) {
@@ -186,13 +199,19 @@ namespace MeshUtils {
 
             result = new List<CutResult>();
 
+            Vector3? vel = null;
+            Rigidbody rb;
+            if (target.TryGetComponent<Rigidbody>(out rb)) {
+                vel = rb.velocity;
+            }
+
             // create new objects
             if (param.polySeperation) {
-                result.AddRange(PolySep(pos).ConvertAll(p=>new CutResult(p,target.transform)));
-                result.AddRange(PolySep(neg).ConvertAll(p=>new CutResult(p,target.transform)));
+                result.AddRange(PolySep(pos).ConvertAll(p=>new CutResult(p,target.transform,vel)));
+                result.AddRange(PolySep(neg).ConvertAll(p=>new CutResult(p,target.transform,vel)));
             } else {
-                result.Add(new CutResult(pos,target.transform));
-                result.Add(new CutResult(neg,target.transform));
+                result.Add(new CutResult(pos,target.transform,vel));
+                result.Add(new CutResult(neg,target.transform,vel));
             }
 
             // destroy original object

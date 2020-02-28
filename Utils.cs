@@ -118,6 +118,16 @@ namespace MeshUtils {
             return s >= 0 && s <= 1 && t >= 0 && t <= 1 && s + t >= 0 && s + t <= 1;
         }
 
+        // ------------------
+        // Transform normals
+        // ------------------
+        public static Vector3 TransformNormal(Vector3 v, Transform t) {
+            return t.worldToLocalMatrix.transpose * v;
+        }
+        public static Vector3 InverseTransformNormal(Vector3 v, Transform t) {
+            return t.localToWorldMatrix.transpose * v;
+        }
+
         // ------------------------------------
         // Check if float is in a given range
         // ------------------------------------
@@ -331,8 +341,6 @@ namespace MeshUtils {
                 AddIndices(list,mesh.vertices,v0,v1,v2,i0,i1,i2);
             }
 
-            // Debug.Log("sets:"+list.Count);
-
             //MeshPart part = new MeshPart(mesh.side);
             //part.vertices.AddRange(mesh.vertices);
             //part.indices.AddRange(list[0]);
@@ -345,7 +353,7 @@ namespace MeshUtils {
                 foreach (int ind in indices) {
                     if (part.indexMap.ContainsKey(ind)) part.indices.Add(part.indexMap[ind]);
                     else {
-                        Debug.Log(part.vertices.Count+" => "+ind);
+                        // Debug.Log(part.vertices.Count+" => "+ind);
                         part.indexMap.Add(ind,part.vertices.Count);
                         part.indices.Add(part.vertices.Count);
                         part.vertices.Add(mesh.vertices[ind]);
@@ -387,23 +395,19 @@ namespace MeshUtils {
                 return;
             }
 
-            // this ensures that if we get lists A,B,A, then we do not add A onto A+B again
-            List<int> mergedFrom = null;
-
-            // merge l0 into l1
+            // merge l0 into l1 (unless we get ABA, then ignore l0)
             if (l0 != null) {
                 if (l1 == null) l1 = l0;
-                else if (l0 != l1) {
+                else if (l0 != l1 && l0 != l2) {
                     list.Remove(l0);
                     l1.AddRange(l0);
-                    mergedFrom = l0;
                 }
             }
 
             // merge l1 into l2
             if (l1 != null) {
                 if (l2 == null) l2 = l1;
-                else if (l1 != l2 && mergedFrom != l2) {
+                else if (l1 != l2) {
                     list.Remove(l1);
                     l2.AddRange(l1);
                 }

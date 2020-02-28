@@ -34,20 +34,7 @@ namespace MeshUtils {
                 this.pointInPlane = pointInPlane;
                 this.normal = normal;
                 this.d = -Vector3.Dot(pointInPlane,normal);
-                /*Matrix4x4 m = new Matrix4x4();
-                Vector3 d1 = Util.UnitPerpendicular(normal);
-                Vector3 d2 = Vector3.Cross(normal,d1).normalized;
-                m.SetColumn(0,d1);
-                m.SetColumn(1,d2);
-                m.SetColumn(2,pointInPlane);
-                m[3,3] = 1;
-                this.projectionMatrix = m.inverse; */
             }
-
-            /*public Vector2 Project(Vector3 v) {
-                Vector3 res = this.projectionMatrix * v;
-                return new Vector3(res.x,res.y);
-            }*/
 
             public CuttingPlane ToWorldSpace() {return this.worldSpace;}
 

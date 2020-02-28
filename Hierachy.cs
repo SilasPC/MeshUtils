@@ -36,11 +36,11 @@ namespace MeshUtils {
         private readonly Vector3
             // plane normal is used for various things
             normal,
-            // x,y minimum of ring bounding box
+            // x,y,z minimum of ring bounding box
             min = new Vector3(float.PositiveInfinity,float.PositiveInfinity,float.PositiveInfinity),
-            // x,y maximum of ring bounding box
+            // x,y,z maximum of ring bounding box
             max = new Vector3(float.NegativeInfinity,float.NegativeInfinity,float.NegativeInfinity),
-            // x,y size of ring bounding box
+            // x,y,z size of ring bounding box
             size;
         private readonly List<Vector3> ring;
         private readonly List<Hierarchy> children = new List<Hierarchy>();
@@ -68,17 +68,26 @@ namespace MeshUtils {
             //   it is not complete, and it can be fooled.
             foreach (var child in ChildRingSorter.Sort(this)) {
                 resRing = JoinRings(resRing,child.ring);
-                res.AddRange(child.ReduceChildren());
+                child.ReduceChildrenInto(res);
             }
             res.Add(resRing);
             return res;
         }
 
-        private List<List<Vector3>> ReduceChildren() {
-            List<List<Vector3>> res = new List<List<Vector3>>();
+        private void ReduceInto(List<List<Vector3>> res) {
+            List<Vector3> resRing = ring;
+            // while sorting here is a decent solution,
+            //   it is not complete, and it can be fooled.
+            foreach (var child in ChildRingSorter.Sort(this)) {
+                resRing = JoinRings(resRing,child.ring);
+                child.ReduceChildrenInto(res);
+            }
+            res.Add(resRing);
+        }
+
+        private void ReduceChildrenInto(List<List<Vector3>> res) {
             foreach (var child in children)
-                res.AddRange(child.Reduce());
-            return res;
+                child.ReduceInto(res);
         }
 
         // ------------------------------------------
