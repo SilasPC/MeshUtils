@@ -22,6 +22,15 @@ namespace MeshUtils {
         }
 
         public class CutResult {
+            public readonly List<Vector3> cutCenters;
+            public readonly List<CutObj> results;
+            public CutResult (List<Vector3> cutCenters, List<CutObj> results) {
+                this.cutCenters = cutCenters;
+                this.results = results;
+            }
+        }
+
+        public class CutObj {
 
             private readonly MeshPart part;
             private readonly Vector3 pos, scl;
@@ -34,7 +43,7 @@ namespace MeshUtils {
             private bool addRigidbody = false;
             private Color? addColor = null;
             
-            public CutResult(MeshPart part, Transform orig, Vector3? vel) {
+            public CutObj(MeshPart part, Transform orig, Vector3? vel) {
                 this.part = part;
                 this.vel = vel;
                 this.pos = orig.position;
@@ -42,28 +51,28 @@ namespace MeshUtils {
                 this.scl = orig.localScale;
             }
 
-            public CutResult WithRenderer() {
+            public CutObj WithRenderer() {
                 this.addRenderer = true;
                 return this;
             }
 
-            public CutResult WithColor(Color col) {
+            public CutObj WithColor(Color col) {
                 this.addColor = col;
                 this.addRenderer = true;
                 return this;
             }
 
-            public CutResult WithCollider() {
+            public CutObj WithCollider() {
                 this.addCollider = true;
                 return this;
             }
 
-            public CutResult WithRigidbody() {
+            public CutObj WithRigidbody() {
                 this.addRigidbody = true;
                 return this;
             }
 
-            public CutResult CopyVelocity() {
+            public CutObj CopyVelocity() {
                 this.addRigidbody = true;
                 this.addVelocity = true;
                 return this;
@@ -96,12 +105,13 @@ namespace MeshUtils {
 
         }
 
-        public static bool PerformCut(
+        public static CutResult PerformCut(
             GameObject target,
-            CuttingPlane cutting_plane,
-            CutParams param,
-            out List<CutResult> result
+            CuttingPlane plane,
+            CutParams param
         ) {
+
+            CuttingPlane cutting_plane = plane.ToLocalSpace(target.transform);
 
             Mesh mesh = target.GetComponent<MeshFilter>().mesh;
             MeshPart pos = new MeshPart(true), neg = new MeshPart(false);
@@ -121,10 +131,8 @@ namespace MeshUtils {
             }
 
             // if either vertex list is empty the knife plane didn't collide
-            if (pos.vertices.Count == 0 || neg.vertices.Count == 0) {
-                result = null;
-                return false;
-            }
+            if (pos.vertices.Count == 0 || neg.vertices.Count == 0)
+                return null;
 
             // put triangles in correct mesh
             for (i = 0; i < mesh.triangles.Length; i += 3) {
@@ -189,15 +197,15 @@ namespace MeshUtils {
                 }
             }
 
-            var reduced = Hierarchy.Analyse(rings.GetRings(), cutting_plane);
+            var analysis = Hierarchy.Analyse(rings.GetRings(), cutting_plane);
 
             // generate seperation meshing
-            foreach (var ring in reduced) {
+            foreach (var ring in analysis.rings) {
                 GenerateRingMesh(ring,pos,cutting_plane.normal);
                 GenerateRingMesh(ring,neg,cutting_plane.normal); 
             }
 
-            result = new List<CutResult>();
+           List<CutObj> cutObjs = new List<CutObj>();
 
             Vector3? vel = null;
             Rigidbody rb;
@@ -207,17 +215,23 @@ namespace MeshUtils {
 
             // create new objects
             if (param.polySeperation) {
-                result.AddRange(PolySep(pos).ConvertAll(p=>new CutResult(p,target.transform,vel)));
-                result.AddRange(PolySep(neg).ConvertAll(p=>new CutResult(p,target.transform,vel)));
+                cutObjs.AddRange(PolySep(pos).ConvertAll(p=>new CutObj(p,target.transform,vel)));
+                cutObjs.AddRange(PolySep(neg).ConvertAll(p=>new CutObj(p,target.transform,vel)));
             } else {
-                result.Add(new CutResult(pos,target.transform,vel));
-                result.Add(new CutResult(neg,target.transform,vel));
+                cutObjs.Add(new CutObj(pos,target.transform,vel));
+                cutObjs.Add(new CutObj(neg,target.transform,vel));
             }
+
+            CutResult result = new CutResult(
+                analysis.siblingCenters.ConvertAll(v=>target.transform.TransformPoint(v)),
+                cutObjs
+            );
 
             // destroy original object
             if (param.destroyOriginal) MonoBehaviour.Destroy(target);
 
-            return true;
+            return result;
+
         }
 
     }

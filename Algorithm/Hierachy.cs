@@ -6,31 +6,43 @@ using UnityEngine;
 
 namespace MeshUtils {
 
+    struct HierarchyResult {
+        public List<List<Vector3>> rings;
+        public List<Vector3> siblingCenters;
+        public HierarchyResult(List<List<Vector3>> rings, List<Vector3> siblingCenters) {
+            this.rings = rings;
+            this.siblingCenters = siblingCenters;
+        }
+    }
 
     // -----------------------------------------------
     // Used to organize rings for further processing
     // -----------------------------------------------
     class Hierarchy {
         
-        public static List<List<Vector3>> Analyse(List<List<Vector3>> rings, CuttingPlane plane) {
+        public static HierarchyResult Analyse(List<List<Vector3>> rings, CuttingPlane plane) {
             List<Hierarchy> siblings = new List<Hierarchy>();
             List<Hierarchy> list = rings.ConvertAll(r => new Hierarchy(r,plane.normal));
             // sort from largest to smallest
-            // when looping forwards, if the next is not contained
+            // when looping forwards, if the next cannot be contained
             //   within any previous, it will never be contained,
             //   and as such can be considered a top-level sibling
             list.Sort(new HierarchySorter());
             foreach (Hierarchy h in list) {
                 // try add hierarchy to siblings
                 // if failed, add as new sibling
-                //   (because no other siblings contain hierarchy)
+                //   (because no other siblings can contain it)
                 if (!siblings.Exists(sib => sib.TryAdd(h)))
                     siblings.Add(h);
             }
             List<List<Vector3>> result = new List<List<Vector3>>();
+            List<Vector3> centers = new List<Vector3>();
             // Debug.Log(siblings.Count + " top level siblings");
-            siblings.ForEach(sib => result.AddRange(sib.Reduce()));
-            return result;
+            siblings.ForEach(sib => {
+                centers.Add(sib.BoundingBoxCenter());
+                result.AddRange(sib.Reduce());
+            });
+            return new HierarchyResult(result,centers);
         }
 
         private readonly Vector3
@@ -56,6 +68,10 @@ namespace MeshUtils {
                 if (v.z > max.z) max.z = v.z;
             }
             size = max-min;
+        }
+
+        public Vector3 BoundingBoxCenter() {
+            return (min+max)*0.5f;
         }
 
         // ------------------------------------

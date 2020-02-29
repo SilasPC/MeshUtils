@@ -58,20 +58,28 @@ public class KnifeExample : MonoBehaviour {
 			: transform.position;
 
 		CuttingPlane plane = CuttingPlane
-			.InWorldSpace(normal,pointInPlane)
-			.ToLocalSpace(col.transform);
+			.InWorldSpace(normal,pointInPlane);
 		CutParams param = new CutParams(true, true);
 
-		List<CutResult> result;
-		if (PerformCut(col.gameObject,plane,param,out result)) {
+		CutResult result = PerformCut(col.gameObject,plane,param);
+
+		if (result != null) {
 			Debug.Log("success");
 			
 			if (particlePrefab) {
-				GameObject part = Instantiate(particlePrefab);
-				part.transform.SetPositionAndRotation(plane.ToWorldSpace().pointInPlane,transform.rotation);
+				foreach (Vector3 pos in result.cutCenters) {
+					GameObject part = Instantiate(particlePrefab);
+					part.transform.SetPositionAndRotation(
+						pos,
+						Quaternion.FromToRotation(
+							Vector3.up,
+							normal
+						)
+					);
+				}
 			}
 
-			foreach (CutResult res in result) {
+			foreach (CutObj res in result.results) {
 				GameObject obj = res
 					.WithColor(new Color(0,0.7f,0.3f))
 					.WithCollider()
