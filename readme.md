@@ -7,3 +7,6 @@
 
 ### Things fixed from old version
  - Boundary checks
+
+### Todo
+ - Check box collider fallback

@@ -10,65 +10,65 @@ using MeshUtils;
 public class KnifeExample : MonoBehaviour {
 
 	[Tooltip("A fadeable material.")]
-	public Material fadeMaterial;
+	public Material FadeMaterial;
 
-	[Tooltip("A particle system prefab to spawn at cuts")]
-	public GameObject particlePrefab;
+	[Tooltip("A particle system prefab to spawn at cuts.")]
+	public GameObject ParticlePrefab;
 
-	public Vector3 edgeDirection = Vector3.up, cutDirection = Vector3.forward;
+	public Vector3 EdgeDirection = Vector3.up, CutDirection = Vector3.forward;
 
-	[Tooltip("Maximum angle (in degrees) from cutting direction to tolerate")]
-	public float maxAngle = 20;
+	[Tooltip("Maximum angle (in degrees) from cutting direction to tolerate.")]
+	public float MaxAngle = 20;
 
-	[Tooltip("Minimum relative velocity required to attempt cut")]
-	public float minimumVelocity = 2;
+	[Tooltip("Minimum relative velocity required to attempt cut.")]
+	public float MinimumVelocity = 2;
 
-	[Tooltip("If true, the cutting direction is aligned to the relative velocity between objects.\nPrimarily useful for omnidirectional cutting with maxAngle >= 180")]
-	public bool alignToVelocity = false;
+	[Tooltip("If true, the cutting direction is aligned to the relative velocity between objects.\nPrimarily useful for omnidirectional cutting with maxAngle >= 180.")]
+	public bool AlignToVelocity = false;
 
 	[Tooltip("If true, direction vectors are interpreted as normals. This means the directions will be squezed along with the transform.")]
 	public bool directionsAreNormals = false;
 
 	[Tooltip("If true, uses first contact point as basis for cutting plane. Otherwise uses knife center.")]
-	public bool useContactPoint = true;
+	public bool UseContactPoint = true;
+
+	[Tooltip("Further seperate disconnected parts of resulting meshes.")]
+	public bool PolySeperation = true;
 
 	public void OnCollisionEnter(Collision col) {
 
 		if (col.gameObject.tag != "Cuttable") return;
-		if (minimumVelocity > col.relativeVelocity.magnitude) return;
+		if (MinimumVelocity > col.relativeVelocity.magnitude) return;
 
 		Vector3 cutDir = directionsAreNormals
-			? Util.TransformNormal(cutDirection,transform)
-			: transform.TransformDirection(cutDirection);
+			? Util.TransformNormal(CutDirection,transform)
+			: transform.TransformDirection(CutDirection);
 
-		if (Vector3.Angle(-col.relativeVelocity,cutDir) > maxAngle) return;
+		if (Vector3.Angle(-col.relativeVelocity,cutDir) > MaxAngle) return;
 
-		Vector3 dir = alignToVelocity
+		Vector3 dir = AlignToVelocity
 			? -col.relativeVelocity
 			: cutDir;
 
 		Vector3 edge = directionsAreNormals
-			? Util.TransformNormal(edgeDirection,transform)
-			: transform.TransformDirection(edgeDirection);
+			? Util.TransformNormal(EdgeDirection,transform)
+			: transform.TransformDirection(EdgeDirection);
 		
 		Vector3 normal = Vector3.Cross(dir,edge).normalized;
 
-		Vector3 pointInPlane = useContactPoint
+		Vector3 pointInPlane = UseContactPoint
 			? col.GetContact(0).point
 			: transform.position;
 
-		CuttingPlane plane = CuttingPlane
-			.InWorldSpace(normal,pointInPlane);
-		CutParams param = new CutParams(true, true);
+		CuttingPlane plane = CuttingPlane.InWorldSpace(normal,pointInPlane);
+		CutParams param = new CutParams(PolySeperation, true);
 
 		CutResult result = PerformCut(col.gameObject,plane,param);
 
 		if (result != null) {
-			Debug.Log("success");
-			
-			if (particlePrefab) {
+			if (ParticlePrefab) {
 				foreach (Vector3 pos in result.cutCenters) {
-					GameObject part = Instantiate(particlePrefab);
+					GameObject part = Instantiate(ParticlePrefab);
 					part.transform.SetPositionAndRotation(
 						pos,
 						Quaternion.FromToRotation(
@@ -81,15 +81,20 @@ public class KnifeExample : MonoBehaviour {
 
 			foreach (CutObj res in result.results) {
 				GameObject obj = res
-					.WithColor(new Color(0,0.7f,0.3f))
+					.CopyMaterial()
+					.FallbackToColor(new Color(0,0.7f,0.3f))
 					.WithCollider()
+					.FallbackToBoxCollider()
 					.CopyVelocity()
+					.WithDriftVelocity(0.1f)
 					.Create();
-				if (fadeMaterial != null) {
+				if (FadeMaterial != null) {
 					obj.GetComponent<Rigidbody>().useGravity = false;
 					obj.AddComponent<FadeAndDestroy>();
-					var mat = obj.GetComponent<MeshRenderer>().material = fadeMaterial;
-					mat.color = new Color(0,0.7f,0.3f);
+					var oldMat = obj.GetComponent<MeshRenderer>().material;
+					var mat = obj.GetComponent<MeshRenderer>().material = FadeMaterial;
+					if (oldMat) mat.color = oldMat.color;
+					else mat.color = new Color(0,0.7f,0.3f);
 					Physics.IgnoreCollision(obj.GetComponent<Collider>(),GetComponent<Collider>());
 				}
 			}

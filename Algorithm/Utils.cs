@@ -144,13 +144,18 @@ namespace MeshUtils {
             CuttingPlane plane,
             MeshPart pos, MeshPart neg,
             Vector3 a, Vector3 b,Vector3 c,
+            Vector2 txa, Vector2 txb, Vector2 txc,
             int i_a, int i_b, int i_c,
-            RingGenerator rings
+            RingGenerator rings,
+            bool addUVs
         ) {
 
-            // find intersection vertices
-            Vector3 e = plane.Intersection(a, c);
-            Vector3 d = plane.Intersection(b, c);
+            // find intersection vertices / uvs
+            var es = plane.Intersection(a, c, txa, txc);
+            var ds = plane.Intersection(b, c, txb, txc);
+
+            Vector3 e = es.Item1, d = ds.Item1;
+            Vector2 txe = es.Item2, txd = ds.Item2;
 
             // if e == d, the three vertices lie in a line,
             //   and thus do not make up a triangle
@@ -171,11 +176,17 @@ namespace MeshUtils {
 
             rings.AddConnected(dir?e:d,dir?d:e);
 
-            // add new vertices
+            // add new vertices and uvs
             pos.vertices.Add(d);
             pos.vertices.Add(e);
             neg.vertices.Add(d);
             neg.vertices.Add(e);
+            if (addUVs) {
+                pos.uvs.Add(txd);
+                pos.uvs.Add(txe);
+                neg.uvs.Add(txd);
+                neg.uvs.Add(txe);
+            }
 
             // generate triangles for sides ...
 
@@ -238,7 +249,7 @@ namespace MeshUtils {
         // Generate triangle mesh within possibly concave ring
         // -----------------------------------------------------
         public static void GenerateRingMesh(
-            List<Vector3> ring, MeshPart part, Vector3 normal
+            List<Vector3> ring, MeshPart part, Vector3 normal, bool addUVs
         ) {
 
             // List<List<Vector3>> reduceHist = new List<List<Vector3>>();
@@ -246,6 +257,7 @@ namespace MeshUtils {
 
             int indStart = part.vertices.Count;
             part.vertices.AddRange(ring);
+            if (addUVs) foreach (var _ in ring) part.uvs.Add(Vector2.zero);
 
             List<Tuple<Vector3,int>> set = ring.ConvertAll(v=>new Tuple<Vector3,int>(v,indStart++));
 
@@ -313,6 +325,7 @@ namespace MeshUtils {
         public class MeshPart {
             public readonly List<Vector3> vertices = new List<Vector3>();
             public readonly List<int> indices = new List<int>();
+            public readonly List<Vector2> uvs = new List<Vector2>();
             
             // Map from original indices to new indices
             public readonly Dictionary<int,int> indexMap = new Dictionary<int, int>();
@@ -324,6 +337,9 @@ namespace MeshUtils {
                 var mesh = obj.AddComponent<MeshFilter>().mesh;
                 mesh.vertices = vertices.ToArray();
                 mesh.triangles = indices.ToArray();
+                if (uvs.Count > 0 && uvs.Count != vertices.Count)
+                    throw OperationException.Internal("UV/Vertex length mismatch");
+                if (uvs.Count == vertices.Count) mesh.uv = uvs.ToArray();
                 mesh.RecalculateNormals();
                 mesh.RecalculateTangents();
             }
@@ -334,6 +350,9 @@ namespace MeshUtils {
 
             List<List<int>> list = new List<List<int>>();
 
+            if (mesh.uvs.Count > 0 && mesh.uvs.Count != mesh.vertices.Count)
+                throw OperationException.Internal("UV/Vertex length mismatch");
+
             // create index groups
             for (int i = 0; i < mesh.indices.Count; i += 3) {
                 int i0 = mesh.indices[i], i1 = mesh.indices[i+1], i2 = mesh.indices[i+2];
@@ -341,11 +360,6 @@ namespace MeshUtils {
                 AddIndices(list,mesh.vertices,v0,v1,v2,i0,i1,i2);
             }
 
-            //MeshPart part = new MeshPart(mesh.side);
-            //part.vertices.AddRange(mesh.vertices);
-            //part.indices.AddRange(list[0]);
-            //return new List<MeshPart>() {part};
-            // create new meshes
             return list.ConvertAll(indices=>{
 
                 MeshPart part = new MeshPart(mesh.side);
@@ -353,10 +367,10 @@ namespace MeshUtils {
                 foreach (int ind in indices) {
                     if (part.indexMap.ContainsKey(ind)) part.indices.Add(part.indexMap[ind]);
                     else {
-                        // Debug.Log(part.vertices.Count+" => "+ind);
                         part.indexMap.Add(ind,part.vertices.Count);
                         part.indices.Add(part.vertices.Count);
                         part.vertices.Add(mesh.vertices[ind]);
+                        if (mesh.uvs.Count > 0) part.uvs.Add(mesh.uvs[ind]);
                     }
                 }
 
