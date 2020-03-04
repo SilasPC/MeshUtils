@@ -10,7 +10,7 @@ public class BulletExample : MonoBehaviour
     [Tooltip("Velocity resulting objects should drift apart with.")]
     public float SplitVelocity = 1;
 
-    [Tooltip("Split at collision. Otherwise splits at object center.")]
+    [Tooltip("Shatter at collision. Otherwise shatters at object center.")]
     public bool UseContactPoint = false;
 
     public void OnCollisionEnter(Collision col) {
@@ -20,7 +20,11 @@ public class BulletExample : MonoBehaviour
             return;
         }
 
-		CuttingPlane plane = CuttingPlane.InLocalSpace(UnityEngine.Random.insideUnitSphere.normalized,Vector3.zero,col.transform);
+        Vector3 pos = UseContactPoint
+            ? col.transform.InverseTransformPoint(col.GetContact(0).point)
+            : Vector3.zero;
+
+		CuttingPlane plane = CuttingPlane.InLocalSpace(UnityEngine.Random.insideUnitSphere.normalized,pos,col.transform);
 		CutParams param = new CutParams(true, true);
 
 		CutResult result = PerformCut(col.gameObject,plane,param);
@@ -32,7 +36,7 @@ public class BulletExample : MonoBehaviour
                 .WithDriftVelocity(SplitVelocity)
                 .Create();
 		    plane = CuttingPlane
-			    .InLocalSpace(UnityEngine.Random.insideUnitSphere.normalized,Vector3.zero,obj.transform);
+			    .InLocalSpace(UnityEngine.Random.insideUnitSphere.normalized,pos,obj.transform);
                 CutResult result2 = PerformCut(obj,plane,param);
                 if (result != null)
                 foreach (CutObj res2 in result2.results)
