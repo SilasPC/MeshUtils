@@ -39,7 +39,7 @@ namespace MeshUtils {
             private readonly Vector3? vel;
             private readonly Material material;
 
-            private bool copyVelocity = false;
+            private float copyVelocity = 0;
             private float driftVelocity = 0;
             private bool addRenderer = false;
             private bool boxColliderFallback = false;
@@ -53,9 +53,13 @@ namespace MeshUtils {
                 this.vel = vel;
                 this.pos = orig.position;
                 this.rot = orig.rotation;
-                this.scale = orig.localScale;
-                this.worldNormal = worldNormal;
+                this.scale = orig.lossyScale;
+                this.worldNormal = worldNormal.normalized;
                 this.material = material;
+            }
+
+            public Vector3 GetDriftDirection() {
+                return worldNormal * (part.side ? 1 : -1);
             }
 
             public CutObj WithRenderer() {
@@ -98,9 +102,9 @@ namespace MeshUtils {
                 return this;
             }
 
-            public CutObj CopyVelocity() {
+            public CutObj CopyVelocity(float factor) {
                 this.addRigidbody = true;
-                this.copyVelocity = true;
+                this.copyVelocity = factor;
                 return this;
             }
             public CutObj WithDriftVelocity(float vel) {
@@ -114,10 +118,8 @@ namespace MeshUtils {
                 this.part.AddMeshTo(obj);
                 if (this.addRigidbody) {
                     Rigidbody rb = obj.AddComponent<Rigidbody>();
-                    if (this.copyVelocity) {
-                        if (this.vel is Vector3 vel) rb.velocity = vel;
-                    }
-                    rb.velocity += worldNormal * this.driftVelocity * (part.side ? 1 : -1);
+                    if (this.vel is Vector3 vel) rb.velocity = vel * copyVelocity;
+                    rb.velocity += GetDriftDirection() * this.driftVelocity;
                 }
                 if (this.addCollider) {
                     MeshCollider mc = null;
@@ -142,7 +144,7 @@ namespace MeshUtils {
 
                 obj.transform.position = this.pos;
                 obj.transform.rotation = this.rot;
-                obj.transform.localScale = this.scale;
+                SetGlobalScale(obj.transform,this.scale);
 
                 return obj;
 

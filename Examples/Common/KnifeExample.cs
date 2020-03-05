@@ -26,6 +26,9 @@ public class KnifeExample : MonoBehaviour {
 	[Tooltip("If true, the cutting direction is aligned to the relative velocity between objects.\nPrimarily useful for omnidirectional cutting with maxAngle >= 180.")]
 	public bool AlignToVelocity = false;
 
+	[Tooltip("Minimum velocity is evaluted after projection in cut direction")]
+	public bool ProjectMinimumVelocity = true;
+
 	[Tooltip("If true, direction vectors are interpreted as normals. This means the directions will be squezed along with the transform.")]
 	public bool directionsAreNormals = false;
 
@@ -35,16 +38,24 @@ public class KnifeExample : MonoBehaviour {
 	[Tooltip("Further seperate disconnected parts of resulting meshes.")]
 	public bool PolySeperation = true;
 
+	public void PassCollision(Collision col) {
+		if (col.GetContact(0).thisCollider == GetComponent<Collider>())
+			OnCollisionEnter(col);
+	}
+
 	public void OnCollisionEnter(Collision col) {
 
 		if (col.gameObject.tag != "Cuttable") return;
-		if (MinimumVelocity > col.relativeVelocity.magnitude) return;
 
 		Vector3 cutDir = directionsAreNormals
 			? Util.TransformNormal(CutDirection,transform)
 			: transform.TransformDirection(CutDirection);
 
-		if (Vector3.Angle(-col.relativeVelocity,cutDir) > MaxAngle) return;
+		float relVel = ProjectMinimumVelocity
+			? Vector3.Project(col.relativeVelocity,cutDir).magnitude
+			: col.relativeVelocity.magnitude;
+
+		if (MinimumVelocity > relVel) return;
 
 		Vector3 dir = AlignToVelocity
 			? -col.relativeVelocity
@@ -53,7 +64,11 @@ public class KnifeExample : MonoBehaviour {
 		Vector3 edge = directionsAreNormals
 			? Util.TransformNormal(EdgeDirection,transform)
 			: transform.TransformDirection(EdgeDirection);
-		
+
+		Vector3 angleProjection = Vector3.ProjectOnPlane(-col.relativeVelocity,edge);
+
+		if (Vector3.Angle(angleProjection,cutDir) > MaxAngle) return;
+
 		Vector3 normal = Vector3.Cross(dir,edge).normalized;
 
 		Vector3 pointInPlane = UseContactPoint
@@ -85,7 +100,7 @@ public class KnifeExample : MonoBehaviour {
 					.FallbackToColor(new Color(0,0.7f,0.3f))
 					.WithCollider()
 					.FallbackToBoxCollider()
-					.CopyVelocity()
+					.CopyVelocity(FadeMaterial == null ? 1 : 0.1f)
 					.WithDriftVelocity(0.1f)
 					.Create();
 				if (FadeMaterial != null) {
