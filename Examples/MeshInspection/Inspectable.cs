@@ -5,30 +5,79 @@ using UnityEngine;
 using MeshUtils;
 using static MeshUtils.API;
 
-class Obj {
-    private readonly GameObject obj;
-    private readonly Vector3 originalPosition;
-    private readonly Vector3 relativePosition;
-    private bool collapsed = true;
-    public List<Obj> children;
-    public Obj (GameObject obj, Vector3 relativePosition) {
-        this.obj = obj;
-        this.relativePosition = relativePosition;
-        this.originalPosition = obj.transform.localPosition;
+//using Valve.VR.InteractionSystem;
+
+public class Inspectable : MonoBehaviour
+{
+    
+    List<Inspectable> children;
+    Vector3 relativePosition = Vector3.zero;
+    bool collapsed = true;
+
+    bool allowCutting = true;
+
+    int cooldown = 30;
+
+    void Start() {
+        /*Throwable throwable;
+        if (!TryGetComponent<Throwable>(out throwable)) return;
+        throwable.onDetachFromHand.AddListener(OnDetachFromHand);
+        throwable.onPickUp.AddListener(OnPickUp);*/
     }
-    public Obj Find(GameObject obj) {
-        if (this.obj == obj) return this;
+
+    /*void OnPickUp() {}
+
+    void OnDetachFromHand() {
+        StartCoroutine(MoveRoutine());
+    }
+
+    Vector3 vel = Vector3.zero;
+    IEnumerator MoveRoutine() {
+        if (vel != Vector3.zero) yield break;
+        SetAllowCutting(false);
+        while (transform.localPosition.magnitude > 0.01f) {
+            Debug.Log(vel);
+            transform.localPosition = Vector3.SmoothDamp(
+                transform.localPosition,
+                Vector3.zero,
+                ref vel,
+                0.4f
+            );
+            yield return null;
+        }
+        transform.localPosition = Vector3.zero;
+        SetAllowCutting(true);
+    }*/
+
+    void Update() {
+        if (cooldown > 0) cooldown--;
+    }
+
+    public void Split(GameObject obj, CuttingPlane plane) {
+        Inspectable toSplit = Find(obj);
+        if (toSplit == null) return;
+        if (toSplit.cooldown > 0) return;
+        if (!allowCutting) return;
+        toSplit.Split(plane);
+        StartCoroutine(toSplit.ExpandRoutine());
+    }
+
+    public Inspectable Find(GameObject obj) {
+        if (gameObject == obj) return this;
+        if (children != null)
         foreach (var child in children) {
             var res = child.Find(obj);
             if (res != null) return res;
         }
         return null;
     }
-    public IEnumerator ToggleRoutine() {
+
+    IEnumerator ToggleRoutine() {
         if (collapsed) return ExpandRoutine();
         return CollapseRoutine();
     }
-    public IEnumerator CollapseRoutine() {
+
+    IEnumerator CollapseRoutine() {
         if (children == null) yield break;
         float t = 1;
         do {
@@ -38,15 +87,20 @@ class Obj {
             yield return null;
         } while ((t -= 0.05f) >= 0);
         SetShown(true);
-        foreach (var child in children)
-            child.SetShown(false);
+        SetChildrenShown(false);
         collapsed = true;
     }
-    public IEnumerator ExpandRoutine() {
+
+    IEnumerator ExpandRoutine() {
         SetShown(false);
-        if (children == null) Split(CuttingPlane.InLocalSpace(UnityEngine.Random.insideUnitSphere.normalized,Vector3.zero,obj.transform));
-        foreach (var child in children)
-            child.SetShown(true);
+        if (children == null) Split(
+            CuttingPlane.InLocalSpace(
+                UnityEngine.Random.insideUnitSphere.normalized,
+                Vector3.zero,
+                transform
+            )
+        );
+        SetChildrenShown(true);
         float t = 0;
         do {
             if (t > 1) t = 1;
@@ -56,52 +110,56 @@ class Obj {
         } while ((t += 0.05f) <= 1);
         collapsed = false;
     }
-    public void Split(CuttingPlane plane) {
-        if (this.children != null) return;
+    
+    void Split(CuttingPlane plane) {
+        DestroyChildren();
         CutParams param = new CutParams(true,false);
-        CutResult result = PerformCut(obj,plane,param);
+        CutResult result = PerformCut(gameObject,plane,param);
         if (result == null) return;
-        children = new List<Obj>();
+        children = new List<Inspectable>();
         foreach (var res in result.results) {
             GameObject newObj = res
                 .CopyMaterial()
                 .WithCollider()
                 .Create();
-            newObj.transform.SetParent(obj.transform);
-            children.Add(new Obj(newObj,res.GetDriftDirection() * 0.1f));
+            newObj.transform.SetParent(transform);
+            Inspectable newInspectable = newObj.AddComponent<Inspectable>();
+            newInspectable.relativePosition = res.GetDriftDirection() * 0.1f;
+            children.Add(newInspectable);
         }
+        SetChildrenShown(false);
     }
-    private void LerpPosition(float t) {
-        obj.transform.localPosition = originalPosition + t * relativePosition;
+    void LerpPosition(float t) {
+        transform.localPosition = t * relativePosition;
         if (children != null)
         foreach (var child in children)
             child.LerpPosition(t);
     }
-    private void SetShown(bool shown) {
-        obj.GetComponent<Renderer>().enabled = shown;
+    void SetChildrenShown(bool shown) {
         if (children != null)
         foreach (var child in children)
             child.SetShown(shown);
     }
-
-}
-
-public class Inspectable : MonoBehaviour
-{
-
-    private Obj obj;
-
-    void Start() {
-        obj = new Obj(gameObject,Vector3.zero);
+    void SetShown(bool shown) {
+        GetComponent<Renderer>().enabled = shown;
+        GetComponent<Collider>().enabled = shown;
+        if (children != null)
+        foreach (var child in children)
+            child.SetShown(shown);
     }
-    
-    int t = 0;
-
-    void Update() {
-        t = ++t % 120;
-        if (t == 0) {
-            StartCoroutine(obj.ToggleRoutine());
-        }
+    void DestroyChildren() {
+        if (children != null)
+        foreach (var child in children)
+            child.Destroy();
+    }
+    void SetAllowCutting(bool allow) {
+        if (children != null)
+        foreach (var child in children)
+            child.SetAllowCutting(allow);
+        this.allowCutting = allow;
+    }
+    void Destroy() {
+        MonoBehaviour.Destroy(gameObject);
     }
     
 }
