@@ -32,6 +32,7 @@ namespace MeshUtils {
 
         public class CutObj {
 
+            private readonly Transform parent;
             private readonly MeshPart part;
             private readonly Vector3 pos, scale;
             private readonly Quaternion rot;
@@ -46,6 +47,7 @@ namespace MeshUtils {
             private bool addCollider = false;
             private bool addRigidbody = false;
             private bool copyMaterial = false;
+            private bool copyParent = false;
             private Color? addColor = null;
             
             public CutObj(MeshPart part, Transform orig, Vector3? vel, Vector3 worldNormal, Material material) {
@@ -56,6 +58,13 @@ namespace MeshUtils {
                 this.scale = orig.lossyScale;
                 this.worldNormal = worldNormal.normalized;
                 this.material = material;
+                this.parent = orig.parent;
+            }
+
+            public Vector3 GetLocalDriftDirection() {
+                return parent != null
+                    ? parent.InverseTransformDirection(GetDriftDirection())
+                    : GetDriftDirection();
             }
 
             public Vector3 GetDriftDirection() {
@@ -77,6 +86,11 @@ namespace MeshUtils {
             public CutObj FallbackToColor(Color col) {
                 this.addRenderer = true;
                 this.addColor = col;
+                return this;
+            }
+
+            public CutObj CopyParent() {
+                this.copyParent = true;
                 return this;
             }
 
@@ -145,6 +159,7 @@ namespace MeshUtils {
                 obj.transform.position = this.pos;
                 obj.transform.rotation = this.rot;
                 SetGlobalScale(obj.transform,this.scale);
+                if (this.copyParent) obj.transform.SetParent(this.parent);
 
                 return obj;
 

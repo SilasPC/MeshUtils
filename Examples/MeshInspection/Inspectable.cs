@@ -124,7 +124,7 @@ public class Inspectable : MonoBehaviour
                 .Create();
             newObj.transform.SetParent(transform);
             Inspectable newInspectable = newObj.AddComponent<Inspectable>();
-            newInspectable.relativePosition = res.GetDriftDirection() * 0.1f;
+            newInspectable.relativePosition = res.GetLocalDriftDirection() * 0.1f;
             children.Add(newInspectable);
         }
         SetChildrenShown(false);

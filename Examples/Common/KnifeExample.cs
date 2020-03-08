@@ -96,6 +96,7 @@ public class KnifeExample : MonoBehaviour {
 
 			foreach (CutObj res in result.results) {
 				GameObject obj = res
+					.CopyParent()
 					.CopyMaterial()
 					.FallbackToColor(new Color(0,0.7f,0.3f))
 					.WithCollider()

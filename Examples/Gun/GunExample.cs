@@ -29,7 +29,7 @@ public class GunExample : MonoBehaviour
 		if (obj.tag != "Shootable") return;
 
 		CuttingPlane plane = CuttingPlane.InLocalSpace(UnityEngine.Random.insideUnitSphere.normalized,Vector3.zero,obj.transform);
-		CutParams param = new CutParams(true, true);
+		CutParams param = new CutParams(false, true), param2 = new CutParams(true,true);
 
 		CutResult result = PerformCut(obj,plane,param);
 
@@ -38,14 +38,16 @@ public class GunExample : MonoBehaviour
             GameObject resObj = res
                 .CopyMaterial()
                 .CopyVelocity(1)
+                .CopyParent()
                 .WithDriftVelocity(SplitVelocity)
                 .Create();
 		    plane = CuttingPlane
 			    .InLocalSpace(UnityEngine.Random.insideUnitSphere.normalized,Vector3.zero,resObj.transform);
-                CutResult result2 = PerformCut(resObj,plane,param);
+                CutResult result2 = PerformCut(resObj,plane,param2);
                 if (result != null)
                 foreach (CutObj res2 in result2.results)
                     res2
+                        .CopyParent()
                         .CopyMaterial()
                         .FallbackToColor(new Color(0,0.7f,0.3f))
                         .WithCollider()
