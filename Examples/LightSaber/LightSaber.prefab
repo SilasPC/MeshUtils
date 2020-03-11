@@ -45,7 +45,7 @@ GameObject:
   - component: {fileID: 4799267342030903734}
   - component: {fileID: 4799267342030903689}
   - component: {fileID: 4799267342030903688}
-  - component: {fileID: 4799267342030903733}
+  - component: {fileID: 4700711613538794141}
   m_Layer: 0
   m_Name: Laser
   m_TagString: Untagged
@@ -89,10 +89,11 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 934d606f35bac0649b767d8885edcd65, type: 2}
+  - {fileID: 2100000, guid: 1099232d5d639854ab14870768f3b759, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -135,8 +136,9 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4799267342030903690}
   m_Enabled: 1
-  serializedVersion: 9
+  serializedVersion: 10
   m_Type: 2
+  m_Shape: 0
   m_Color: {r: 0.07317078, g: 1, b: 0, a: 1}
   m_Intensity: 2.74
   m_Range: 2.12
@@ -187,7 +189,7 @@ Light:
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
---- !u!114 &4799267342030903733
+--- !u!114 &4700711613538794141
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -196,18 +198,22 @@ MonoBehaviour:
   m_GameObject: {fileID: 4799267342030903690}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c2d234a4f44549c44b0f40fa1cc20dbf, type: 3}
+  m_Script: {fileID: 11500000, guid: 630f5ac7cdcefe5469b0e31d3af09ff5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fadeMaterial: {fileID: 0}
-  particlePrefab: {fileID: 0}
-  edgeDirection: {x: 0, y: 1, z: 0}
-  cutDirection: {x: 0, y: 0, z: 1}
-  maxAngle: 181
-  minimumVelocity: 2
-  alignToVelocity: 1
+  FadeMaterial: {fileID: 0}
+  FadeSpeed: 2
+  ParticlePrefab: {fileID: 0}
+  EdgeDirection: {x: 0, y: 1, z: 0}
+  CutDirection: {x: 0, y: 0, z: 1}
+  MaxAngle: 200
+  MinimumVelocity: 0
+  AlignToVelocity: 1
+  ProjectMinimumVelocity: 1
   directionsAreNormals: 0
-  useContactPoint: 1
+  UseContactPoint: 1
+  PolySeperation: 1
+  Gap: 0.2
 --- !u!1 &4799267342204897471
 GameObject:
   m_ObjectHideFlags: 0
@@ -263,10 +269,11 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: c05de7c865075334786e6a47a543af72, type: 2}
+  - {fileID: 2100000, guid: 47442ba090066264dadfbe5972eec0bc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -355,10 +362,11 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: c05de7c865075334786e6a47a543af72, type: 2}
+  - {fileID: 2100000, guid: 47442ba090066264dadfbe5972eec0bc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -481,10 +489,11 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: c05de7c865075334786e6a47a543af72, type: 2}
+  - {fileID: 2100000, guid: 47442ba090066264dadfbe5972eec0bc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

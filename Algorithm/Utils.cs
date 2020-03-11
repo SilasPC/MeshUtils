@@ -140,19 +140,20 @@ namespace MeshUtils {
         // It is assumed that a and b are on the positive half plane,
         // and c is on the negative half plane.
         // -----------------------------------------------------------
-        public static void GenTriangles(
+        /*public static void GenTriangles(
             CuttingPlane plane,
             MeshPart pos, MeshPart neg,
             Vector3 a, Vector3 b,Vector3 c,
             Vector2 txa, Vector2 txb, Vector2 txc,
             int i_a, int i_b, int i_c,
             RingGenerator rings,
-            bool addUVs
+            bool addUVs,
+            float shift
         ) {
 
             // find intersection vertices / uvs
-            var es = plane.Intersection(a, c, txa, txc);
-            var ds = plane.Intersection(b, c, txb, txc);
+            var es = plane.Intersection(a, c, txa, txc, shift);
+            var ds = plane.Intersection(b, c, txb, txc, shift);
 
             Vector3 e = es.Item1, d = ds.Item1;
             Vector2 txe = es.Item2, txd = ds.Item2;
@@ -202,6 +203,120 @@ namespace MeshUtils {
             neg.indices.Add(ni0+1);
             neg.indices.Add(ni0);
             neg.indices.Add(neg.indexMap[i_c]);
+
+        }*/
+
+        public static void GenTwoTriangles(
+            CuttingPlane plane,
+            MeshPart pos,
+            Vector3 a, Vector3 b,Vector3 c,
+            Vector2 txa, Vector2 txb, Vector2 txc,
+            int i_a, int i_b, int i_c,
+            RingGenerator rings,
+            bool addUVs,
+            float shift
+        ) {
+
+            // find intersection vertices / uvs
+            var es = plane.Intersection(a, c, txa, txc, shift);
+            var ds = plane.Intersection(b, c, txb, txc, shift);
+
+            Vector3 e = es.Item1, d = ds.Item1;
+            Vector2 txe = es.Item2, txd = ds.Item2;
+
+            // if e == d, the three vertices lie in a line,
+            //   and thus do not make up a triangle
+            if (e == d) {
+                return;
+                // not sure if this is nescessary
+                throw OperationException.MalformedMesh();
+            }
+
+            // new indices
+            int i0 = pos.vertices.Count;
+
+            // add connected pair in ring generator
+
+            // find proper direction for ring
+            Vector3 tri_nor = Vector3.Cross(c-a,c-b);
+            bool dir = Vector3.Dot(e-d,Vector3.Cross(plane.normal,tri_nor)) > 0;
+
+            rings.AddConnected(dir?e:d,dir?d:e);
+
+            // add new vertices and uvs
+            pos.vertices.Add(d);
+            pos.vertices.Add(e);
+            if (addUVs) {
+                pos.uvs.Add(txd);
+                pos.uvs.Add(txe);
+            }
+
+            // generate triangles for sides ...
+
+            // add a,d,e to positive indicies
+            pos.indices.Add(pos.indexMap[i_a]);
+            pos.indices.Add(i0);
+            pos.indices.Add(i0+1);
+            // add a,b,d to positive indicies
+            pos.indices.Add(pos.indexMap[i_a]);
+            pos.indices.Add(pos.indexMap[i_b]);
+            pos.indices.Add(i0);
+
+        }
+
+        // ------------------------------------------------------------
+        // Generate single triangle for an intersecting triangle a,b,c
+        // It is assumed that a is on the positive half plane
+        // ------------------------------------------------------------
+        public static void GenTriangle(
+            CuttingPlane plane,
+            MeshPart pos,
+            Vector3 a, Vector3 b,Vector3 c,
+            Vector2 txa, Vector2 txb, Vector2 txc,
+            int i_a, int i_b, int i_c,
+            RingGenerator rings,
+            bool addUVs,
+            float shift
+        ) {
+
+            // find intersection vertices / uvs
+            var es = plane.Intersection(c, a, txa, txc, shift);
+            var ds = plane.Intersection(b, a, txb, txc, shift);
+
+            Vector3 e = es.Item1, d = ds.Item1;
+            Vector2 txe = es.Item2, txd = ds.Item2;
+
+            // if e == d, the three vertices lie in a line,
+            //   and thus do not make up a triangle
+            if (e == d) {
+                return;
+                // not sure if this is nescessary
+                throw OperationException.MalformedMesh();
+            }
+
+            // new indices
+            int i0 = pos.vertices.Count;
+
+            // add connected pair in ring generator
+
+            // find proper direction for ring
+            Vector3 tri_nor = Vector3.Cross(c-a,c-b);
+            bool dir = Vector3.Dot(e-d,Vector3.Cross(plane.normal,tri_nor)) > 0;
+
+            rings.AddConnected(dir?e:d,dir?d:e);
+
+            // add new vertices and uvs
+            pos.vertices.Add(d);
+            pos.vertices.Add(e);
+            if (addUVs) {
+                pos.uvs.Add(txd);
+                pos.uvs.Add(txe);
+            }
+
+            // add a,d,e to positive indicies
+            pos.indices.Add(pos.indexMap[i_a]);
+            pos.indices.Add(i0);
+            pos.indices.Add(i0+1);
 
         }
 

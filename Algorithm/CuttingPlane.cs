@@ -68,12 +68,12 @@ namespace MeshUtils {
             // --------------------------------------------------------
             // Intersection point of edge between p0 and p1 with plane
             // --------------------------------------------------------
-            public Tuple<Vector3,Vector2> Intersection(Vector3 p0, Vector3 p1, Vector2 uv0, Vector2 uv1) {
+            public Tuple<Vector3,Vector2> Intersection(Vector3 p0, Vector3 p1, Vector2 uv0, Vector2 uv1, float shift) {
 
                 float dist0 = Distance(p0);
                 float dist1 = Distance(p1);
 
-                float factor = dist0 / (dist0 + dist1);
+                float factor = (dist0 + shift) / (dist0 + dist1);
 
                 return new Tuple<Vector3,Vector2>(
                     p0 + (p1 - p0) * factor,

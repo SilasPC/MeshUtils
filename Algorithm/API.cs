@@ -10,14 +10,17 @@ namespace MeshUtils {
     static class API {
 
         public struct CutParams {
-            public bool polySeperation;
-            public bool destroyOriginal;
+            public readonly bool polySeperation;
+            public readonly bool destroyOriginal;
+            public readonly float seperationDistance;
             public CutParams (
                 bool polySeperation,
-                bool destroyOriginal
+                bool destroyOriginal,
+                float gap
             ) {
                 this.polySeperation = polySeperation;
                 this.destroyOriginal = destroyOriginal;
+                this.seperationDistance = gap / 2;
             }
         }
 
@@ -177,16 +180,25 @@ namespace MeshUtils {
 
             Mesh mesh = target.GetComponent<MeshFilter>().mesh;
             MeshPart pos = new MeshPart(true), neg = new MeshPart(false);
-            RingGenerator rings = new RingGenerator();
+            RingGenerator pos_rings = new RingGenerator(), neg_rings = new RingGenerator();
 
             Vector2[] uvs = mesh.uv;
 
             if (uvs.Length > 0 && uvs.Length != mesh.vertices.Length)
                 throw OperationException.Internal("UV/Vertex length mismatch");
 
+            // removed indices
+            HashSet<int> removed = new HashSet<int>();
+
             // divide mesh in half by vertices
-            int i = 0;
+            int i = -1;
             foreach (Vector3 vertex in mesh.vertices) {
+                i++;
+                float dist = cutting_plane.Distance(vertex);
+                if (dist < param.seperationDistance) {
+                    removed.Add(i);
+                    continue;
+                }
                 if (cutting_plane.IsAbove(vertex)) {
                     pos.indexMap.Add(i,pos.vertices.Count);
                     pos.vertices.Add(vertex);
@@ -196,13 +208,12 @@ namespace MeshUtils {
                     neg.vertices.Add(vertex);
                     if (uvs.Length > 0) neg.uvs.Add(uvs[i]);
                 }
-                i++;
             }
 
             bool addUVs = uvs.Length > 0;
 
-            // if either vertex list is empty the knife plane didn't collide
-            if (pos.vertices.Count == 0 || neg.vertices.Count == 0)
+            // if either vertex list is empty and no vertices were removed, the knife plane didn't collide
+            if ((pos.vertices.Count == 0 || neg.vertices.Count == 0) && removed.Count == 0)
                 return null;
 
             // put triangles in correct mesh
@@ -212,7 +223,15 @@ namespace MeshUtils {
                 int i_a = mesh.triangles[i],
                     i_b = mesh.triangles[i+1],
                     i_c = mesh.triangles[i+2];
-                
+
+                // find if these were removed in cut
+                bool r_a = removed.Contains(i_a),
+                     r_b = removed.Contains(i_b),
+                     r_c = removed.Contains(i_c);
+
+                // if all are removed, ignore triangle
+                if (r_a && r_b && r_c) continue;
+
                 // find original verticies
                 Vector3 a = mesh.vertices[i_a],
                         b = mesh.vertices[i_b],
@@ -232,63 +251,210 @@ namespace MeshUtils {
                     bAbove = cutting_plane.IsAbove(b),
                     cAbove = cutting_plane.IsAbove(c);
 
-                if (aAbove && bAbove && cAbove) {
-                    // triangle above plane
-                    pos.indices.Add(pos.indexMap[i_a]);
-                    pos.indices.Add(pos.indexMap[i_b]);
-                    pos.indices.Add(pos.indexMap[i_c]);
-                } else if (!aAbove && !bAbove && !cAbove) {
-                    // triangle below plane
-                    neg.indices.Add(neg.indexMap[i_a]);
-                    neg.indices.Add(neg.indexMap[i_b]);
-                    neg.indices.Add(neg.indexMap[i_c]);
-                } else {
-                    // triangle crosses plane
-                    // call Util.GenTriangles
-                    if (aAbove == bAbove) {
-                        // a, b, c
-                        GenTriangles(
-                            cutting_plane,
-                            aAbove ? pos : neg,
-                            !aAbove ? pos : neg,
-                            a, b, c, txa, txb, txc, i_a, i_b, i_c,
-                            rings,
-                            addUVs
-                        );
-                    } else if (aAbove == cAbove) {
-                        // c, a, b
-                        GenTriangles(
-                            cutting_plane,
-                            aAbove ? pos : neg,
-                            !aAbove ? pos : neg,
-                            c, a, b, txc, txa, txb, i_c, i_a, i_b,
-                            rings,
-                            addUVs
-                        );
+                if (!r_a&&!r_b&&!r_c) {
+                    // all available
+                    if (aAbove && bAbove && cAbove) {
+                        // triangle above plane
+                        pos.indices.Add(pos.indexMap[i_a]);
+                        pos.indices.Add(pos.indexMap[i_b]);
+                        pos.indices.Add(pos.indexMap[i_c]);
+                    } else if (!aAbove && !bAbove && !cAbove) {
+                        // triangle below plane
+                        neg.indices.Add(neg.indexMap[i_a]);
+                        neg.indices.Add(neg.indexMap[i_b]);
+                        neg.indices.Add(neg.indexMap[i_c]);
+                    } else {
+                        // triangle crosses plane
+                        if (aAbove == bAbove) {
+                            // a, b, c
+                            GenTwoTriangles(
+                                cutting_plane,
+                                aAbove ? pos : neg,
+                                a, b, c, txa, txb, txc, i_a, i_b, i_c,
+                                aAbove ? pos_rings : neg_rings,
+                                addUVs,
+                                -param.seperationDistance
+                            );
+                            GenTriangle(
+                                cutting_plane,
+                                cAbove ? pos : neg,
+                                c, a, b, txc, txa, txb, i_c, i_a, i_b,
+                                cAbove ? pos_rings : neg_rings,
+                                addUVs,
+                                param.seperationDistance
+                            );
+                        } else if (aAbove == cAbove) {
+                            // c, a, b
+                            GenTwoTriangles(
+                                cutting_plane,
+                                aAbove ? pos : neg,
+                                c, a, b, txc, txa, txb, i_c, i_a, i_b,
+                                aAbove ? pos_rings : neg_rings,
+                                addUVs,
+                                -param.seperationDistance
+                            );
+                            GenTriangle(
+                                cutting_plane,
+                                bAbove ? pos : neg,
+                                b, c, a, txb, txc, txa, i_b, i_c, i_a,
+                                bAbove ? pos_rings : neg_rings,
+                                addUVs,
+                                param.seperationDistance
+                            );
 
-                    } else if (bAbove == cAbove) {
-                        // b, c, a (use bAbove)
-                        GenTriangles(
+                        } else if (bAbove == cAbove) {
+                            // b, c, a
+                            GenTwoTriangles(
+                                cutting_plane,
+                                bAbove ? pos : neg,
+                                b, c, a, txb, txc, txa, i_b, i_c, i_a,
+                                bAbove ? pos_rings : neg_rings,
+                                addUVs,
+                                -param.seperationDistance
+                            );
+                            GenTriangle(
+                                cutting_plane,
+                                aAbove ? pos : neg,
+                                a, b, c, txa, txb, txc, i_a, i_b, i_c,
+                                aAbove ? pos_rings : neg_rings,
+                                addUVs,
+                                param.seperationDistance
+                            );
+                        }
+                    }
+                } else if (!r_a&&!r_b) {
+                    // a and b available
+                    if (aAbove != bAbove) {
+                        GenTriangle(
+                            cutting_plane,
+                            aAbove ? pos : neg,
+                            a, b, c, txa, txb, txc, i_a, i_b, i_c,
+                            aAbove ? pos_rings : neg_rings,
+                            addUVs,
+                            param.seperationDistance
+                        );
+                        GenTriangle(
                             cutting_plane,
                             bAbove ? pos : neg,
-                            !bAbove ? pos : neg,
                             b, c, a, txb, txc, txa, i_b, i_c, i_a,
-                            rings,
-                            addUVs
+                            bAbove ? pos_rings : neg_rings,
+                            addUVs,
+                            param.seperationDistance
+                        );
+                    } else {
+                        GenTwoTriangles(
+                            cutting_plane,
+                            aAbove ? pos : neg,
+                            a, b, c, txa, txb, txc, i_a, i_b, i_c,
+                            aAbove ? pos_rings : neg_rings,
+                            addUVs,
+                            -param.seperationDistance
                         );
                     }
+                } else if (!r_a&&!r_c) {
+                    // a and c available
+                    if (aAbove != cAbove) {
+                        GenTriangle(
+                            cutting_plane,
+                            aAbove ? pos : neg,
+                            a, b, c, txa, txb, txc, i_a, i_b, i_c,
+                            aAbove ? pos_rings : neg_rings,
+                            addUVs,
+                            param.seperationDistance
+                        );
+                        GenTriangle(
+                            cutting_plane,
+                            cAbove ? pos : neg,
+                            c, a, b, txc, txa, txb, i_c, i_a, i_b,
+                            cAbove ? pos_rings : neg_rings,
+                            addUVs,
+                            param.seperationDistance
+                        );
+                    } else {
+                        GenTwoTriangles(
+                            cutting_plane,
+                            aAbove ? pos : neg,
+                            c, a, b, txc, txa, txb, i_c, i_a, i_b,
+                            aAbove ? pos_rings : neg_rings,
+                            addUVs,
+                            -param.seperationDistance
+                        );
+                    }
+                } else if (!r_b&&!r_c) {
+                    // b and c available
+                    if (bAbove != cAbove) {
+                        GenTriangle(
+                            cutting_plane,
+                            bAbove ? pos : neg,
+                            b, c, a, txb, txc, txa, i_b, i_c, i_a,
+                            bAbove ? pos_rings : neg_rings,
+                            addUVs,
+                            param.seperationDistance
+                        );
+                        GenTriangle(
+                            cutting_plane,
+                            cAbove ? pos : neg,
+                            c, a, b, txc, txa, txb, i_c, i_a, i_b,
+                            cAbove ? pos_rings : neg_rings,
+                            addUVs,
+                            param.seperationDistance
+                        );
+                    } else {
+                        GenTwoTriangles(
+                            cutting_plane,
+                            bAbove ? pos : neg,
+                            b, c, a, txb, txc, txa, i_b, i_c, i_a,
+                            bAbove ? pos_rings : neg_rings,
+                            addUVs,
+                            -param.seperationDistance
+                        );
+                    }
+                } else if (!r_a) {
+                    // a available
+                    GenTriangle(
+                        cutting_plane,
+                        aAbove ? pos : neg,
+                        a, b, c, txa, txb, txc, i_a, i_b, i_c,
+                        aAbove ? pos_rings : neg_rings,
+                        addUVs,
+                        param.seperationDistance
+                    );
+                } else if (!r_b) {
+                    // b available
+                    GenTriangle(
+                        cutting_plane,
+                        bAbove ? pos : neg,
+                        b, c, a, txb, txc, txa, i_b, i_c, i_a,
+                        bAbove ? pos_rings : neg_rings,
+                        addUVs,
+                        param.seperationDistance
+                    );
+                } else {
+                    // c available
+                    GenTriangle(
+                        cutting_plane,
+                        cAbove ? pos : neg,
+                        c, a, b, txc, txa, txb, i_c, i_a, i_b,
+                        cAbove ? pos_rings : neg_rings,
+                        addUVs,
+                        param.seperationDistance
+                    );
                 }
+                
             }
             
-            var analysis = Hierarchy.Analyse(rings.GetRings(), cutting_plane);
+            var pos_analysis = Hierarchy.Analyse(pos_rings.GetRings(), cutting_plane);
+            var neg_analysis = Hierarchy.Analyse(neg_rings.GetRings(), cutting_plane);
 
             // generate seperation meshing
-            foreach (var ring in analysis.rings) {
-                GenerateRingMesh(ring,pos,cutting_plane.normal,addUVs);
-                GenerateRingMesh(ring,neg,cutting_plane.normal,addUVs); 
+            foreach (var ring in pos_analysis.rings) {
+                GenerateRingMesh(ring,pos,cutting_plane.normal,addUVs); 
+            }
+            foreach (var ring in neg_analysis.rings) {
+                GenerateRingMesh(ring,neg,cutting_plane.normal,addUVs);
             }
 
-           List<CutObj> cutObjs = new List<CutObj>();
+            List<CutObj> cutObjs = new List<CutObj>();
 
             Vector3? vel = null;
             Rigidbody rb;
@@ -304,15 +470,22 @@ namespace MeshUtils {
 
             // create new objects
             if (param.polySeperation) {
-                cutObjs.AddRange(PolySep(pos).ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat)));
-                cutObjs.AddRange(PolySep(neg).ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat)));
+                if (pos.vertices.Count > 0)
+                    cutObjs.AddRange(PolySep(pos).ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat)));
+                if (neg.vertices.Count > 0)
+                    cutObjs.AddRange(PolySep(neg).ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat)));
             } else {
-                cutObjs.Add(new CutObj(pos,target.transform,vel,worldNormal,mat));
-                cutObjs.Add(new CutObj(neg,target.transform,vel,worldNormal,mat));
+                if (pos.vertices.Count > 0)
+                    cutObjs.Add(new CutObj(pos,target.transform,vel,worldNormal,mat));
+                if (neg.vertices.Count > 0)
+                    cutObjs.Add(new CutObj(neg,target.transform,vel,worldNormal,mat));
             }
 
+            List<Vector3> centers = pos_analysis.siblingCenters.ConvertAll(v=>target.transform.TransformPoint(v));
+            centers.AddRange(neg_analysis.siblingCenters.ConvertAll(v=>target.transform.TransformPoint(v)));
+
             CutResult result = new CutResult(
-                analysis.siblingCenters.ConvertAll(v=>target.transform.TransformPoint(v)),
+                centers,
                 cutObjs
             );
 

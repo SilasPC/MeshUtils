@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 769582256128461472}
+  - component: {fileID: 2380221546277563694}
   m_Layer: 0
   m_Name: Katana
   m_TagString: Untagged
@@ -33,6 +34,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: -151.482, y: -829.743, z: 91.45899}
+--- !u!114 &2380221546277563694
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 769582256128461473}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8240dfe06c258e247a22233b1a0e39bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PassTo: {fileID: 4695702153003913266}
 --- !u!1 &769582257399312262
 GameObject:
   m_ObjectHideFlags: 0
@@ -88,10 +102,11 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: c05de7c865075334786e6a47a543af72, type: 2}
+  - {fileID: 2100000, guid: 47442ba090066264dadfbe5972eec0bc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -180,10 +195,11 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: c05de7c865075334786e6a47a543af72, type: 2}
+  - {fileID: 2100000, guid: 47442ba090066264dadfbe5972eec0bc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -273,10 +289,11 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: c05de7c865075334786e6a47a543af72, type: 2}
+  - {fileID: 2100000, guid: 47442ba090066264dadfbe5972eec0bc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -398,6 +415,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -447,7 +465,7 @@ GameObject:
   - component: {fileID: 1797485657002566607}
   - component: {fileID: 1797485657002566606}
   - component: {fileID: 1797485657002566601}
-  - component: {fileID: 1797485657002566600}
+  - component: {fileID: 4695702153003913266}
   m_Layer: 0
   m_Name: Edge
   m_TagString: Untagged
@@ -491,6 +509,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -528,7 +547,7 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &1797485657002566600
+--- !u!114 &4695702153003913266
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -537,16 +556,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 1797485657002566602}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c2d234a4f44549c44b0f40fa1cc20dbf, type: 3}
+  m_Script: {fileID: 11500000, guid: 630f5ac7cdcefe5469b0e31d3af09ff5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   FadeMaterial: {fileID: 0}
   ParticlePrefab: {fileID: 0}
   EdgeDirection: {x: 0, y: 1, z: 0}
   CutDirection: {x: 1, y: 0, z: 1}
-  MaxAngle: 30
-  MinimumVelocity: 2
+  MaxAngle: 200
+  MinimumVelocity: 0
   AlignToVelocity: 0
+  ProjectMinimumVelocity: 1
   directionsAreNormals: 0
-  UseContactPoint: 1
+  UseContactPoint: 0
   PolySeperation: 1
+  Gap: 0.3

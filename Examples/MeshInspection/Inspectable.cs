@@ -113,7 +113,7 @@ public class Inspectable : MonoBehaviour
     
     void Split(CuttingPlane plane) {
         DestroyChildren();
-        CutParams param = new CutParams(true,false);
+        CutParams param = new CutParams(true,false,0);
         CutResult result = PerformCut(gameObject,plane,param);
         if (result == null) return;
         children = new List<Inspectable>();

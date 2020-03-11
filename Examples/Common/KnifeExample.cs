@@ -9,8 +9,11 @@ using MeshUtils;
 
 public class KnifeExample : MonoBehaviour {
 
-	[Tooltip("A fadeable material.")]
+	[Tooltip("A fadeable material, if fading out cut results is desired.")]
 	public Material FadeMaterial;
+
+	[Tooltip("The speed with which to fade cut results, if fade material is given")]
+	public int FadeSpeed = 2;
 
 	[Tooltip("A particle system prefab to spawn at cuts.")]
 	public GameObject ParticlePrefab;
@@ -37,6 +40,9 @@ public class KnifeExample : MonoBehaviour {
 
 	[Tooltip("Further seperate disconnected parts of resulting meshes.")]
 	public bool PolySeperation = true;
+
+	[Tooltip("Distance between to newly generated surfaces")]
+	public float Gap;
 
 	public void PassCollision(Collision col) {
 		if (col.GetContact(0).thisCollider == GetComponent<Collider>())
@@ -76,7 +82,7 @@ public class KnifeExample : MonoBehaviour {
 			: transform.position;
 
 		CuttingPlane plane = CuttingPlane.InWorldSpace(normal,pointInPlane);
-		CutParams param = new CutParams(PolySeperation, true);
+		CutParams param = new CutParams(PolySeperation, true, Gap);
 
 		CutResult result = PerformCut(col.gameObject,plane,param);
 
@@ -104,9 +110,10 @@ public class KnifeExample : MonoBehaviour {
 					.CopyVelocity(FadeMaterial == null ? 1 : 0.1f)
 					.WithDriftVelocity(0.1f)
 					.Create();
-				if (FadeMaterial != null) {
+				if (FadeMaterial != null && FadeSpeed > 0) {
 					obj.GetComponent<Rigidbody>().useGravity = false;
-					obj.AddComponent<FadeAndDestroy>();
+					Destroy(obj.GetComponent<Collider>());
+					StartCoroutine(FadeRoutine(obj));
 					var oldMat = obj.GetComponent<MeshRenderer>().material;
 					var mat = obj.GetComponent<MeshRenderer>().material = FadeMaterial;
 					if (oldMat) mat.color = oldMat.color;
@@ -116,6 +123,20 @@ public class KnifeExample : MonoBehaviour {
 			}
 		} else Debug.Log("failure");
 
+	}
+
+	private IEnumerator FadeRoutine(GameObject obj) {
+		int alpha = 255;
+		while (alpha > 0) {
+       		var mat = obj.GetComponent<MeshRenderer>().material;
+			Color col = mat.color;
+			col.a = (float) alpha / 255f;
+			mat.color = col;
+			alpha -= FadeSpeed;
+			yield return null;
+		}
+		Destroy(obj);
+		yield break;
 	}
 
 }
