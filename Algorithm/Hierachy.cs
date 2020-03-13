@@ -7,9 +7,9 @@ using UnityEngine;
 namespace MeshUtils {
 
     struct HierarchyResult {
-        public List<List<Vector3>> rings;
+        public List<Ring> rings;
         public List<Vector3> siblingCenters;
-        public HierarchyResult(List<List<Vector3>> rings, List<Vector3> siblingCenters) {
+        public HierarchyResult(List<Ring> rings, List<Vector3> siblingCenters) {
             this.rings = rings;
             this.siblingCenters = siblingCenters;
         }
@@ -20,7 +20,7 @@ namespace MeshUtils {
     // -----------------------------------------------
     class Hierarchy {
         
-        public static HierarchyResult Analyse(List<List<Vector3>> rings, CuttingPlane plane) {
+        public static HierarchyResult Analyse(List<Ring> rings, CuttingPlane plane) {
             List<Hierarchy> siblings = new List<Hierarchy>();
             List<Hierarchy> list = rings.ConvertAll(r => new Hierarchy(r,plane.normal));
             // sort from largest to smallest
@@ -35,7 +35,7 @@ namespace MeshUtils {
                 if (!siblings.Exists(sib => sib.TryAdd(h)))
                     siblings.Add(h);
             }
-            List<List<Vector3>> result = new List<List<Vector3>>();
+            List<Ring> result = new List<Ring>();
             List<Vector3> centers = new List<Vector3>();
             // Debug.Log(siblings.Count + " top level siblings");
             siblings.ForEach(sib => {
@@ -54,12 +54,12 @@ namespace MeshUtils {
             max = new Vector3(float.NegativeInfinity,float.NegativeInfinity,float.NegativeInfinity),
             // x,y,z size of ring bounding box
             size;
-        private readonly List<Vector3> ring;
+        private readonly Ring ring;
         private readonly List<Hierarchy> children = new List<Hierarchy>();
-        private Hierarchy (List<Vector3> ring, Vector3 normal) {
+        private Hierarchy (Ring ring, Vector3 normal) {
             this.ring = ring;
             this.normal = normal;
-            foreach (Vector3 v in ring) {
+            foreach (Vector3 v in ring.verts) {
                 if (v.x < min.x) min.x = v.x;
                 if (v.y < min.y) min.y = v.y;
                 if (v.z < min.z) min.z = v.z;
@@ -77,9 +77,9 @@ namespace MeshUtils {
         // ------------------------------------
         // Reduce to simple rings recursively
         // ------------------------------------
-        public List<List<Vector3>> Reduce() {
-            List<List<Vector3>> res = new List<List<Vector3>>();
-            List<Vector3> resRing = ring;
+        public List<Ring> Reduce() {
+            List<Ring> res = new List<Ring>();
+            Ring resRing = ring;
             // while sorting here is a decent solution,
             //   it is not complete, and it can be fooled.
             foreach (var child in ChildRingSorter.Sort(this)) {
@@ -90,8 +90,8 @@ namespace MeshUtils {
             return res;
         }
 
-        private void ReduceInto(List<List<Vector3>> res) {
-            List<Vector3> resRing = ring;
+        private void ReduceInto(List<Ring> res) {
+            Ring resRing = ring;
             // while sorting here is a decent solution,
             //   it is not complete, and it can be fooled.
             foreach (var child in ChildRingSorter.Sort(this)) {
@@ -101,7 +101,7 @@ namespace MeshUtils {
             res.Add(resRing);
         }
 
-        private void ReduceChildrenInto(List<List<Vector3>> res) {
+        private void ReduceChildrenInto(List<Ring> res) {
             foreach (var child in children)
                 child.ReduceInto(res);
         }
@@ -138,9 +138,9 @@ namespace MeshUtils {
             //   say, a U-shaped ring
 
             // small optimization by looping over the smallest ring
-            if (sub.ring.Count > ring.Count)
-                return ContainsPoint(sub.ring[0]);
-            return sub.ContainsPoint(ring[0]);
+            if (sub.ring.verts.Count > ring.verts.Count)
+                return ContainsPoint(sub.ring.verts[0]);
+            return sub.ContainsPoint(ring.verts[0]);
 
         }
 
@@ -148,7 +148,7 @@ namespace MeshUtils {
         // Check if a point is contained within the projected ring
         // ----------------------------------------------------------
         private bool ContainsPoint(Vector3 p) {
-            return Util.CheckPointInsideRing(this.ring,p,this.normal);
+            return ring.CheckPointInsideRing(p,this.normal);
         }
 
         // --------------------------------------------------------
@@ -165,20 +165,20 @@ namespace MeshUtils {
         // Join two rings (one inside the other) at nearest points
         // This will create a single concave ring
         // --------------------------------------------------------
-        private List<Vector3> JoinRings(List<Vector3> r0, List<Vector3> r1) {
+        private Ring JoinRings(Ring r0, Ring r1) {
             // join indices
             int i0 = 0, i1 = 0;
-            Util.RingDist(r0, r1, ref i0, ref i1);
+            r0.RingDist(r1, ref i0, ref i1);
             
             // the inner ring should have the opposite direction
             // join by inserting r1 at i0 in r0
             List<Vector3> res = new List<Vector3>();
-            res.AddRange(r0.GetRange(0,i0+1));      // r0 from start to split
-            res.AddRange(r1.GetRange(i1,r1.Count-i1));  // r1 from split to end
-            res.AddRange(r1.GetRange(0,i1+1));            // r1 from start to split
-            res.AddRange(r0.GetRange(i0,r0.Count-i0));  // r0 from split to end
+            res.AddRange(r0.verts.GetRange(0,i0+1));      // r0 from start to split
+            res.AddRange(r1.verts.GetRange(i1,r1.verts.Count-i1));  // r1 from split to end
+            res.AddRange(r1.verts.GetRange(0,i1+1));            // r1 from start to split
+            res.AddRange(r0.verts.GetRange(i0,r0.verts.Count-i0));  // r0 from split to end
 
-            return res;
+            return new Ring(res);
         }
             
         // ---------------------------------------------
@@ -191,7 +191,7 @@ namespace MeshUtils {
                 int _ = 0;
                 var tuples = parent
                     .children
-                    .ConvertAll(c=>new Tuple<Hierarchy,float>(c,Util.RingDist(c.ring,parent.ring,ref _,ref _)));
+                    .ConvertAll(c=>new Tuple<Hierarchy,float>(c,c.ring.RingDist(parent.ring,ref _,ref _)));
                 tuples.Sort(sorter);
                 return tuples.ConvertAll(c=>c.Item1);
             }

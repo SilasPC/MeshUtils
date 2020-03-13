@@ -5,7 +5,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using static MeshUtils.API;
-using MeshUtils;
+using static MeshUtils.VectorUtil;
+using CuttingPlane = MeshUtils.CuttingPlane;
 
 public class KnifeExample : MonoBehaviour {
 
@@ -54,7 +55,7 @@ public class KnifeExample : MonoBehaviour {
 		if (col.gameObject.tag != "Cuttable") return;
 
 		Vector3 cutDir = directionsAreNormals
-			? Util.TransformNormal(CutDirection,transform)
+			? TransformNormal(CutDirection,transform)
 			: transform.TransformDirection(CutDirection);
 
 		float relVel = ProjectMinimumVelocity
@@ -68,7 +69,7 @@ public class KnifeExample : MonoBehaviour {
 			: cutDir;
 
 		Vector3 edge = directionsAreNormals
-			? Util.TransformNormal(EdgeDirection,transform)
+			? TransformNormal(EdgeDirection,transform)
 			: transform.TransformDirection(EdgeDirection);
 
 		Vector3 angleProjection = Vector3.ProjectOnPlane(-col.relativeVelocity,edge);
@@ -82,7 +83,7 @@ public class KnifeExample : MonoBehaviour {
 			: transform.position;
 
 		CuttingPlane plane = CuttingPlane.InWorldSpace(normal,pointInPlane);
-		CutParams param = new CutParams(PolySeperation, true, Gap);
+		CutParams param = new CutParams(PolySeperation, true, true, col.gameObject.transform.position, 1000, Gap);
 
 		CutResult result = PerformCut(col.gameObject,plane,param);
 

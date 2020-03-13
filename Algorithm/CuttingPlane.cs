@@ -82,6 +82,20 @@ namespace MeshUtils {
 
             }
 
+            // ----------------------------------------
+            // Intersection point of edge without UVs
+            // ----------------------------------------
+            public Vector3 Intersection(Vector3 p0, Vector3 p1, float shift) {
+
+                float dist0 = Distance(p0);
+                float dist1 = Distance(p1);
+
+                float factor = (dist0 + shift) / (dist0 + dist1);
+
+                return p0 + (p1 - p0) * factor;
+                
+            }
+
         }
 
 }

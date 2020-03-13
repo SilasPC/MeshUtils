@@ -17,9 +17,9 @@ namespace MeshUtils {
         private List<List<Vector3>> complete = new List<List<Vector3>>();
         private List<List<Vector3>> partials = new List<List<Vector3>>();
 
-        public List<List<Vector3>> GetRings() {
+        public List<Ring> GetRings() {
             if (this.partials.Count > 0) throw OperationException.MalformedMesh();
-            return this.complete;
+            return this.complete.ConvertAll(r=>new Ring(r));
         }
 
         public void MyDebugLog() {
@@ -67,6 +67,84 @@ namespace MeshUtils {
             }
             List<Vector3> newRing = new List<Vector3>() {v0,v1};
             partials.Add(newRing);
+        }
+
+    }
+
+    struct Ring {
+        public readonly List<Vector3> verts;
+        public Ring(List<Vector3> ring) {
+            this.verts = ring;
+        }
+
+        // ---------------------------------------
+        // Check if a point lies within the ring
+        // ---------------------------------------
+        public bool CheckPointInsideRing(Vector3 v, Vector3 normal) {
+            int i0, i1;
+            DistanceToRingPerimeter(v,out i0, out i1);
+            Vector3 side = verts[i0] - verts[i1];
+            Vector3 toSide = verts[i0] - v;
+            return
+                Vector3.Dot(
+                    Vector3.Cross(side,toSide),
+                    normal
+                ) < 0;
+        }
+
+        // ---------------------------------------------------------------
+        // Determine shortest distance to ring perimeter
+        // Formula for point/line distance: d=|(p-x1)x(p-x2)|/|x2-x1|
+        // i0 and i1 are indices for vertexes around closest line in ring
+        // ---------------------------------------------------------------
+        public float DistanceToRingPerimeter(Vector3 v, out int i0, out int i1) {
+            int prevIndex = verts.Count - 1;
+            i0 = prevIndex;
+            i1 = 0;
+            float dMin = float.PositiveInfinity;
+            for (int i = 0; i < verts.Count; i++) {
+                Vector3 x1 = verts[prevIndex], x2 = verts[i];
+                float d1 = (x1-v).magnitude, d2 = (x2-v).magnitude;
+                float d0 = Vector3.Cross(v-x1,v-x2).magnitude/(x2-x1).magnitude;
+                float d = Math.Min(Math.Min(d1,d2),d0);
+                if (d < dMin) {
+                    dMin = d;
+                    i0 = prevIndex;
+                    i1 = i;
+                }
+                prevIndex = i;
+            }
+            return dMin;
+        }
+
+        // -----------------------------------------------
+        // Distance from point to furthest point in ring
+        // -----------------------------------------------
+        public float FurthestDistanceToRingPerimeter(Vector3 p) {
+            float dist = 0;
+            foreach (Vector3 v in verts) {
+                float newDist = (v-p).magnitude;
+                if (newDist > dist) dist = newDist;
+            }
+            return dist;
+        }
+        
+        // ------------------------------------
+        // Closest indices between two rings
+        // ------------------------------------
+        public float RingDist(Ring other, ref int i0, ref int i1) {
+            float mag = float.PositiveInfinity;
+            for (int i = 0; i < verts.Count; i++) {
+                for (int j = 0; j < other.verts.Count; j++) {
+                    float nMag = (verts[i]-other.verts[j]).magnitude;
+                    if (nMag < mag) {
+                        i0 = i;
+                        i1 = j;
+                        mag = nMag;
+                    }
+                }
+            }
+            return mag;
         }
 
     }
