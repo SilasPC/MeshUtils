@@ -31,9 +31,14 @@ namespace MeshUtils {
             private CuttingPlane(Vector3 normal, Vector3 pointInPlane, CuttingPlane worldSpace) {
                 this.worldSpace = worldSpace;
                 this.pointInPlane = pointInPlane;
-                this.normal = normal;
-                this.d = -Vector3.Dot(pointInPlane,normal);
+                this.normal = normal.normalized;
+                this.d = -Vector3.Dot(pointInPlane,this.normal);
             }
+
+            /*public string ToString() {
+                bool sy = normal.y >= 0, sz = normal.z >= 0, sd = d >= 0;
+                return "Plane: "+normal.x+"x"+(sy?"+":"")+normal.y+"y"+(sy?"+":"")+normal.z+"z"+(sd?"+":"")+d+"=0";
+            }*/
 
             public CuttingPlane ToWorldSpace() {
                 if (worldSpace == null) return this;

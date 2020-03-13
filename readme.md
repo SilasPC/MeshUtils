@@ -14,3 +14,4 @@
 
 ### Todo
  - Check box collider fallback
+ - Builder pattern for param
