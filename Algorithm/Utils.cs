@@ -4,6 +4,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using static MeshUtils.Debugging;
+
 namespace MeshUtils {
 
     class OperationException : Exception {
@@ -21,46 +23,6 @@ namespace MeshUtils {
 
     static class Util {
 
-        // --------------------------------------------------------
-        // Debugging util to make a GeoGebra compatible point list
-        // --------------------------------------------------------
-        public static void DebugRing(List<Vector3> ring) {
-            List<String> strings = new List<String>();
-            foreach (var v in ring) strings.Add("("+v.x.ToString().Replace(',','.')+","+v.y.ToString().Replace(',','.')+","+v.z.ToString().Replace(',','.')+")");
-            Debug.Log("{"+String.Join(",",strings)+"}");
-        }
-
-        // -----------------------------------------------------------
-        // Debugging util to make a GeoGebra compatible 2d point list
-        // -----------------------------------------------------------
-        public static void DebugRing2D(List<Vector2> ring) {
-            List<String> strings = new List<String>();
-            foreach (var v in ring) strings.Add("("+v.x.ToString().Replace(',','.')+","+v.y.ToString().Replace(',','.')+")");
-            Debug.Log("{"+String.Join(",",strings)+"}");
-        }
-
-        // --------------------------------------------------------
-        // Debugging util to make a GeoGebra compatible ring list
-        // --------------------------------------------------------
-        public static void DebugRings(List<List<Vector3>> rings) {
-            List<String> topStrings = new List<String>();
-            foreach (var ring in rings) {
-                List<String> strings = new List<String>();
-                foreach (var v in ring) strings.Add("("+v.x.ToString().Replace(',','.')+","+v.y.ToString().Replace(',','.')+","+v.z.ToString().Replace(',','.')+")");
-                topStrings.Add("{"+String.Join(",",strings)+"}");
-            }
-            Debug.Log("{"+String.Join(",",topStrings)+"}");
-        }
-
-        // ------------------------------
-        // Debugging util to log a list
-        // ------------------------------
-        public static string LogList(List<int> list) {
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            foreach (int i in list) sb.Append(i.ToString()+" ");
-            return sb.ToString();
-        }
-
         // ------------------------------------
         // Check if float is in a given range
         // ------------------------------------
@@ -74,8 +36,8 @@ namespace MeshUtils {
             RingGenerator rings
         ) {
             // find intersection vertices
-            Vector3 e = plane.Intersection(a, c, 0),
-                    d = plane.Intersection(b, c, 0);
+            Vector3 e = plane.Intersection(a, c, Vector2.zero, Vector2.zero, 0).Item1,
+                    d = plane.Intersection(b, c, Vector2.zero, Vector2.zero, 0).Item1;
 
             // if e == d, the three vertices lie in a line,
             //   and thus do not make up a triangle
@@ -188,17 +150,16 @@ namespace MeshUtils {
                 throw OperationException.MalformedMesh();
             }
 
-            /*if (
-                !allow_cut.Contains(e) ||
+            if (
+                !allow_cut.Contains(e) &&
                 !allow_cut.Contains(d)
             ) {
-                Debug.Log(allow_cut.Contains(e)+" "+allow_cut.Contains(d));
                 // triangle must not be cut
                 part.indices.Add(part.indexMap[i_a]);
                 part.indices.Add(part.indexMap[i_b]);
                 part.indices.Add(part.indexMap[i_c]);
                 return;
-            }*/
+            }
 
             // new indices
             int i0 = part.vertices.Count, i1 = part.vertices.Count + 2;
@@ -464,7 +425,7 @@ namespace MeshUtils {
                 for (int i = 0; i < indices.Count; i += 3) {
                     int i0 = indices[i], i1 = indices[i+1], i2 = indices[i+2];
                     Vector3 v0 = vertices[i0], v1 = vertices[i1], v2 = vertices[i2];
-                    AddIndices(list,vertices,v0,v1,v2,i0,i1,i2);
+                    AddIndices(list,vertices,v0,v1,v2,i0,i1,i2,false,false,false);
                 }
 
                 return list.ConvertAll(indices=>{
@@ -488,8 +449,13 @@ namespace MeshUtils {
             }
 
             public List<MeshPart> PartialPolySeperate(
+                CuttingPlane plane,
                 HashSet<Vector3> allow_cut
             ) {
+
+                //Debug.Log("allow_cut");
+                //foreach (Vector3 v in allow_cut) Debug.Log(VecStr(v));
+                //Debug.Log("missing");
 
                 List<List<int>> list = new List<List<int>>();
 
@@ -500,22 +466,32 @@ namespace MeshUtils {
                 for (int i = 0; i < indices.Count; i += 3) {
                     int i0 = indices[i], i1 = indices[i+1], i2 = indices[i+2];
                     Vector3 v0 = vertices[i0], v1 = vertices[i1], v2 = vertices[i2];
-                    AddPartialIndices(list,vertices,v0,v1,v2,i0,i1,i2,allow_cut);
+                    bool ci0 = allow_cut.Contains(v0),
+                        ci1 = allow_cut.Contains(v1),
+                        ci2 = allow_cut.Contains(v2);
+                    AddIndices(list,vertices,v0,v1,v2,i0,i1,i2,ci0,ci1,ci2);
+                    //AddIndices(list,vertices,v0,v1,v2,i0,i1,i2,true,true,true);
                 }
 
                 return list.ConvertAll(indices=>{
 
-                    MeshPart part = new MeshPart(side);
+                    MeshPart part = new MeshPart(false);
+
+                    bool doSwap = false; // temporary solution
 
                     foreach (int ind in indices) {
+                        Vector3 point = vertices[ind];
+                        if (!doSwap&&!allow_cut.Contains(point)&&plane.IsAbove(point)) doSwap = true;
                         if (part.indexMap.ContainsKey(ind)) part.indices.Add(part.indexMap[ind]);
                         else {
                             part.indexMap.Add(ind,part.vertices.Count);
                             part.indices.Add(part.vertices.Count);
-                            part.vertices.Add(vertices[ind]);
+                            part.vertices.Add(point);
                             if (uvs.Count > 0) part.uvs.Add(uvs[ind]);
                         }
                     }
+
+                    if (doSwap) part.SwapSide();
 
                     return part;
 
@@ -524,20 +500,22 @@ namespace MeshUtils {
             }
 
         }
-
-        public static void AddPartialIndices(
+        
+        public static void AddIndices(
             List<List<int>> list,
             List<Vector3> verts,
             Vector3 v0, Vector3 v1, Vector3 v2,
             int i0, int i1, int i2,
-            HashSet<Vector3> allow_cut // compare positions, unless in allow_cut, then compare indices
+            bool ci0, bool ci1, bool ci2
         ) {
 
             List<int> l0 = null, l1 = null, l2 = null;
 
-            bool ci0 = false,//allow_cut.Contains(v0),
-                ci1 = false,//allow_cut.Contains(v1),
-                ci2 = false;//allow_cut.Contains(v2);
+            /*
+            if (!ci0&&inRange(1.1f,2.9f,v0.y)) Debug.Log(i0+":"+VecStr(v0));
+            if (!ci1&&inRange(1.1f,2.9f,v1.y)) Debug.Log(i1+":"+VecStr(v1));
+            if (!ci2&&inRange(1.1f,2.9f,v2.y)) Debug.Log(i2+":"+VecStr(v2));
+            */
 
             // find the set that each vertex belongs to
             foreach (List<int> set in list) {
@@ -555,60 +533,6 @@ namespace MeshUtils {
                         (ci2 && i == i2 && l2 == null) ||
                         (!ci2 && v == v2 && l2 == null)
                     ) l2 = set;
-                }
-                if (l0 != null && l1 != null && l2 != null) break;
-            }
-
-            // if no sets were found, make a new set
-            if (l0 == null && l1 == null && l2 == null) {
-                list.Add(new List<int>() {i0,i1,i2});
-                return;
-            }
-
-            // merge l0 into l1 (unless we get ABA, then ignore l0)
-            if (l0 != null) {
-                if (l1 == null) l1 = l0;
-                else if (l0 != l1 && l0 != l2) {
-                    list.Remove(l0);
-                    l1.AddRange(l0);
-                }
-            }
-
-            // merge l1 into l2
-            if (l1 != null) {
-                if (l2 == null) l2 = l1;
-                else if (l1 != l2) {
-                    list.Remove(l1);
-                    l2.AddRange(l1);
-                }
-            }
-
-            // add to l2
-            l2.Add(i0);
-            l2.Add(i1);
-            l2.Add(i2);
-
-        }
-        
-        public static void AddIndices(
-            List<List<int>> list,
-            List<Vector3> verts,
-            Vector3 v0, Vector3 v1, Vector3 v2,
-            int i0, int i1, int i2
-        ) {
-
-            List<int> l0 = null, l1 = null, l2 = null;
-
-            // find the set that each vertex belongs to
-            foreach (List<int> set in list) {
-                foreach (int i in set){
-                    Vector3 v = verts[i];
-                    if (v == v0 && l0 == null)
-                        l0 = set;
-                    if (v == v1 && l1 == null)
-                        l1 = set;
-                    if (v == v2 && l2 == null)
-                        l2 = set;
                 }
                 if (l0 != null && l1 != null && l2 != null) break;
             }

@@ -75,8 +75,10 @@ namespace MeshUtils {
             Vector3 point = target.transform.InverseTransformPoint(param.originPoint);
 
             List<Ring> resulting_rings = new List<Ring>();
-            foreach (Ring ring in rings.GetRings())
+            foreach (Ring ring in rings.GetRings()) {
+                Debug.Log(ring.FurthestDistanceToRingPerimeter(point));
                 if (ring.FurthestDistanceToRingPerimeter(point) < param.maxCutDistance) resulting_rings.Add(ring);
+            }
 
             if (resulting_rings.Count == 0) return null;
 
@@ -173,15 +175,19 @@ namespace MeshUtils {
                 }
             }
 
-            var analysis = Hierarchy.Analyse(resulting_rings,plane);
+            var analysis = Hierarchy.Analyse(resulting_rings,cutting_plane);
+
+            List<MeshPart> parts;
+            if (param.polySeperation) parts = part.PartialPolySeperate(cutting_plane,allow_cut);
+            else parts = new List<MeshPart>() {part};
+
+            if (parts.Count < 2 && !param.allowSingleResult) return null;
 
             // generate seperation meshing
-            foreach (var ring in analysis.rings) {
-                //GenerateRingMesh(ring,part,cutting_plane.normal,addUVs);
-                //part.SwapSide();
-                //GenerateRingMesh(ring,part,cutting_plane.normal,addUVs);
-                //part.SwapSide();
-            }
+            if (parts.Count > 1)
+            foreach (var ring in analysis.rings)
+            foreach (var resPart in parts)
+                GenerateRingMesh(ring,resPart,cutting_plane.normal,addUVs);
 
             Vector3? vel = null;
             Rigidbody rb;
@@ -196,11 +202,7 @@ namespace MeshUtils {
             Vector3 worldNormal = cutting_plane.ToWorldSpace().normal;
 
             // create new objects
-            List<CutObj> cutObjs;
-            if (param.polySeperation) cutObjs = part.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat));
-            else cutObjs = new List<CutObj>() {new CutObj(part,target.transform,vel,worldNormal,mat)};
-
-            if (cutObjs.Count < 2 && !param.allowSingleResult) return null;
+            List<CutObj> cutObjs = parts.ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat));
 
             CutResult result = new CutResult(
                 analysis.siblingCenters.ConvertAll(v=>target.transform.TransformPoint(v)),

@@ -26,8 +26,6 @@ namespace MeshUtils {
             private readonly float d; 
             public readonly Vector3 pointInPlane, normal;
 
-            private readonly Matrix4x4 projectionMatrix;
-
             private CuttingPlane(Vector3 normal, Vector3 pointInPlane, CuttingPlane worldSpace) {
                 this.worldSpace = worldSpace;
                 this.pointInPlane = pointInPlane;
@@ -75,13 +73,31 @@ namespace MeshUtils {
             // --------------------------------------------------------
             public Tuple<Vector3,Vector2> Intersection(Vector3 p0, Vector3 p1, Vector2 uv0, Vector2 uv1, float shift) {
 
+                // to avoid rounding errors, always make sure float calculations are done in this order
+                if (IsAbove(p0)) {
+                    Vector3 tmp = p0;
+                    p0 = p1;
+                    p1 = tmp;
+                    Vector2 uvtmp = uv0;
+                    uv0 = uv1;
+                    uv1 = uvtmp;
+                }
+
                 float dist0 = Distance(p0);
                 float dist1 = Distance(p1);
 
                 float factor = (dist0 + shift) / (dist0 + dist1);
 
+                Vector3 res = p0 + (p1 - p0) * factor;
+
+                if (res.GetHashCode().ToString().StartsWith("1499")) {
+                    Debug.Log(Debugging.VecStr(p0));
+                    Debug.Log(Debugging.VecStr(p1));
+                    Debug.Log(Debugging.VecStr(res));
+                }
+
                 return new Tuple<Vector3,Vector2>(
-                    p0 + (p1 - p0) * factor,
+                    res,
                     uv0 + (uv1 - uv0) * factor
                 );
 
@@ -90,7 +106,7 @@ namespace MeshUtils {
             // ----------------------------------------
             // Intersection point of edge without UVs
             // ----------------------------------------
-            public Vector3 Intersection(Vector3 p0, Vector3 p1, float shift) {
+            /*public Vector3 Intersection(Vector3 p0, Vector3 p1, float shift) {
 
                 float dist0 = Distance(p0);
                 float dist1 = Distance(p1);
@@ -99,7 +115,7 @@ namespace MeshUtils {
 
                 return p0 + (p1 - p0) * factor;
                 
-            }
+            }*/
 
         }
 
