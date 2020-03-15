@@ -81,6 +81,7 @@ namespace MeshUtils {
                     Vector2 uvtmp = uv0;
                     uv0 = uv1;
                     uv1 = uvtmp;
+                    shift *= -1; // is this rounding-safe ?
                 }
 
                 float dist0 = Distance(p0);
@@ -90,11 +91,9 @@ namespace MeshUtils {
 
                 Vector3 res = p0 + (p1 - p0) * factor;
 
-                if (res.GetHashCode().ToString().StartsWith("1499")) {
-                    Debug.Log(Debugging.VecStr(p0));
-                    Debug.Log(Debugging.VecStr(p1));
-                    Debug.Log(Debugging.VecStr(res));
-                }
+                //Debug.Log(Debugging.VecStr(p0));
+                //Debug.Log(Debugging.VecStr(p1));
+                //Debug.Log(Debugging.VecStr(res));
 
                 return new Tuple<Vector3,Vector2>(
                     res,

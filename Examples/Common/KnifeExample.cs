@@ -10,9 +10,13 @@ using CuttingPlane = MeshUtils.CuttingPlane;
 
 public class KnifeExample : MonoBehaviour {
 
+	[MyBox.Separator("Extra options")]
+
 	[Tooltip("A fadeable material, if fading out cut results is desired.")]
 	public Material FadeMaterial;
 
+	[MyBox.ConditionalField("FadeMaterial")]
+	[Range(1,10)]
 	[Tooltip("The speed with which to fade cut results, if fade material is given")]
 	public int FadeSpeed = 2;
 
@@ -21,9 +25,13 @@ public class KnifeExample : MonoBehaviour {
 
 	public Vector3 EdgeDirection = Vector3.up, CutDirection = Vector3.forward;
 
+	[MyBox.Separator("Knife options")]
+
+	[Range(0,180)]
 	[Tooltip("Maximum angle (in degrees) from cutting direction to tolerate.")]
 	public float MaxAngle = 20;
 
+	[MyBox.PositiveValueOnly]
 	[Tooltip("Minimum relative velocity required to attempt cut.")]
 	public float MinimumVelocity = 2;
 
@@ -39,11 +47,18 @@ public class KnifeExample : MonoBehaviour {
 	[Tooltip("If true, uses first contact point as basis for cutting plane. Otherwise uses knife center.")]
 	public bool UseContactPoint = true;
 
+	[MyBox.Separator("Cutting options")]
 	[Tooltip("Further seperate disconnected parts of resulting meshes.")]
 	public bool PolySeperation = true;
-
-	[Tooltip("Distance between to newly generated surfaces")]
+	[Tooltip("Toogle partial mode. Different options are visible.")]
+	public bool _PartialMode = false;
+	[MyBox.ConditionalField("_PartialMode",true)]
+	[Tooltip("Distance between the newly generated surfaces.")]
 	public float Gap;
+	[MyBox.ConditionalField("_PartialMode",false)]
+	[MyBox.PositiveValueOnly]
+	[Tooltip("Distance knife should cut through objects.")]
+	public float CutDistance = 3;
 
 	public void PassCollision(Collision col) {
 		if (col.GetContact(0).thisCollider == GetComponent<Collider>())
@@ -83,7 +98,12 @@ public class KnifeExample : MonoBehaviour {
 			: transform.position;
 
 		CuttingPlane plane = CuttingPlane.InWorldSpace(normal,pointInPlane);
-		CutParams param = new CutParams(PolySeperation, true, true, col.gameObject.transform.position, 3, Gap);
+		CutParams param = new CutParams(
+			PolySeperation, true, true,
+			col.gameObject.transform.position,
+			_PartialMode ? CutDistance : float.PositiveInfinity,
+			_PartialMode ? 0 : Gap
+		);
 
 		CutResult result = PerformCut(col.gameObject,plane,param);
 
