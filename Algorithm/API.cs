@@ -179,6 +179,13 @@ namespace MeshUtils {
 
         }
 
+        public static CutResult tmp(
+            GameObject target,
+            CuttingTemplate template
+        ) {
+            return Algorithms.NonPlanarCut(target,template.ToLocalSpace(target.transform));
+        }
+
         public static CutResult PerformCut(
             GameObject target,
             CuttingPlane plane,

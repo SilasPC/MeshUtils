@@ -57,6 +57,22 @@ namespace MeshUtils {
             return t.localToWorldMatrix.transpose * v;
         }
 
+        // -------------------------------------------------------------
+        // Calculate the shortest distance between a point and an edge.
+        // Formula for point/line distance: d=|(p-x1)x(p-x2)|/|x2-x1|
+        // -------------------------------------------------------------
+        public static float DistanceToEdge(Vector3 p, Vector3 e0, Vector3 e1) {
+            float dp = Math.Min((e0-p).magnitude, (e1-p).magnitude);
+            float de = Vector3.Cross(p-e0,p-e1).magnitude/(e1-e0).magnitude;
+            if (dp > de) return dp;
+            return de;
+        }
+
+        public static Vector3 ProjectIntoPlane(Vector3 v, Vector3 normal, float d) {
+            float t = - (Vector3.Dot(v,normal) + d) / (normal.sqrMagnitude);
+            return v + t * normal;
+        }
+
     }
 
 }

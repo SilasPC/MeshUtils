@@ -83,7 +83,7 @@ public class KnifeExample : MonoBehaviour {
 			: transform.position;
 
 		CuttingPlane plane = CuttingPlane.InWorldSpace(normal,pointInPlane);
-		CutParams param = new CutParams(PolySeperation, true, true, col.gameObject.transform.position, 3, Gap);
+		CutParams param = new CutParams(PolySeperation, true, true, col.gameObject.transform.position, float.PositiveInfinity, Gap);
 
 		CutResult result = PerformCut(col.gameObject,plane,param);
 

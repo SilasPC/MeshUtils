@@ -74,14 +74,14 @@ namespace MeshUtils {
             public Tuple<Vector3,Vector2> Intersection(Vector3 p0, Vector3 p1, Vector2 uv0, Vector2 uv1, float shift) {
 
                 // to avoid rounding errors, always make sure float calculations are done in this order
-                if (IsAbove(p0)) {
+                /*if (IsAbove(p0)) {
                     Vector3 tmp = p0;
                     p0 = p1;
                     p1 = tmp;
                     Vector2 uvtmp = uv0;
                     uv0 = uv1;
                     uv1 = uvtmp;
-                }
+                }*/
 
                 float dist0 = Distance(p0);
                 float dist1 = Distance(p1);

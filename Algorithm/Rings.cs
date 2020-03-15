@@ -94,7 +94,6 @@ namespace MeshUtils {
 
         // ---------------------------------------------------------------
         // Determine shortest distance to ring perimeter
-        // Formula for point/line distance: d=|(p-x1)x(p-x2)|/|x2-x1|
         // i0 and i1 are indices for vertexes around closest line in ring
         // ---------------------------------------------------------------
         public float DistanceToRingPerimeter(Vector3 v, out int i0, out int i1) {
@@ -103,10 +102,7 @@ namespace MeshUtils {
             i1 = 0;
             float dMin = float.PositiveInfinity;
             for (int i = 0; i < verts.Count; i++) {
-                Vector3 x1 = verts[prevIndex], x2 = verts[i];
-                float d1 = (x1-v).magnitude, d2 = (x2-v).magnitude;
-                float d0 = Vector3.Cross(v-x1,v-x2).magnitude/(x2-x1).magnitude;
-                float d = Math.Min(Math.Min(d1,d2),d0);
+                float d = VectorUtil.DistanceToEdge(v,verts[prevIndex],verts[i]);
                 if (d < dMin) {
                     dMin = d;
                     i0 = prevIndex;
