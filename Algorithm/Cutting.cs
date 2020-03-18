@@ -187,8 +187,12 @@ namespace MeshUtils {
 
             List<Ring> resulting_rings = new List<Ring>();
             foreach (Ring ring in rings.GetRings()) {
-                Debug.Log(ring.FurthestDistanceToRingPerimeter(point));
-                if (ring.FurthestDistanceToRingPerimeter(point) < param.maxCutDistance) resulting_rings.Add(ring);
+                Vector3 vec = ring.FurthestVectorToRingPerimeter(point);
+                vec = target.transform.TransformVector(vec);
+                Debug.DrawRay(param.originPoint,vec,Color.blue,10);
+                float mag = vec.magnitude;
+                Debug.Log(mag);
+                if (mag < param.maxCutDistance) resulting_rings.Add(ring);
             }
 
             if (resulting_rings.Count == 0) return null;

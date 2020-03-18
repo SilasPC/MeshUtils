@@ -477,11 +477,14 @@ namespace MeshUtils {
 
                     MeshPart part = new MeshPart(false);
 
-                    bool doSwap = false; // temporary solution
+                    int doSwap = 0, doStay = 0; // temporary solution (?)
 
                     foreach (int ind in indices) {
                         Vector3 point = vertices[ind];
-                        if (!doSwap&&!allow_cut.Contains(point)&&plane.IsAbove(point)) doSwap = true;
+                        if (!allow_cut.Contains(point)) {
+                            if (plane.IsAbove(point)) doSwap++;
+                            else doStay++;
+                        };
                         if (part.indexMap.ContainsKey(ind)) part.indices.Add(part.indexMap[ind]);
                         else {
                             part.indexMap.Add(ind,part.vertices.Count);
@@ -491,7 +494,7 @@ namespace MeshUtils {
                         }
                     }
 
-                    if (doSwap) part.SwapSide();
+                    if (doSwap > doStay) part.SwapSide();
 
                     return part;
 

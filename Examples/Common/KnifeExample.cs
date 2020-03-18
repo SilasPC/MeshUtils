@@ -27,24 +27,19 @@ public class KnifeExample : MonoBehaviour {
 
 	[MyBox.Separator("Knife options")]
 
+	[Tooltip("Omnidirectional cutting. Think lightsabers. Cutting direction depends on collision direction.")]
+	public bool _OmnidirectionalMode = false;
+
+	[MyBox.ConditionalField("_OmnidirectionalMode",true)]
 	[Range(0,180)]
 	[Tooltip("Maximum angle (in degrees) from cutting direction to tolerate.")]
 	public float MaxAngle = 20;
-
 	[MyBox.PositiveValueOnly]
 	[Tooltip("Minimum relative velocity required to attempt cut.")]
 	public float MinimumVelocity = 2;
-
-	[Tooltip("If true, the cutting direction is aligned to the relative velocity between objects.\nPrimarily useful for omnidirectional cutting with maxAngle >= 180.")]
-	public bool AlignToVelocity = false;
-
-	[Tooltip("Minimum velocity is evaluted after projection in cut direction")]
-	public bool ProjectMinimumVelocity = true;
-
 	[Tooltip("If true, direction vectors are interpreted as normals. This means the directions will be squezed along with the transform.")]
 	public bool directionsAreNormals = false;
-
-	[Tooltip("If true, uses first contact point as basis for cutting plane. Otherwise uses knife center.")]
+	[Tooltip("If true, uses first contact point as basis for cutting plane. Otherwise uses object center.")]
 	public bool UseContactPoint = true;
 
 	[MyBox.Separator("Cutting options")]
@@ -73,13 +68,11 @@ public class KnifeExample : MonoBehaviour {
 			? TransformNormal(CutDirection,transform)
 			: transform.TransformDirection(CutDirection);
 
-		float relVel = ProjectMinimumVelocity
-			? Vector3.Project(col.relativeVelocity,cutDir).magnitude
-			: col.relativeVelocity.magnitude;
+		float relVel = Vector3.Project(col.relativeVelocity,cutDir).magnitude;
 
 		if (MinimumVelocity > relVel) return;
 
-		Vector3 dir = AlignToVelocity
+		Vector3 dir = _OmnidirectionalMode
 			? -col.relativeVelocity
 			: cutDir;
 

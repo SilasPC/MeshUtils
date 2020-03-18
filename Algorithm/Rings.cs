@@ -113,16 +113,20 @@ namespace MeshUtils {
             return dMin;
         }
 
-        // -----------------------------------------------
-        // Distance from point to furthest point in ring
-        // -----------------------------------------------
-        public float FurthestDistanceToRingPerimeter(Vector3 p) {
+        // ---------------------------------------------
+        // Vector from point to furthest point in ring
+        // ---------------------------------------------
+        public Vector3 FurthestVectorToRingPerimeter(Vector3 p) {
             float dist = 0;
+            Vector3 v0 = Vector3.zero;
             foreach (Vector3 v in verts) {
                 float newDist = (v-p).magnitude;
-                if (newDist > dist) dist = newDist;
+                if (newDist > dist) {
+                    dist = newDist;
+                    v0 = v;
+                }
             }
-            return dist;
+            return v0-p;
         }
         
         // ------------------------------------
