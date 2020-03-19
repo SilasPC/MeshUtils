@@ -23,6 +23,7 @@ namespace MeshUtils {
         }
 
         public void MyDebugLog() {
+            Debugging.DebugRings(partials);
             Debug.Log(complete.Count + " complete rings, " +  partials.Count + " partial rings");
         }
 

@@ -68,11 +68,6 @@ namespace MeshUtils {
             return de;
         }
 
-        public static Vector3 ProjectIntoPlane(Vector3 v, Vector3 normal, float d) {
-            float t = - (Vector3.Dot(v,normal) + d) / (normal.sqrMagnitude);
-            return v + t * normal;
-        }
-
     }
 
 }

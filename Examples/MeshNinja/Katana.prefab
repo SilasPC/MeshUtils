@@ -102,7 +102,6 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -195,7 +194,6 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -289,7 +287,6 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -415,7 +412,6 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -509,7 +505,6 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -560,14 +555,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   FadeMaterial: {fileID: 0}
+  FadeSpeed: 2
   ParticlePrefab: {fileID: 0}
   EdgeDirection: {x: 0, y: 1, z: 0}
   CutDirection: {x: 1, y: 0, z: 1}
-  MaxAngle: 200
+  _OmnidirectionalMode: 0
+  MaxAngle: 180
   MinimumVelocity: 0
-  AlignToVelocity: 0
-  ProjectMinimumVelocity: 1
   directionsAreNormals: 0
   UseContactPoint: 0
   PolySeperation: 1
+  _PartialMode: 0
   Gap: 0.3
+  CutDistance: 3

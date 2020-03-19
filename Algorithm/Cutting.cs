@@ -81,6 +81,8 @@ namespace MeshUtils {
                     neg.indices.Add(neg.indexMap[i_a]);
                     neg.indices.Add(neg.indexMap[i_b]);
                     neg.indices.Add(neg.indexMap[i_c]);
+                } else {
+                    template.ProcessTriangle(a,b,c);
                 }
             }
             
