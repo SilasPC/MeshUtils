@@ -44,6 +44,8 @@ namespace MeshUtils {
             // if either vertex list is empty the template didn't collide
             if (pos.vertices.Count == 0 || neg.vertices.Count == 0) return null;
 
+            RingGenerator intersection_rings = new RingGenerator();
+
             // put triangles in correct mesh
             for (i = 0; i < mesh.triangles.Length; i += 3) {
 
@@ -82,9 +84,11 @@ namespace MeshUtils {
                     neg.indices.Add(neg.indexMap[i_b]);
                     neg.indices.Add(neg.indexMap[i_c]);
                 } else {
-                    template.ProcessTriangle(a,b,c);
+                    template.ProcessTriangle(a,b,c,intersection_rings);
                 }
             }
+
+            intersection_rings.MyDebugLog();
             
             /*var analysis = Hierarchy.Analyse(rings.GetRings(), cutting_plane);
 

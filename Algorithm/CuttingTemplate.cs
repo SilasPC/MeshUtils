@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace MeshUtils {
 
-    public class CuttingTemplate {
+    class CuttingTemplate {
 
         public static CuttingTemplate InLocalSpace(Vector3 normal, Vector3 pointInPlane, Transform transform) {
             Vector3 world_normal = transform.TransformDirection(normal),
@@ -89,20 +89,21 @@ namespace MeshUtils {
         }
 
         public void ProcessTriangle(
-            Vector3 a, Vector3 b, Vector3 c
+            Vector3 a, Vector3 b, Vector3 c,
+            RingGenerator ring
         ) {
+            Vector3 tri_nor = -Vector3.Cross(c-a,c-b);
+            MUPlane tri_plane = new MUPlane(tri_nor,a); // rounding errors are inbound here
             MUPlane template_plane = new MUPlane(normal,pointInPlane);
             Vector3 pa = template_plane.Project(a),
                     pb = template_plane.Project(b),
                     pc = template_plane.Project(c);
-            Vector3 tri_nor = -Vector3.Cross(pc-pa,pc-pb);
             Vector3 ab_nor = Vector3.Cross(tri_nor,pb-pa),
                     bc_nor = Vector3.Cross(tri_nor,pc-pb),
                     ca_nor = Vector3.Cross(tri_nor,pa-pc);
             MUPlane ab = new MUPlane(ab_nor,pa),
                     bc = new MUPlane(bc_nor,pb),
                     ca = new MUPlane(ca_nor,pc);
-            RingGenerator ring = new RingGenerator();
             bool oaab = ab.IsAbove(points[0]),
                 oabc = bc.IsAbove(points[0]),
                 oaca = ca.IsAbove(points[0]);
@@ -150,8 +151,8 @@ namespace MeshUtils {
                 oabc = abc;
                 oaca = aca;
             }
-            Debug.Log(a+" "+b+" "+c);
-            ring.MyDebugLog();
+            //Debug.Log(a+" "+b+" "+c);
+            //ring.MyDebugLog();
         }
 
     }
