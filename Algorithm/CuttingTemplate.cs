@@ -155,7 +155,7 @@ namespace MeshUtils {
                         }
                         throw OperationException.Internal("Point on neither side of triangle");
                     connect:
-                        map.Add((ep1-iv).magnitude/(ep1-ep2).magnitude,iv);
+                        map.Add((ep1-iv).magnitude,iv);
                         //rings.AddConnected(iv,pi);
                         self_rings.AddConnected(iv,pi);
                     } else {
@@ -178,7 +178,7 @@ namespace MeshUtils {
                         }
                         throw OperationException.Internal("Point on neither side of triangle");
                     connect:
-                        map.Add((ep1-iv).magnitude/(ep1-ep2).magnitude,iv);
+                        map.Add((ep1-iv).magnitude,iv);
                         //rings.AddConnected(opi,iv);
                         self_rings.AddConnected(opi,iv);
                         exiting_ivs.Add(iv);
@@ -193,7 +193,7 @@ namespace MeshUtils {
                         (aab && oaab) ||
                         (abc && oabc) ||
                         (aca && oaca)
-                    ) continue;
+                    ) goto continue_for;
                     // crosses triangle
                     if (!aab && !oaab) {
                         Vector3 iv0 = bc.Intersection(opi,pi),
@@ -202,8 +202,8 @@ namespace MeshUtils {
                             Vector3.Dot(b-iv0,c-iv0) > 0 ||
                             Vector3.Dot(c-iv1,a-iv1) > 0
                         ) goto continue_for;
-                        map_bc.Add((b-iv0).magnitude/(b-c).magnitude,iv0);
-                        map_ca.Add((c-iv1).magnitude/(c-a).magnitude,iv1);
+                        map_bc.Add((b-iv0).magnitude,iv0);
+                        map_ca.Add((c-iv1).magnitude,iv1);
                         bool iv0_first = (iv0-opi).magnitude < (iv1-opi).magnitude;
                         exiting_ivs.Add(iv0_first?iv1:iv0);
                         self_rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
@@ -214,8 +214,8 @@ namespace MeshUtils {
                             Vector3.Dot(c-iv0,a-iv0) > 0 ||
                             Vector3.Dot(a-iv1,b-iv1) > 0
                         ) goto continue_for;
-                        map_ca.Add((c-iv0).magnitude/(c-a).magnitude,iv0);
-                        map_ab.Add((a-iv1).magnitude/(a-b).magnitude,iv1);
+                        map_ca.Add((c-iv0).magnitude,iv0);
+                        map_ab.Add((a-iv1).magnitude,iv1);
                         bool iv0_first = (iv0-opi).magnitude < (iv1-opi).magnitude;
                         exiting_ivs.Add(iv0_first?iv1:iv0);
                         self_rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
@@ -226,8 +226,8 @@ namespace MeshUtils {
                             Vector3.Dot(a-iv0,b-iv0) > 0 ||
                             Vector3.Dot(b-iv1,c-iv1) > 0
                         ) goto continue_for;
-                        map_ab.Add((a-iv0).magnitude/(a-b).magnitude,iv0);
-                        map_bc.Add((b-iv1).magnitude/(b-c).magnitude,iv1);
+                        map_ab.Add((a-iv0).magnitude,iv0);
+                        map_bc.Add((b-iv1).magnitude,iv1);
                         bool iv0_first = (iv0-opi).magnitude < (iv1-opi).magnitude;
                         exiting_ivs.Add(iv0_first?iv1:iv0);
                         self_rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
@@ -254,15 +254,16 @@ namespace MeshUtils {
             ConnectIVs2(exiting_ivs,b,c,a,map_bc,map_ab,map_ca,self_rings,self_rings2);
             ConnectIVs2(exiting_ivs,c,a,b,map_ca,map_bc,map_ab,self_rings,self_rings2);
             self_rings2.MyDebugLog();
+            bool partToUse = Vector3.Dot(tri_nor,normal) > 0;
             try {
                 foreach (var ring in self_rings.GetRings()) {
                     //Debugging.DebugRing(ring.verts);
-                    TmpGen(ring.verts,part,tri_nor);
+                    TmpGen(ring.verts,partToUse?part:part2,tri_nor);
                 }
                 foreach (var ring in self_rings2.GetRings()) {
-                    Debugging.DebugRing(ring.verts);
+                    // Debugging.DebugRing(ring.verts);
                     ring.verts.Reverse();
-                    TmpGen(ring.verts,part2,tri_nor);
+                    TmpGen(ring.verts,partToUse?part2:part,tri_nor);
                 }
             } catch (Exception e) {
                 Debug.LogException(e);
