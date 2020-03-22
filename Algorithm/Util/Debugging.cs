@@ -50,9 +50,9 @@ namespace MeshUtils {
         // ------------------
         // Make an int list
         // ------------------
-        public static void LogList(List<int> list) {
+        public static void LogList<T>(List<T> list) {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            foreach (int i in list) sb.Append(i.ToString()+" ");
+            foreach (T i in list) sb.Append(i.ToString()+" ");
             Debug.Log(sb.ToString());
         }
     }

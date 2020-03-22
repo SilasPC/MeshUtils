@@ -21,11 +21,14 @@ namespace MeshUtils {
         }
 
         void OnTriggerExit(Collider col) {
+            template.PrepareTmp();
+            template.Draw();
             var res = API.tmp(col.gameObject,template);
             if (res != null) {
                 foreach (var r in res.results) {
-                    r.WithRenderer().Create();
+                    r.WithColor(Color.blue).Create();
                 }
+                Debug.Break();
             } else Debug.Log("fail");
         }
 

@@ -46,6 +46,8 @@ namespace MeshUtils {
 
             RingGenerator intersection_rings = new RingGenerator();
 
+            MeshPart tmpPart = new MeshPart(true), tmpPart2 = new MeshPart(true);
+
             // put triangles in correct mesh
             for (i = 0; i < mesh.triangles.Length; i += 3) {
 
@@ -84,7 +86,7 @@ namespace MeshUtils {
                     neg.indices.Add(neg.indexMap[i_b]);
                     neg.indices.Add(neg.indexMap[i_c]);
                 } else {
-                    template.ProcessTriangle(a,b,c,intersection_rings);
+                    template.ProcessTriangle(a,b,c,intersection_rings,tmpPart,tmpPart2);
                 }
             }
 
@@ -113,7 +115,9 @@ namespace MeshUtils {
             // create new objects
             List<CutObj> cutObjs = new List<CutObj>() {
                 new CutObj(pos,target.transform,vel,worldNormal,mat),
-                new CutObj(neg,target.transform,vel,worldNormal,mat)
+                new CutObj(neg,target.transform,vel,worldNormal,mat),
+                new CutObj(tmpPart,target.transform,vel,worldNormal,mat),
+                new CutObj(tmpPart2,target.transform,vel,worldNormal,mat)
             };
 
             CutResult result = new CutResult(

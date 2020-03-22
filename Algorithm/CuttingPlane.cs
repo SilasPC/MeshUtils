@@ -46,7 +46,9 @@ namespace MeshUtils {
                 Vector3 tmp = p0;
                 p0 = p1;
                 p1 = tmp;
-            }
+            } else if (!IsAbove(p1)) Debug.LogException(OperationException.Internal("both below"));
+
+            if (IsAbove(p0)) Debug.LogException(OperationException.Internal("both above"));
 
             float dist0 = Distance(p0);
             float dist1 = Distance(p1);
@@ -60,6 +62,11 @@ namespace MeshUtils {
         public Vector3 Project(Vector3 v) {
             float t = - (Vector3.Dot(v,normal) + d) / (normal.sqrMagnitude);
             return v + t * normal;
+        }
+
+        public Vector3 DirectionalProject(Vector3 v, Vector3 dir) {
+            float t = -(Vector3.Dot(v,normal)+d)/Vector3.Dot(dir,normal);
+            return v + dir * t;
         }
         
     }

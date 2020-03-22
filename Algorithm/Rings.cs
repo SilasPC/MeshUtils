@@ -17,6 +17,21 @@ namespace MeshUtils {
         private List<List<Vector3>> complete = new List<List<Vector3>>();
         private List<List<Vector3>> partials = new List<List<Vector3>>();
 
+        public RingGenerator Duplicate() {
+            RingGenerator gen = new RingGenerator();
+            gen.complete = complete.ConvertAll(r=>r.ConvertAll(v=>v));
+            gen.partials = partials.ConvertAll(r=>r.ConvertAll(v=>v));
+            return gen;
+        }
+
+        public List<List<Vector3>> GetComplete() {
+            return this.complete;
+        }
+
+        public List<List<Vector3>> GetPartials() {
+            return this.partials;
+        }
+
         public List<Ring> GetRings() {
             if (this.partials.Count > 0) throw OperationException.MalformedMesh();
             return this.complete.ConvertAll(r=>new Ring(r));
