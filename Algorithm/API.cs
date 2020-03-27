@@ -9,6 +9,26 @@ namespace MeshUtils {
 
     static class API {
 
+        /*public class CutParamsBuilder {
+            private bool polySeperation = false;
+            private bool destroyOriginal = false;
+            private bool allowSingleResult = false;
+            private float seperationDistance;
+            private float maxCutDistance;
+            private Vector3 originPoint;
+            public CutParamsBuilder WithPolySeperation() {
+                this.polySeperation = true;
+                return this;
+            }
+            public CutParamsBuilder DoDestroyOriginal() {
+                this.destroyOriginal = true;
+                return this;
+            }
+            public CutParamsBuilder AllowSingleResult() {
+                this.allowSingleResult = true;
+            }
+        }*/
+
         public struct CutParams {
             public readonly bool polySeperation;
             public readonly bool destroyOriginal;
@@ -82,6 +102,15 @@ namespace MeshUtils {
             public Vector3 GetDriftDirection() {
                 return worldNormal * (part.side ? 1 : -1);
             }
+            
+            public CutObj UseDefaults() {
+                CopyParent();
+                CopyMaterial();
+                WithCollider();
+                FallbackToBoxCollider();
+                CopyVelocity();
+                return this;
+            }
 
             public CutObj WithRenderer() {
                 this.addRenderer = true;
@@ -128,7 +157,7 @@ namespace MeshUtils {
                 return this;
             }
 
-            public CutObj CopyVelocity(float factor) {
+            public CutObj CopyVelocity(float factor = 1) {
                 this.addRigidbody = true;
                 this.copyVelocity = factor;
                 return this;
@@ -139,7 +168,7 @@ namespace MeshUtils {
                 return this;
             }
 
-            public GameObject Create() {
+            public GameObject Instantiate() {
                 GameObject obj = new GameObject();
                 this.part.AddMeshTo(obj);
                 if (this.addRigidbody) {

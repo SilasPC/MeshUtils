@@ -123,7 +123,7 @@ public class KnifeExample : MonoBehaviour {
 					.FallbackToBoxCollider()
 					.CopyVelocity(FadeMaterial == null ? 1 : 0.1f)
 					.WithDriftVelocity(0.1f)
-					.Create();
+					.Instantiate();
 				if (FadeMaterial != null && FadeSpeed > 0) {
 					obj.GetComponent<Rigidbody>().useGravity = false;
 					Destroy(obj.GetComponent<Collider>());

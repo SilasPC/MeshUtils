@@ -40,7 +40,7 @@ public class GunExample : MonoBehaviour
                 .CopyVelocity(1)
                 .CopyParent()
                 .WithDriftVelocity(SplitVelocity)
-                .Create();
+                .Instantiate();
 		    plane = CuttingPlane
 			    .InLocalSpace(UnityEngine.Random.insideUnitSphere.normalized,Vector3.zero,resObj.transform);
                 CutResult result2 = PerformCut(resObj,plane,param2);
@@ -54,7 +54,7 @@ public class GunExample : MonoBehaviour
                         .FallbackToBoxCollider()
                         .CopyVelocity(1)
                         .WithDriftVelocity(SplitVelocity)
-                        .Create()
+                        .Instantiate()
                         .GetComponent<Rigidbody>().velocity += hitDir * HitVelocity;
 			}
 		}

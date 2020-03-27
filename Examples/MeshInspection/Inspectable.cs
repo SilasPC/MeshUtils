@@ -121,7 +121,7 @@ public class Inspectable : MonoBehaviour
             GameObject newObj = res
                 .CopyMaterial()
                 .WithCollider()
-                .Create();
+                .Instantiate();
             newObj.transform.SetParent(transform);
             Inspectable newInspectable = newObj.AddComponent<Inspectable>();
             newInspectable.relativePosition = res.GetLocalDriftDirection() * 0.1f;
