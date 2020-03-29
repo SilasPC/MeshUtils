@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using static MeshUtils.Util;
 using static MeshUtils.API;
@@ -44,10 +45,11 @@ namespace MeshUtils {
             // if either vertex list is empty the template didn't collide
             // if (pos.vertices.Count == 0 || neg.vertices.Count == 0) return null;
 
-            Dictionary<Vector3,RingGen> intersection_rings = new Dictionary<Vector3,RingGen>();
+            // RingGen's are associated to first template point
+            Dictionary<Vector3,Tuple<SortedDictionary<float,Vector3>,RingGen>> point_data = new Dictionary<Vector3,Tuple<SortedDictionary<float,Vector3>,RingGen>>();
 
             foreach (Vector3 point in template.points) {
-                intersection_rings.Add(point,new RingGen());
+                point_data.Add(point,new Tuple<SortedDictionary<float,Vector3>,RingGen>(new SortedDictionary<float,Vector3>(),new RingGen()));
             }
 
             // put triangles in correct mesh
@@ -73,7 +75,7 @@ namespace MeshUtils {
                 } else txa = txb = txc = Vector2.zero;
 
                 // seperation check
-                if (!ProcessTriangle(template,a,b,c,intersection_rings,pos,neg)) {
+                if (!ProcessTriangle(template,a,b,c,point_data,pos,neg)) {
                     if (template.IsAbove(a)) {
                         // triangle above plane
                         pos.indices.Add(pos.indexMap[i_a]);
@@ -88,9 +90,25 @@ namespace MeshUtils {
                 }
             }
 
-            foreach (Vector3 point in template.points) {
-                Debug.Log(point);
-                intersection_rings[point].MyDebugLog();
+            for (i = 1; i < template.points.Count; i++) {
+                //Debugging.LogLine(template.points[i-1],template.normal);
+                //Debugging.LogLine(template.points[i],template.normal);
+                //Debugging.LogList(point_data[template.points[i-1]].Item1.Keys);
+                //Debugging.LogList(point_data[template.points[i]].Item1.Keys);
+                RingGen rg = point_data[template.points[i-1]].Item2;
+                //rg.MyDebugLog();
+                rg.TemplateJoin(template,point_data[template.points[i-1]].Item1);
+                rg.TemplateJoin(template,point_data[template.points[i]].Item1);
+                // rg.MyDebugLog();
+                try {
+                    foreach (Ring ring in rg.GetRings()) {
+                        //Debugging.DebugRing(ring.verts);
+                        Vector3 normal = Vector3.Cross(template.normal,template.points[i]-template.points[i-1]);
+                        TmpGen(ring.verts,pos,normal);
+                        TmpGen(ring.verts,neg,normal,true);
+                    }
+                } catch (Exception e) {Debug.LogException(e);}
+                //Debug.Log("---------------------------");
             }
 
             Debug.Log(template);
@@ -135,7 +153,7 @@ namespace MeshUtils {
         private static bool ProcessTriangle(
             CuttingTemplate template,
             Vector3 a, Vector3 b, Vector3 c,
-            Dictionary<Vector3,RingGen> intersection_rings,
+            Dictionary<Vector3,Tuple<SortedDictionary<float,Vector3>,RingGen>> point_data,
             Util.MeshPart pos, Util.MeshPart neg
         ) {
             List<Vector3> points = template.points;
@@ -163,7 +181,9 @@ namespace MeshUtils {
                 oaca = ca.IsAbove(opi);
             bool oldInside = !(oaab||oabc||oaca);
             for (int i = 1; i < points.Count; i++) {
-                RingGen rings = intersection_rings[points[i-1]];
+                SortedDictionary<float,Vector3> dist_map_old = point_data[points[i-1]].Item1,
+                                                dist_map = point_data[points[i]].Item1;
+                RingGen rings = point_data[points[i-1]].Item2;
                 Vector3 pi = tri_plane.DirectionalProject(points[i],normal);
                 // Debug.Log(opi+" => "+pi);
                 bool aab = ab.IsAbove(pi),
@@ -194,6 +214,8 @@ namespace MeshUtils {
                         }
                         throw OperationException.Internal("Point on neither side of triangle");
                     connect:
+                        float dist_key = template.plane.SignedDistance(pi);
+                        if (!dist_map.ContainsKey(dist_key)) dist_map.Add(dist_key,pi);
                         map.Add((ep1-iv).magnitude,iv);
                         rings.AddConnected(ring_dir?iv:pi,ring_dir?pi:iv);
                         self_rings.AddConnected(iv,pi);
@@ -217,6 +239,8 @@ namespace MeshUtils {
                         }
                         throw OperationException.Internal("Point on neither side of triangle");
                     connect:
+                        float dist_key = template.plane.SignedDistance(opi);
+                        if (!dist_map_old.ContainsKey(dist_key)) dist_map_old.Add(dist_key,opi);
                         map.Add((ep1-iv).magnitude,iv);
                         rings.AddConnected(ring_dir?opi:iv,ring_dir?iv:opi);
                         self_rings.AddConnected(opi,iv);
@@ -226,6 +250,10 @@ namespace MeshUtils {
                     // add inner pair
                     rings.AddConnected(ring_dir?opi:pi,ring_dir?pi:opi);
                     self_rings.AddConnected(opi,pi);
+                    float dist_key = template.plane.SignedDistance(pi);
+                    if (!dist_map.ContainsKey(dist_key)) dist_map.Add(dist_key,pi);
+                    dist_key = template.plane.SignedDistance(opi);
+                    if (!dist_map_old.ContainsKey(dist_key)) dist_map_old.Add(dist_key,opi);
                 } else {
                     // add outer pair
                     if ( // test to check if edge does not cross triangle
@@ -441,7 +469,7 @@ namespace MeshUtils {
         }
 
         private static void TmpGen(
-            List<Vector3> ring, Util.MeshPart part, Vector3 normal
+            List<Vector3> ring, Util.MeshPart part, Vector3 normal, bool swapDir = false
         ) {
 
             // List<List<Vector3>> reduceHist = new List<List<Vector3>>();
@@ -493,10 +521,15 @@ namespace MeshUtils {
                 })) continue;
 
                 // generate indice
-                part.indices.Add(vi0.Item2);
-                part.indices.Add(vi1.Item2);
-                part.indices.Add(vi2.Item2);
-                
+                if (swapDir) {
+                    part.indices.Add(vi0.Item2);
+                    part.indices.Add(vi2.Item2);
+                    part.indices.Add(vi1.Item2);
+                } else {
+                    part.indices.Add(vi0.Item2);
+                    part.indices.Add(vi1.Item2);
+                    part.indices.Add(vi2.Item2);
+                }
 
                 // eliminate vertex
                 set.RemoveAt((++i)%set.Count);
@@ -510,13 +543,23 @@ namespace MeshUtils {
 
         class RingGen : RingGenerator {
 
-            public void TemplateJoin(CuttingTemplate template) {
-                SortedDictionary<float,List<Vector3>> map = new SortedDictionary<float,List<Vector3>>();
-                foreach (var part in partials) {
-                    map.Add(
-                        template.plane.SignedDistance(part[0]),
-                        part
-                    );
+            public void TemplateJoin(CuttingTemplate template,SortedDictionary<float,Vector3> map) {
+                if (map.Count == 0) return;
+                if (map.Count % 2 == 1) throw OperationException.Internal("Odd strip entry/exit count");
+                bool first_is_entry = false;
+                Vector3 first_vec = map.First().Value;
+                foreach (List<Vector3> part in partials) {
+                    if (part[0] != first_vec) continue;
+                    first_is_entry = true;
+                    break;
+                }
+                var x = map.Values.GetEnumerator();
+                for (int i = 0; i < map.Count; i+=2) {
+                    if (!x.MoveNext()) throw OperationException.Internal("a");
+                    Vector3 a = x.Current;
+                    if (!x.MoveNext()) throw OperationException.Internal("b");
+                    Vector3 b = x.Current;
+                    AddConnected(first_is_entry?b:a,first_is_entry?a:b);
                 }
             }
 

@@ -15,3 +15,4 @@
 ### Todo
  - Check box collider fallback
  - Builder pattern for param
+ - NonPlanar strip rings need hiearchical analysis
