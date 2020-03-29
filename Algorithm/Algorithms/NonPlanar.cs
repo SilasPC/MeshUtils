@@ -44,7 +44,11 @@ namespace MeshUtils {
             // if either vertex list is empty the template didn't collide
             // if (pos.vertices.Count == 0 || neg.vertices.Count == 0) return null;
 
-            RingGenerator intersection_rings = new RingGenerator();
+            Dictionary<Vector3,RingGen> intersection_rings = new Dictionary<Vector3,RingGen>();
+
+            foreach (Vector3 point in template.points) {
+                intersection_rings.Add(point,new RingGen());
+            }
 
             // put triangles in correct mesh
             for (i = 0; i < mesh.triangles.Length; i += 3) {
@@ -84,7 +88,12 @@ namespace MeshUtils {
                 }
             }
 
-            intersection_rings.MyDebugLog();
+            foreach (Vector3 point in template.points) {
+                Debug.Log(point);
+                intersection_rings[point].MyDebugLog();
+            }
+
+            Debug.Log(template);
             
             /*var analysis = Hierarchy.Analyse(rings.GetRings(), cutting_plane);
 
@@ -126,7 +135,7 @@ namespace MeshUtils {
         private static bool ProcessTriangle(
             CuttingTemplate template,
             Vector3 a, Vector3 b, Vector3 c,
-            RingGenerator rings,
+            Dictionary<Vector3,RingGen> intersection_rings,
             Util.MeshPart pos, Util.MeshPart neg
         ) {
             List<Vector3> points = template.points;
@@ -154,6 +163,7 @@ namespace MeshUtils {
                 oaca = ca.IsAbove(opi);
             bool oldInside = !(oaab||oabc||oaca);
             for (int i = 1; i < points.Count; i++) {
+                RingGen rings = intersection_rings[points[i-1]];
                 Vector3 pi = tri_plane.DirectionalProject(points[i],normal);
                 // Debug.Log(opi+" => "+pi);
                 bool aab = ab.IsAbove(pi),
@@ -236,6 +246,7 @@ namespace MeshUtils {
                         bool iv0_first = (iv0-opi).magnitude < (iv1-opi).magnitude;
                         exiting_ivs.Add(iv0_first?iv1:iv0);
                         self_rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
+                        rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                     } else if (!abc && !oabc) { // not bc
                         Vector3 iv0 = ca.Intersection(opi,pi),
                                 iv1 = ab.Intersection(opi,pi);
@@ -248,6 +259,7 @@ namespace MeshUtils {
                         bool iv0_first = (iv0-opi).magnitude < (iv1-opi).magnitude;
                         exiting_ivs.Add(iv0_first?iv1:iv0);
                         self_rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
+                        rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                     } else if (!aca && !oaca) { // not ca
                         Vector3 iv0 = ab.Intersection(opi,pi),
                                 iv1 = bc.Intersection(opi,pi);
@@ -260,6 +272,7 @@ namespace MeshUtils {
                         bool iv0_first = (iv0-opi).magnitude < (iv1-opi).magnitude;
                         exiting_ivs.Add(iv0_first?iv1:iv0);
                         self_rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
+                        rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                     } else { // opposite sides
                         MUPlane edge_plane, edge_plane1;
                         Dictionary<float,Vector3> map, map1;
@@ -340,7 +353,7 @@ namespace MeshUtils {
                 oaca = aca;
                 opi = pi;
             }
-            if (self_rings.GetPartials().Count == 0) return false;
+            if (!self_rings.HasPartials()) return false;
             //Debugging.DebugRing(points.ConvertAll(p=>tri_plane.DirectionalProject(p,normal)));
             //Debug.Log(a+" "+b+" "+c);
             //self_rings.MyDebugLog();
@@ -363,7 +376,7 @@ namespace MeshUtils {
                     TmpGen(ring.verts,partToUse?pos:neg,tri_nor);
                 }
             } catch (Exception e) {
-                //Debug.LogException(e);
+                Debug.LogException(e);
             }
             //Debug.Log("---------------");
             return true;
@@ -491,6 +504,20 @@ namespace MeshUtils {
 
                 // reduceHist.Add(set.ConvertAll(s=>s.Item1));
 
+            }
+
+        }
+
+        class RingGen : RingGenerator {
+
+            public void TemplateJoin(CuttingTemplate template) {
+                SortedDictionary<float,List<Vector3>> map = new SortedDictionary<float,List<Vector3>>();
+                foreach (var part in partials) {
+                    map.Add(
+                        template.plane.SignedDistance(part[0]),
+                        part
+                    );
+                }
             }
 
         }

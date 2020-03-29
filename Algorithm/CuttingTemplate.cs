@@ -31,7 +31,7 @@ namespace MeshUtils {
         }
 
         public readonly List<Vector3> points = new List<Vector3>();
-        private readonly MUPlane plane;
+        public readonly MUPlane plane;
         public readonly Vector3 pointInPlane, normal;
         private readonly Vector3 world_pointInPlane, worldNormal;
 
@@ -44,6 +44,10 @@ namespace MeshUtils {
             this.pointInPlane = pointInPlane;
             this.normal = normal.normalized;
             this.plane = new MUPlane(this.normal,pointInPlane);
+        }
+
+        override public string ToString() {
+            return this.plane.ToString();
         }
 
         // ----------------------------------------------------------

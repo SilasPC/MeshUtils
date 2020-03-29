@@ -14,8 +14,8 @@ namespace MeshUtils {
     // -----------------------------------------------------------
     class RingGenerator {
 
-        private List<List<Vector3>> complete = new List<List<Vector3>>();
-        private List<List<Vector3>> partials = new List<List<Vector3>>();
+        protected List<List<Vector3>> complete = new List<List<Vector3>>();
+        protected List<List<Vector3>> partials = new List<List<Vector3>>();
 
         public RingGenerator Duplicate() {
             RingGenerator gen = new RingGenerator();
@@ -24,12 +24,8 @@ namespace MeshUtils {
             return gen;
         }
 
-        public List<List<Vector3>> GetComplete() {
-            return this.complete;
-        }
-
-        public List<List<Vector3>> GetPartials() {
-            return this.partials;
+        public bool HasPartials() {
+            return this.partials.Count > 0;
         }
 
         public List<Ring> GetRings() {

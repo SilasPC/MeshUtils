@@ -17,7 +17,7 @@ namespace MeshUtils {
 
         override public string ToString() {
             bool sy = normal.y >= 0, sz = normal.z >= 0, sd = d >= 0;
-            return "Plane: "+normal.x+"x"+(sy?"+":"")+normal.y+"y"+(sz?"+":"")+normal.z+"z"+(sd?"+":"")+d+"=0";
+            return ("Plane: "+normal.x+"x"+(sy?"+":"")+normal.y+"y"+(sz?"+":"")+normal.z+"z"+(sd?"+":"")+d+"=0").Replace(",",".");
         }
 
         // -------------------------------
@@ -25,6 +25,10 @@ namespace MeshUtils {
         // -------------------------------
         public bool IsAbove(Vector3 point) {
             return Vector3.Dot(normal, (point - this.pointInPlane)) > 0;
+        }
+
+        public float SignedDistance(Vector3 point) {
+            return Vector3.Dot(normal,point) + d;
         }
 
         // ----------------------------------------

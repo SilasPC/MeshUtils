@@ -11,7 +11,7 @@ namespace MeshUtils {
         private CuttingTemplate template;
 
         void OnTriggerEnter() {
-            if (template == null) template = CuttingTemplate.InWorldSpace(new Vector3(1,0,0),transform.position);
+            if (template == null) template = CuttingTemplate.InWorldSpace(new Vector3(0.1f,0.1f,1),transform.position);
         }
 
         void OnTriggerStay() {
