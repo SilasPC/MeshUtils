@@ -18,6 +18,14 @@ namespace MeshUtils {
             return new CuttingTemplate(normal, pointInPlane, normal, pointInPlane);
         }
 
+        public CuttingTemplate ToWorldSpace() {
+            return new CuttingTemplate(
+                worldNormal, world_pointInPlane,
+                worldNormal, world_pointInPlane
+            );
+            // points tmp
+        }
+
         public CuttingTemplate ToLocalSpace(Transform transform) {
             var t = new CuttingTemplate(
                 transform.InverseTransformDirection(worldNormal),
@@ -73,17 +81,18 @@ namespace MeshUtils {
             ) > 0;
         }
 
-        public void AddPoint(Vector3 p) {
+        public bool AddPoint(Vector3 p) {
             p = plane.Project(p);
             if (points.Count > 1) {
                 Vector3 dif = points[points.Count-1] - points[points.Count-2];
-                if (Vector3.Angle(dif,p-points[points.Count-1]) < 0) return;
+                if (Vector3.Angle(dif,p-points[points.Count-1]) < 0) return false;
             }
             if (points.Count > 0) {
                 Vector3 last = points[points.Count-1];
-                if ((last-p).magnitude < 0.03f) return;
+                if ((last-p).magnitude < 0.03f) return false;
             }
             points.Add(p);
+            return true;
         }
 
         public void Draw() {

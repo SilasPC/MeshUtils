@@ -8,16 +8,38 @@ namespace MeshUtils {
 
     public class ComplexKnife : MonoBehaviour {
 
+        public Vector3 EdgeDirection = Vector3.forward;
+        public float MaxAngle = 5;
+
         private CuttingTemplate template;
+        private Vector3 entranceDir;
+        private List<Vector3> hits = new List<Vector3>();
 
         void OnTriggerEnter() {
-            if (template == null) template = CuttingTemplate.InWorldSpace(new Vector3(0.1f,0.1f,1),transform.position);
+            if (template == null) {
+                template = CuttingTemplate.InLocalSpace(EdgeDirection,Vector3.zero,transform).ToWorldSpace();
+                entranceDir = transform.TransformDirection(EdgeDirection);
+                hits.Clear();
+            }
         }
 
-        void OnTriggerStay() {
-            template.AddPoint(transform.position);
-            GetComponent<Rigidbody>().velocity += new Vector3(0,0,0.5f);
-            template.Draw();
+        void OnTriggerStay(Collider col) {
+            Vector3 dir = transform.TransformDirection(EdgeDirection);
+            if (Vector3.Angle(dir,entranceDir) > MaxAngle) {
+                template = null;
+            }
+            if (template == null) return;
+            //Debug.DrawRay(transform.position-dir,0.1f*dir,Color.green,1,true);
+            Ray ray = new Ray(transform.position-dir,dir);
+            RaycastHit hit;
+            if (col.Raycast(ray,out hit,100)) {
+                if (template.AddPoint(hit.point))
+                    hits.Add(hit.point);
+            }
+            foreach (Vector3 p in hits) {
+                Debug.DrawRay(p,-dir,Color.red,1,true);
+            }
+            //template.Draw();
         }
 
         void OnTriggerExit(Collider col) {
@@ -26,21 +48,11 @@ namespace MeshUtils {
             var res = API.tmp(col.gameObject,template);
             if (res != null) {
                 foreach (var r in res.results) {
-                    r.WithColor(Color.blue).Instantiate();
+                    r.UseDefaults().Instantiate();
                 }
                 Debug.Break();
             } else Debug.Log("fail");
-        }
-
-        void Draw(Vector3 p, Vector3 n) {
-            StartCoroutine(DrawRoutine(p,n));
-        }
-        IEnumerator DrawRoutine(Vector3 p, Vector3 n) {
-            for (int i = 0; i < 50; i++) {
-                Debug.DrawRay(p,n * 10, Color.red);
-                yield return null;
-            }
-            yield break;
+            template = null;
         }
 
     }

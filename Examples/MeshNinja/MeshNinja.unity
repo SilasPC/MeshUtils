@@ -994,7 +994,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 15303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 47442ba090066264dadfbe5972eec0bc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1070,6 +1070,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6862a5567133e3e45b5ee2b360522184, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  EdgeDirection: {x: 1, y: 0, z: 0}
+  MaxAngle: 15
 --- !u!65 &2139404518
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1136,13 +1138,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2139404516}
-  m_LocalRotation: {x: -0, y: 0.70015156, z: -0, w: 0.7139943}
-  m_LocalPosition: {x: -4.0081, y: 1.8594, z: 1.0655}
+  m_LocalRotation: {x: -0.5038445, y: 0.34220982, z: 0.7352845, w: 0.29730433}
+  m_LocalPosition: {x: -3.3939, y: 2.1877, z: 0.8762}
   m_LocalScale: {x: 1.0020486, y: 0.011092176, z: 0.010644416}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 8
-  m_LocalEulerAnglesHint: {x: 0, y: 88.878006, z: 0}
+  m_LocalEulerAnglesHint: {x: -53.402004, y: -64.351006, z: 171.08801}
 --- !u!54 &2139404522
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -2438,6 +2440,8 @@ MonoBehaviour:
   FadeMaterial: {fileID: 0}
   FadeSpeed: 5
   ParticlePrefab: {fileID: 0}
+  HighlightWidth: 0.015
+  HighLightColor: {r: 1, g: 1, b: 1, a: 1}
   EdgeDirection: {x: 0, y: 1, z: 0}
   CutDirection: {x: 1, y: 0, z: 1}
   _OmnidirectionalMode: 0
@@ -2502,6 +2506,8 @@ MonoBehaviour:
   FadeMaterial: {fileID: 0}
   FadeSpeed: 1
   ParticlePrefab: {fileID: 0}
+  HighlightWidth: 0.015
+  HighLightColor: {r: 1, g: 1, b: 1, a: 1}
   EdgeDirection: {x: 0, y: 1, z: 0}
   CutDirection: {x: 1, y: 0, z: 1}
   _OmnidirectionalMode: 0

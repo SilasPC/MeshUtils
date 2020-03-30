@@ -18,7 +18,7 @@ namespace MeshUtils {
 
             Mesh mesh = target.GetComponent<MeshFilter>().mesh;
             MeshPart pos = new MeshPart(true), neg = new MeshPart(false);
-            // RingGenerator rings = new RingGenerator();
+            RingGenerator intersection_ring = new RingGenerator();
 
             Vector2[] uvs = mesh.uv;
 
@@ -75,7 +75,7 @@ namespace MeshUtils {
                 } else txa = txb = txc = Vector2.zero;
 
                 // seperation check
-                if (!ProcessTriangle(template,a,b,c,point_data,pos,neg)) {
+                if (!ProcessTriangle(template,a,b,c,point_data,pos,neg,intersection_ring)) {
                     if (template.IsAbove(a)) {
                         // triangle above plane
                         pos.indices.Add(pos.indexMap[i_a]);
@@ -135,8 +135,8 @@ namespace MeshUtils {
 
             // create new objects
             List<CutObj> cutObjs = new List<CutObj>() {
-                new CutObj(pos,target.transform,vel,worldNormal,mat),
-                new CutObj(neg,target.transform,vel,worldNormal,mat)
+                new CutObj(pos,target.transform,vel,worldNormal,mat,intersection_ring.GetRings()),
+                new CutObj(neg,target.transform,vel,worldNormal,mat,intersection_ring.GetRings())
             };
 
             CutResult result = new CutResult(
@@ -154,7 +154,8 @@ namespace MeshUtils {
             CuttingTemplate template,
             Vector3 a, Vector3 b, Vector3 c,
             Dictionary<Vector3,Tuple<SortedDictionary<float,Vector3>,RingGen>> point_data,
-            Util.MeshPart pos, Util.MeshPart neg
+            Util.MeshPart pos, Util.MeshPart neg,
+            RingGenerator intersection_ring
         ) {
             List<Vector3> points = template.points;
             Vector3 normal = template.normal;
@@ -218,6 +219,7 @@ namespace MeshUtils {
                         if (!dist_map.ContainsKey(dist_key)) dist_map.Add(dist_key,pi);
                         map.Add((ep1-iv).magnitude,iv);
                         rings.AddConnected(ring_dir?iv:pi,ring_dir?pi:iv);
+                        intersection_ring.AddConnected(ring_dir?iv:pi,ring_dir?pi:iv);
                         self_rings.AddConnected(iv,pi);
                     } else {
                         //Debug.Log(a+" "+b+" "+c+" "+template_plane);
@@ -243,12 +245,14 @@ namespace MeshUtils {
                         if (!dist_map_old.ContainsKey(dist_key)) dist_map_old.Add(dist_key,opi);
                         map.Add((ep1-iv).magnitude,iv);
                         rings.AddConnected(ring_dir?opi:iv,ring_dir?iv:opi);
+                        intersection_ring.AddConnected(ring_dir?opi:iv,ring_dir?iv:opi);
                         self_rings.AddConnected(opi,iv);
                         exiting_ivs.Add(iv);
                     }
                 } else if (inside) {
                     // add inner pair
                     rings.AddConnected(ring_dir?opi:pi,ring_dir?pi:opi);
+                    intersection_ring.AddConnected(ring_dir?opi:pi,ring_dir?pi:opi);
                     self_rings.AddConnected(opi,pi);
                     float dist_key = template.plane.SignedDistance(pi);
                     if (!dist_map.ContainsKey(dist_key)) dist_map.Add(dist_key,pi);
@@ -275,6 +279,7 @@ namespace MeshUtils {
                         exiting_ivs.Add(iv0_first?iv1:iv0);
                         self_rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                         rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
+                        intersection_ring.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                     } else if (!abc && !oabc) { // not bc
                         Vector3 iv0 = ca.Intersection(opi,pi),
                                 iv1 = ab.Intersection(opi,pi);
@@ -288,6 +293,7 @@ namespace MeshUtils {
                         exiting_ivs.Add(iv0_first?iv1:iv0);
                         self_rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                         rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
+                        intersection_ring.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                     } else if (!aca && !oaca) { // not ca
                         Vector3 iv0 = ab.Intersection(opi,pi),
                                 iv1 = bc.Intersection(opi,pi);
@@ -301,6 +307,7 @@ namespace MeshUtils {
                         exiting_ivs.Add(iv0_first?iv1:iv0);
                         self_rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                         rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
+                        intersection_ring.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                     } else { // opposite sides
                         MUPlane edge_plane, edge_plane1;
                         Dictionary<float,Vector3> map, map1;
@@ -371,6 +378,7 @@ namespace MeshUtils {
                         map1.Add(iv1_mag,iv1);
                         exiting_ivs.Add(iv1);
                         rings.AddConnected(ring_dir?iv:iv1,ring_dir?iv1:iv);
+                        intersection_ring.AddConnected(ring_dir?iv:iv1,ring_dir?iv1:iv);
                         self_rings.AddConnected(iv,iv1);
                     }
                 }
@@ -555,9 +563,9 @@ namespace MeshUtils {
                 }
                 var x = map.Values.GetEnumerator();
                 for (int i = 0; i < map.Count; i+=2) {
-                    if (!x.MoveNext()) throw OperationException.Internal("a");
+                    if (!x.MoveNext()) throw OperationException.Internal("Enumerator exhausted");
                     Vector3 a = x.Current;
-                    if (!x.MoveNext()) throw OperationException.Internal("b");
+                    if (!x.MoveNext()) throw OperationException.Internal("Enumerator exhausted");
                     Vector3 b = x.Current;
                     AddConnected(first_is_entry?b:a,first_is_entry?a:b);
                 }

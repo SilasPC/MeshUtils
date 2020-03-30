@@ -78,15 +78,15 @@ namespace MeshUtils {
             foreach (Ring ring in rings.GetRings()) {
                 Vector3 vec = ring.FurthestVectorToRingPerimeter(point);
                 vec = target.transform.TransformVector(vec);
-                Debug.DrawRay(param.originPoint,vec,Color.blue,10);
+                // Debug.DrawRay(param.originPoint,vec,Color.blue,10);
                 float mag = vec.magnitude;
-                Debug.Log(mag);
+                // Debug.Log(mag);
                 if (mag < param.maxCutDistance) resulting_rings.Add(ring);
             }
 
             if (resulting_rings.Count == 0) return null;
 
-            Debug.Log(resulting_rings.Count);
+            // Debug.Log(resulting_rings.Count);
 
             HashSet<Vector3> allow_cut = new HashSet<Vector3>();
             
@@ -206,7 +206,7 @@ namespace MeshUtils {
             Vector3 worldNormal = cutting_plane.ToWorldSpace().normal;
 
             // create new objects
-            List<CutObj> cutObjs = parts.ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat));
+            List<CutObj> cutObjs = parts.ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,resulting_rings));
 
             CutResult result = new CutResult(
                 analysis.siblingCenters.ConvertAll(v=>target.transform.TransformPoint(v)),

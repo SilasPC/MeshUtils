@@ -23,6 +23,12 @@ public class KnifeExample : MonoBehaviour {
 	[Tooltip("A particle system prefab to spawn at cuts.")]
 	public GameObject ParticlePrefab;
 
+	[Tooltip("Width of seperation intersection highlighting. Zero for no highlighting.")]
+	[Range(0,0.5f)]
+	public float HighlightWidth = 0.015f;
+	[Tooltip("Color of intersection highlighting.")]
+	public Color HighLightColor = Color.white;
+
 	public Vector3 EdgeDirection = Vector3.up, CutDirection = Vector3.forward;
 
 	[MyBox.Separator("Knife options")]
@@ -123,6 +129,8 @@ public class KnifeExample : MonoBehaviour {
 					.FallbackToBoxCollider()
 					.CopyVelocity(FadeMaterial == null ? 1 : 0.1f)
 					.WithDriftVelocity(0.1f)
+					.WithRingWidth(HighlightWidth)
+					.WithRingColor(HighLightColor)
 					.Instantiate();
 				if (FadeMaterial != null && FadeSpeed > 0) {
 					obj.GetComponent<Rigidbody>().useGravity = false;

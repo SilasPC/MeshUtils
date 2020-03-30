@@ -71,6 +71,7 @@ namespace MeshUtils {
             private readonly Vector3 worldNormal;
             private readonly Vector3? vel;
             private readonly Material material;
+            private readonly List<Ring> rings;
 
             private float copyVelocity = 0;
             private float driftVelocity = 0;
@@ -80,9 +81,11 @@ namespace MeshUtils {
             private bool addRigidbody = false;
             private bool copyMaterial = false;
             private bool copyParent = false;
+            private float ringWidth = 0;
+            private Color ringColor = Color.white;
             private Color? addColor = null;
             
-            public CutObj(MeshPart part, Transform orig, Vector3? vel, Vector3 worldNormal, Material material) {
+            public CutObj(MeshPart part, Transform orig, Vector3? vel, Vector3 worldNormal, Material material, List<Ring> rings) {
                 this.part = part;
                 this.vel = vel;
                 this.pos = orig.position;
@@ -91,6 +94,7 @@ namespace MeshUtils {
                 this.worldNormal = worldNormal.normalized;
                 this.material = material;
                 this.parent = orig.parent;
+                this.rings = rings;
             }
 
             public Vector3 GetLocalDriftDirection() {
@@ -107,8 +111,20 @@ namespace MeshUtils {
                 CopyParent();
                 CopyMaterial();
                 WithCollider();
+                WithRingWidth(0.02f);
+                WithRingColor(Color.red);
                 FallbackToBoxCollider();
                 CopyVelocity();
+                return this;
+            }
+
+            public CutObj WithRingWidth(float width) {
+                this.ringWidth = width;
+                return this;
+            }
+
+            public CutObj WithRingColor(Color col) {
+                this.ringColor = col;
                 return this;
             }
 
@@ -195,6 +211,19 @@ namespace MeshUtils {
                         renderer.material = this.material;
                     else if (this.addColor is Color color)
                         renderer.material.color = color;
+                    if (ringWidth > 0) {
+                        foreach (Ring ring in rings) {
+                            GameObject lineObj = new GameObject();
+                            lineObj.transform.SetParent(obj.transform);
+                            LineRenderer lr = lineObj.AddComponent<LineRenderer>();
+                            lr.positionCount = ring.verts.Count;
+                            lr.SetPositions(ring.verts.ToArray());
+                            lr.loop = true;
+                            lr.widthMultiplier = ringWidth;
+                            // lr.Simplify(0.1f);
+                            lr.useWorldSpace = false;
+                        }
+                    }
                 }
 
                 obj.transform.position = this.pos;

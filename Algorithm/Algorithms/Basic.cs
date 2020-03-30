@@ -147,11 +147,11 @@ namespace MeshUtils {
 
             // create new objects
             if (param.polySeperation) {
-                cutObjs.AddRange(pos.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat)));
-                cutObjs.AddRange(neg.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat)));
+                cutObjs.AddRange(pos.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,rings.GetRings())));
+                cutObjs.AddRange(neg.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,rings.GetRings())));
             } else {
-                cutObjs.Add(new CutObj(pos,target.transform,vel,worldNormal,mat));
-                cutObjs.Add(new CutObj(neg,target.transform,vel,worldNormal,mat));
+                cutObjs.Add(new CutObj(pos,target.transform,vel,worldNormal,mat,rings.GetRings()));
+                cutObjs.Add(new CutObj(neg,target.transform,vel,worldNormal,mat,rings.GetRings()));
             }
 
             CutResult result = new CutResult(

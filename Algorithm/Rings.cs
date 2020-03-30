@@ -83,7 +83,7 @@ namespace MeshUtils {
 
     }
 
-    struct Ring {
+    public struct Ring {
         public readonly List<Vector3> verts;
         public Ring(List<Vector3> ring) {
             this.verts = ring;
