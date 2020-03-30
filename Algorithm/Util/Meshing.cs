@@ -12,13 +12,13 @@ namespace MeshUtils {
         // Generate triangle mesh within possibly concave ring
         // -----------------------------------------------------
         public static void GenerateRingMesh(
-            Ring ring, Util.MeshPart part, Vector3 normal, bool addUVs
+            Ring ring, MeshPart part, Vector3 normal, bool addUVs
         ) {GenerateRingMesh(ring.verts,part,normal,addUVs);}
         public static void GenerateRingMesh(
-            List<Vector3> ring, Util.MeshPart part, Vector3 normal, bool addUVs
+            List<Vector3> ring, MeshPart part, Vector3 normal, bool addUVs
         ) {GenerateRingMesh(ring,part,normal,addUVs,part.side);}
         public static void GenerateRingMesh(
-            List<Vector3> ring, Util.MeshPart part, Vector3 normal, bool addUVs, bool side
+            List<Vector3> ring, MeshPart part, Vector3 normal, bool addUVs, bool side
         ) {
 
             // List<List<Vector3>> reduceHist = new List<List<Vector3>>();

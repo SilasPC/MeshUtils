@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+
 using static MeshUtils.Util;
 using static MeshUtils.API;
 using static MeshUtils.MeshingUtil;
@@ -156,7 +157,7 @@ namespace MeshUtils {
             CuttingTemplate template,
             Vector3 a, Vector3 b, Vector3 c,
             Dictionary<Vector3,Tuple<SortedDictionary<float,Vector3>,RingGen>> point_data,
-            Util.MeshPart pos, Util.MeshPart neg,
+            MeshPart pos, MeshPart neg,
             RingGenerator intersection_ring
         ) {
             List<Vector3> points = template.points;
@@ -482,7 +483,7 @@ namespace MeshUtils {
         }
 
         private static void TmpGen(
-            List<Vector3> ring, Util.MeshPart part, Vector3 normal, bool swapDir = false
+            List<Vector3> ring, MeshPart part, Vector3 normal, bool swapDir = false
         ) {
 
             GenerateRingMesh(ring,part,normal,false,!swapDir);

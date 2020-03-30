@@ -3,9 +3,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
 using static MeshUtils.Util;
 using static MeshUtils.API;
 using static MeshUtils.MeshingUtil;
+using static MeshUtils.TriangleGen;
 
 namespace MeshUtils {
 
