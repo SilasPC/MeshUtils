@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using static MeshUtils.Util;
 using static MeshUtils.API;
+using static MeshUtils.MeshingUtil;
 
 namespace MeshUtils {
 

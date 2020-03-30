@@ -6,6 +6,7 @@ using System.Linq;
 using UnityEngine;
 using static MeshUtils.Util;
 using static MeshUtils.API;
+using static MeshUtils.MeshingUtil;
 
 namespace MeshUtils {
 
@@ -112,14 +113,6 @@ namespace MeshUtils {
             }
 
             Debug.Log(template);
-            
-            /*var analysis = Hierarchy.Analyse(rings.GetRings(), cutting_plane);
-
-            // generate seperation meshing
-            foreach (var ring in analysis.rings) {
-                GenerateRingMesh(ring,pos,cutting_plane.normal,addUVs);
-                GenerateRingMesh(ring,neg,cutting_plane.normal,addUVs); 
-            }*/
 
             Vector3? vel = null;
             Rigidbody rb;
@@ -133,10 +126,19 @@ namespace MeshUtils {
 
             Vector3 worldNormal = Vector3.zero;// cutting_plane.ToWorldSpace().normal;
 
+            List<Ring> xxx;
+            try {
+                xxx = intersection_ring.GetRings();
+            } catch (Exception e) {
+                Debug.LogError("Intersection rings not complete");
+                intersection_ring.MyDebugLog();
+                xxx = new List<Ring>();
+            }
+
             // create new objects
             List<CutObj> cutObjs = new List<CutObj>() {
-                new CutObj(pos,target.transform,vel,worldNormal,mat,intersection_ring.GetRings()),
-                new CutObj(neg,target.transform,vel,worldNormal,mat,intersection_ring.GetRings())
+                new CutObj(pos,target.transform,vel,worldNormal,mat,xxx),
+                new CutObj(neg,target.transform,vel,worldNormal,mat,xxx)
             };
 
             CutResult result = new CutResult(
@@ -313,8 +315,10 @@ namespace MeshUtils {
                         Dictionary<float,Vector3> map, map1;
                         Vector3 iv, iv1;
                         float iv_mag, iv1_mag;
+                        bool swap_ring_dir = false;
 
-                        if (aab && !abc && !aca) {
+                        if (aab && !abc && !aca || oaab && !oabc && !oaca) {
+                            if (oaab) swap_ring_dir = true;
                             edge_plane = ab;
                             map = map_ab;
                             iv = ab.Intersection(opi,pi);
@@ -332,7 +336,8 @@ namespace MeshUtils {
                                 map1 = map_bc;
                             }
                             goto connect_opposite;
-                        } else if (!aab && abc && !aca) {
+                        } else if (!aab && abc && !aca || !oaab && oabc && !oaca) {
+                            if (oabc) swap_ring_dir = true;
                             edge_plane = bc;
                             map = map_bc;
                             iv = bc.Intersection(opi,pi);
@@ -350,7 +355,8 @@ namespace MeshUtils {
                                 map1 = map_ca;
                             }
                             goto connect_opposite;
-                        } else if (!aab && !abc && aca) {
+                        } else if (!aab && !abc && aca || !oaab && !oabc && oaca) {
+                            if (oaca) swap_ring_dir = true;
                             edge_plane = ca;
                             map = map_ca;
                             iv = ca.Intersection(opi,pi);
@@ -369,7 +375,6 @@ namespace MeshUtils {
                             }
                             goto connect_opposite;
                         }
-                        // more cases...
 
                         throw OperationException.Internal("Case exhaustion failed");
                     connect_opposite:
@@ -377,9 +382,9 @@ namespace MeshUtils {
                         map.Add(iv_mag,iv);
                         map1.Add(iv1_mag,iv1);
                         exiting_ivs.Add(iv1);
-                        rings.AddConnected(ring_dir?iv:iv1,ring_dir?iv1:iv);
-                        intersection_ring.AddConnected(ring_dir?iv:iv1,ring_dir?iv1:iv);
-                        self_rings.AddConnected(iv,iv1);
+                        rings.AddConnected((ring_dir^swap_ring_dir)?iv:iv1,(ring_dir^swap_ring_dir)?iv1:iv);
+                        intersection_ring.AddConnected((ring_dir^swap_ring_dir)?iv:iv1,(ring_dir^swap_ring_dir)?iv1:iv);
+                        self_rings.AddConnected(swap_ring_dir?iv1:iv,swap_ring_dir?iv:iv1);
                     }
                 }
             continue_for:
@@ -479,6 +484,9 @@ namespace MeshUtils {
         private static void TmpGen(
             List<Vector3> ring, Util.MeshPart part, Vector3 normal, bool swapDir = false
         ) {
+
+            GenerateRingMesh(ring,part,normal,false,!swapDir);
+            return;
 
             // List<List<Vector3>> reduceHist = new List<List<Vector3>>();
             // reduceHist.Add(ring);
