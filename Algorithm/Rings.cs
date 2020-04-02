@@ -29,7 +29,7 @@ namespace MeshUtils {
         }
 
         public List<Ring> GetRings(bool softFail = false) {
-            if (!softFail && this.partials.Count > 0) throw OperationException.MalformedMesh();
+            if (!softFail && this.partials.Count > 0) throw OperationException.MalformedMesh("Incomplete intersections found");
             return this.complete.ConvertAll(r=>new Ring(r));
         }
 

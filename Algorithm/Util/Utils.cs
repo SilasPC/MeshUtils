@@ -13,8 +13,11 @@ namespace MeshUtils {
         public static OperationException ZeroNormal() {
             return new OperationException("The supplied normal vector was of zero length");
         }
-        public static OperationException MalformedMesh() {
-            return new OperationException("The supplied object contains a malformed mesh");
+        public static OperationException ZeroAreaTriangle() {
+            return MalformedMesh("Zero area triangle");
+        }
+        public static OperationException MalformedMesh(string msg) {
+            return new OperationException("The supplied object contains a malformed mesh ("+msg+")");
         }
         public static OperationException Internal(string msg) {
             return new OperationException("Internal error: " + msg);
@@ -218,7 +221,7 @@ namespace MeshUtils {
             if (e == d) {
                 return;
                 // not sure if this is nescessary
-                throw OperationException.MalformedMesh();
+                throw OperationException.ZeroAreaTriangle();
             }
 
             // find proper direction for ring
