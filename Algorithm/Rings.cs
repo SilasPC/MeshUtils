@@ -14,15 +14,27 @@ namespace MeshUtils {
     // -----------------------------------------------------------
     class RingGenerator {
 
-        private List<List<Vector3>> complete = new List<List<Vector3>>();
-        private List<List<Vector3>> partials = new List<List<Vector3>>();
+        protected List<List<Vector3>> complete = new List<List<Vector3>>();
+        protected List<List<Vector3>> partials = new List<List<Vector3>>();
 
-        public List<Ring> GetRings() {
-            if (this.partials.Count > 0) throw OperationException.MalformedMesh();
+        public RingGenerator Duplicate() {
+            RingGenerator gen = new RingGenerator();
+            gen.complete = complete.ConvertAll(r=>r.ConvertAll(v=>v));
+            gen.partials = partials.ConvertAll(r=>r.ConvertAll(v=>v));
+            return gen;
+        }
+
+        public bool HasPartials() {
+            return this.partials.Count > 0;
+        }
+
+        public List<Ring> GetRings(bool softFail = false) {
+            if (!softFail && this.partials.Count > 0) throw OperationException.MalformedMesh("Incomplete intersections found");
             return this.complete.ConvertAll(r=>new Ring(r));
         }
 
         public void MyDebugLog() {
+            Debugging.DebugRings(partials);
             Debug.Log(complete.Count + " complete rings, " +  partials.Count + " partial rings");
         }
 
@@ -71,7 +83,7 @@ namespace MeshUtils {
 
     }
 
-    struct Ring {
+    public struct Ring {
         public readonly List<Vector3> verts;
         public Ring(List<Vector3> ring) {
             this.verts = ring;
@@ -94,7 +106,6 @@ namespace MeshUtils {
 
         // ---------------------------------------------------------------
         // Determine shortest distance to ring perimeter
-        // Formula for point/line distance: d=|(p-x1)x(p-x2)|/|x2-x1|
         // i0 and i1 are indices for vertexes around closest line in ring
         // ---------------------------------------------------------------
         public float DistanceToRingPerimeter(Vector3 v, out int i0, out int i1) {
@@ -103,10 +114,7 @@ namespace MeshUtils {
             i1 = 0;
             float dMin = float.PositiveInfinity;
             for (int i = 0; i < verts.Count; i++) {
-                Vector3 x1 = verts[prevIndex], x2 = verts[i];
-                float d1 = (x1-v).magnitude, d2 = (x2-v).magnitude;
-                float d0 = Vector3.Cross(v-x1,v-x2).magnitude/(x2-x1).magnitude;
-                float d = Math.Min(Math.Min(d1,d2),d0);
+                float d = VectorUtil.DistanceToEdge(v,verts[prevIndex],verts[i]);
                 if (d < dMin) {
                     dMin = d;
                     i0 = prevIndex;
@@ -117,16 +125,20 @@ namespace MeshUtils {
             return dMin;
         }
 
-        // -----------------------------------------------
-        // Distance from point to furthest point in ring
-        // -----------------------------------------------
-        public float FurthestDistanceToRingPerimeter(Vector3 p) {
+        // ---------------------------------------------
+        // Vector from point to furthest point in ring
+        // ---------------------------------------------
+        public Vector3 FurthestVectorToRingPerimeter(Vector3 p) {
             float dist = 0;
+            Vector3 v0 = Vector3.zero;
             foreach (Vector3 v in verts) {
                 float newDist = (v-p).magnitude;
-                if (newDist > dist) dist = newDist;
+                if (newDist > dist) {
+                    dist = newDist;
+                    v0 = v;
+                }
             }
-            return dist;
+            return v0-p;
         }
         
         // ------------------------------------

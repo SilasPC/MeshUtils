@@ -29,7 +29,8 @@ public class GunExample : MonoBehaviour
 		if (obj.tag != "Shootable") return;
 
 		CuttingPlane plane = CuttingPlane.InLocalSpace(UnityEngine.Random.insideUnitSphere.normalized,Vector3.zero,obj.transform);
-		CutParams param = new CutParams(false, true, true, Vector3.zero, float.PositiveInfinity, 0), param2 = new CutParams(true, true, true, Vector3.zero, float.PositiveInfinity, 0);
+		CutParams param = new CutParams(false, true, true, true, Vector3.zero, float.PositiveInfinity, 0),
+                    param2 = new CutParams(true, true, true, true, Vector3.zero, float.PositiveInfinity, 0);
 
 		CutResult result = PerformCut(obj,plane,param);
 
@@ -40,7 +41,7 @@ public class GunExample : MonoBehaviour
                 .CopyVelocity(1)
                 .CopyParent()
                 .WithDriftVelocity(SplitVelocity)
-                .Create();
+                .Instantiate();
 		    plane = CuttingPlane
 			    .InLocalSpace(UnityEngine.Random.insideUnitSphere.normalized,Vector3.zero,resObj.transform);
                 CutResult result2 = PerformCut(resObj,plane,param2);
@@ -54,7 +55,7 @@ public class GunExample : MonoBehaviour
                         .FallbackToBoxCollider()
                         .CopyVelocity(1)
                         .WithDriftVelocity(SplitVelocity)
-                        .Create()
+                        .Instantiate()
                         .GetComponent<Rigidbody>().velocity += hitDir * HitVelocity;
 			}
 		}

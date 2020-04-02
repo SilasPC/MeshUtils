@@ -113,7 +113,7 @@ public class Inspectable : MonoBehaviour
     
     void Split(CuttingPlane plane) {
         DestroyChildren();
-        CutParams param = new CutParams(true, false, false, Vector3.zero, float.PositiveInfinity, 0);
+        CutParams param = new CutParams(true, false, false, true, Vector3.zero, float.PositiveInfinity, 0);
         CutResult result = PerformCut(gameObject,plane,param);
         if (result == null) return;
         children = new List<Inspectable>();
@@ -121,7 +121,7 @@ public class Inspectable : MonoBehaviour
             GameObject newObj = res
                 .CopyMaterial()
                 .WithCollider()
-                .Create();
+                .Instantiate();
             newObj.transform.SetParent(transform);
             Inspectable newInspectable = newObj.AddComponent<Inspectable>();
             newInspectable.relativePosition = res.GetLocalDriftDirection() * 0.1f;

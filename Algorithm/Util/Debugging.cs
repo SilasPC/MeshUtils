@@ -47,12 +47,23 @@ namespace MeshUtils {
             Debug.Log("{"+String.Join(",",topStrings)+"}");
         }
 
+        // --------------------------------
+        // Make a GeoGebra compatible line
+        // --------------------------------
+        public static void LogLine(Vector3 p, Vector3 dir) {
+            Debug.Log(("("+
+                p.x.ToString()+"+t*"+dir.x+"§"+
+                p.y.ToString()+"+t*"+dir.y+"§"+
+                p.z.ToString()+"+t*"+dir.z+")"
+            ).Replace(',','.').Replace('§',','));
+        }
+
         // ------------------
         // Make an int list
         // ------------------
-        public static void LogList(List<int> list) {
+        public static void LogList<T>(IEnumerable<T> list) {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            foreach (int i in list) sb.Append(i.ToString()+" ");
+            foreach (T i in list) sb.Append(i.ToString()+" ");
             Debug.Log(sb.ToString());
         }
     }

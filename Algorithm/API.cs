@@ -9,10 +9,31 @@ namespace MeshUtils {
 
     static class API {
 
+        /*public class CutParamsBuilder {
+            private bool polySeperation = false;
+            private bool destroyOriginal = false;
+            private bool allowSingleResult = false;
+            private float seperationDistance;
+            private float maxCutDistance;
+            private Vector3 originPoint;
+            public CutParamsBuilder WithPolySeperation() {
+                this.polySeperation = true;
+                return this;
+            }
+            public CutParamsBuilder DoDestroyOriginal() {
+                this.destroyOriginal = true;
+                return this;
+            }
+            public CutParamsBuilder AllowSingleResult() {
+                this.allowSingleResult = true;
+            }
+        }*/
+
         public struct CutParams {
             public readonly bool polySeperation;
             public readonly bool destroyOriginal;
             public readonly bool allowSingleResult;
+            public readonly bool useSoftFail;
             public readonly float seperationDistance;
             public readonly float maxCutDistance;
             public readonly Vector3 originPoint;
@@ -20,6 +41,7 @@ namespace MeshUtils {
                 bool polySeperation,
                 bool destroyOriginal,
                 bool allowSingleResult,
+                bool useSoftFail,
                 Vector3 originPoint,
                 float maxCutDistance,
                 float gap
@@ -27,6 +49,7 @@ namespace MeshUtils {
                 this.polySeperation = polySeperation;
                 this.destroyOriginal = destroyOriginal;
                 this.allowSingleResult = allowSingleResult;
+                this.useSoftFail = useSoftFail;
                 this.originPoint = originPoint;
                 this.maxCutDistance = maxCutDistance;
                 this.seperationDistance = gap / 2;
@@ -51,6 +74,7 @@ namespace MeshUtils {
             private readonly Vector3 worldNormal;
             private readonly Vector3? vel;
             private readonly Material material;
+            private readonly List<Ring> rings;
 
             private float copyVelocity = 0;
             private float driftVelocity = 0;
@@ -60,9 +84,11 @@ namespace MeshUtils {
             private bool addRigidbody = false;
             private bool copyMaterial = false;
             private bool copyParent = false;
+            private float ringWidth = 0;
+            private Color ringColor = Color.white;
             private Color? addColor = null;
             
-            public CutObj(MeshPart part, Transform orig, Vector3? vel, Vector3 worldNormal, Material material) {
+            public CutObj(MeshPart part, Transform orig, Vector3? vel, Vector3 worldNormal, Material material, List<Ring> rings) {
                 this.part = part;
                 this.vel = vel;
                 this.pos = orig.position;
@@ -71,6 +97,7 @@ namespace MeshUtils {
                 this.worldNormal = worldNormal.normalized;
                 this.material = material;
                 this.parent = orig.parent;
+                this.rings = rings;
             }
 
             public Vector3 GetLocalDriftDirection() {
@@ -81,6 +108,27 @@ namespace MeshUtils {
 
             public Vector3 GetDriftDirection() {
                 return worldNormal * (part.side ? 1 : -1);
+            }
+            
+            public CutObj UseDefaults() {
+                CopyParent();
+                CopyMaterial();
+                WithCollider();
+                WithRingWidth(0.02f);
+                WithRingColor(Color.red);
+                FallbackToBoxCollider();
+                CopyVelocity();
+                return this;
+            }
+
+            public CutObj WithRingWidth(float width) {
+                this.ringWidth = width;
+                return this;
+            }
+
+            public CutObj WithRingColor(Color col) {
+                this.ringColor = col;
+                return this;
             }
 
             public CutObj WithRenderer() {
@@ -128,7 +176,7 @@ namespace MeshUtils {
                 return this;
             }
 
-            public CutObj CopyVelocity(float factor) {
+            public CutObj CopyVelocity(float factor = 1) {
                 this.addRigidbody = true;
                 this.copyVelocity = factor;
                 return this;
@@ -139,7 +187,7 @@ namespace MeshUtils {
                 return this;
             }
 
-            public GameObject Create() {
+            public GameObject Instantiate() {
                 GameObject obj = new GameObject();
                 this.part.AddMeshTo(obj);
                 if (this.addRigidbody) {
@@ -159,13 +207,30 @@ namespace MeshUtils {
                         } else throw e;
                     }
                 }
-                    
+                
                 if (this.addRenderer) {
                     MeshRenderer renderer = obj.AddComponent<MeshRenderer>();
                     if (this.copyMaterial && this.material != null)
                         renderer.material = this.material;
                     else if (this.addColor is Color color)
                         renderer.material.color = color;
+                    if (ringWidth > 0) {
+                        foreach (Ring ring in rings) {
+                            GameObject lineObj = new GameObject();
+                            lineObj.transform.SetParent(obj.transform);
+                            LineRenderer lr = lineObj.AddComponent<LineRenderer>();
+                            lr.positionCount = ring.verts.Count;
+                            lr.numCornerVertices = 2;
+                            lr.SetPositions(ring.verts.ToArray());
+                            lr.loop = true;
+                            lr.widthMultiplier = ringWidth;
+                            lr.material = new Material(Shader.Find("Sprites/Default"));
+                            lr.material.color = ringColor;
+                            lr.startColor = ringColor;
+                            lr.endColor = ringColor;
+                            lr.useWorldSpace = false;
+                        }
+                    }
                 }
 
                 obj.transform.position = this.pos;
@@ -179,6 +244,13 @@ namespace MeshUtils {
 
         }
 
+        public static CutResult tmp(
+            GameObject target,
+            CuttingTemplate template
+        ) {
+            return NonPlanarAlgorithm.Run(target,template.ToLocalSpace(target.transform));
+        }
+
         public static CutResult PerformCut(
             GameObject target,
             CuttingPlane plane,
@@ -186,10 +258,10 @@ namespace MeshUtils {
         ) {
             if (param.maxCutDistance != float.PositiveInfinity) {
                 if (param.seperationDistance > 0) throw new Exception("no gap and max cut");
-                return Algorithms.PartialPlanarCut(target,plane,param);
+                return PartialAlgorithm.Run(target,plane,param);
             }
-            if (param.seperationDistance <= 0) return Algorithms.PlanarCutWithoutGap(target,plane,param);
-            return Algorithms.PlanarCutWithGap(target,plane,param);
+            if (param.seperationDistance <= 0) return BasicAlgorithm.Run(target,plane,param);
+            return GapAlgorithm.Run(target,plane,param);
         }
 
     }

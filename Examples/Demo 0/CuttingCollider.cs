@@ -8,7 +8,7 @@ using static MeshUtils.API;
 using static MeshUtils.VectorUtil;
 using CuttingPlane = MeshUtils.CuttingPlane;
 
-public class KnifeExample : MonoBehaviour {
+public class CuttingCollider : MonoBehaviour {
 
 	[MyBox.Separator("Extra options")]
 
@@ -23,40 +23,38 @@ public class KnifeExample : MonoBehaviour {
 	[Tooltip("A particle system prefab to spawn at cuts.")]
 	public GameObject ParticlePrefab;
 
-	[Tooltip("Width of seperation intersection highlighting. Zero for no highlighting.")]
-	[Range(0,0.5f)]
-	public float HighlightWidth = 0.015f;
-	[Tooltip("Color of intersection highlighting.")]
-	public Color HighLightColor = Color.white;
+	private Vector3 EdgeDirection = Vector3.forward;
+	private Vector3 CutDirection = Vector3.right;
 
+	[MyBox.Separator("Cutting options")]
 
-	[MyBox.Separator("Knife options")]
+	[Tooltip("Which tagged objects to cut")]
+	[MyBox.Tag]
+	public string CutTag;
 
-	[Tooltip("Direction from base of edge to tip of edge.")]
-	public Vector3 EdgeDirection = Vector3.up;
-	[Tooltip("Direction edge should cut into objects.")]
-	public Vector3 CutDirection = Vector3.forward;
-
-	[Tooltip("Omnidirectional cutting. Think lightsabers. Cutting direction depends on collision direction.")]
-	public bool _OmnidirectionalMode = false;
-
-	[MyBox.ConditionalField("_OmnidirectionalMode",true)]
 	[Range(0,180)]
 	[Tooltip("Maximum angle (in degrees) from cutting direction to tolerate.")]
 	public float MaxAngle = 20;
+
 	[MyBox.PositiveValueOnly]
 	[Tooltip("Minimum relative velocity required to attempt cut.")]
 	public float MinimumVelocity = 2;
+
+	[Tooltip("If true, the cutting direction is aligned to the relative velocity between objects.\nPrimarily useful for omnidirectional cutting with maxAngle >= 180.")]
+	public bool AlignToVelocity = false;
+
+	[Tooltip("Minimum velocity is evaluted after projection in cut direction")]
+	public bool ProjectMinimumVelocity = true;
+
 	[Tooltip("If true, direction vectors are interpreted as normals. This means the directions will be squezed along with the transform.")]
 	public bool directionsAreNormals = false;
-	[Tooltip("If true, uses first contact point as basis for cutting plane. Otherwise uses object center.")]
+
+	[Tooltip("If true, uses first contact point as basis for cutting plane. Otherwise uses knife center.")]
 	public bool UseContactPoint = true;
 
 	[MyBox.Separator("Cutting options")]
-	[Tooltip("Use soft fail for not so nice meshes.")]
-	public bool UseSoftFail = false;
-	[Tooltip("Further seperate disconnected parts of resulting meshes.")]
-	public bool PolySeperation = true;
+	[Tooltip("Further separate disconnected parts of resulting meshes.")]
+	public bool PolySeparation = true;
 	[Tooltip("Toogle partial mode. Different options are visible.")]
 	public bool _PartialMode = false;
 	[MyBox.ConditionalField("_PartialMode",true)]
@@ -73,18 +71,27 @@ public class KnifeExample : MonoBehaviour {
 	}
 
 	public void OnCollisionEnter(Collision col) {
+		//Debug.Log("Entered collision with object");
 
-		if (col.gameObject.tag != "Cuttable") return;
+		if (col.gameObject.tag != CutTag) {
+			//Debug.Log("Returned incorrect tag");
+			return;
+		}
 
 		Vector3 cutDir = directionsAreNormals
 			? TransformNormal(CutDirection,transform)
 			: transform.TransformDirection(CutDirection);
 
-		float relVel = Vector3.Project(col.relativeVelocity,cutDir).magnitude;
+		float relVel = ProjectMinimumVelocity
+			? Vector3.Project(col.relativeVelocity,cutDir).magnitude
+			: col.relativeVelocity.magnitude;
 
-		if (MinimumVelocity > relVel) return;
+		if (MinimumVelocity > relVel) {
+			//Debug.Log("Velocity was smaller than miminum");
+			return;
+		}
 
-		Vector3 dir = _OmnidirectionalMode
+		Vector3 dir = AlignToVelocity
 			? -col.relativeVelocity
 			: cutDir;
 
@@ -94,7 +101,10 @@ public class KnifeExample : MonoBehaviour {
 
 		Vector3 angleProjection = Vector3.ProjectOnPlane(-col.relativeVelocity,edge);
 
-		if (Vector3.Angle(angleProjection,cutDir) > MaxAngle) return;
+		if (Vector3.Angle(angleProjection,cutDir) > MaxAngle) {
+			//Debug.Log("Angle was greater than the maximum allowed angle");
+			return;
+		}
 
 		Vector3 normal = Vector3.Cross(dir,edge).normalized;
 
@@ -104,7 +114,7 @@ public class KnifeExample : MonoBehaviour {
 
 		CuttingPlane plane = CuttingPlane.InWorldSpace(normal,pointInPlane);
 		CutParams param = new CutParams(
-			PolySeperation, true, true, UseSoftFail,
+			PolySeparation, true, true, true,
 			col.gameObject.transform.position,
 			_PartialMode ? CutDistance : float.PositiveInfinity,
 			_PartialMode ? 0 : Gap
@@ -135,8 +145,6 @@ public class KnifeExample : MonoBehaviour {
 					.FallbackToBoxCollider()
 					.CopyVelocity(FadeMaterial == null ? 1 : 0.1f)
 					.WithDriftVelocity(0.1f)
-					.WithRingWidth(HighlightWidth)
-					.WithRingColor(HighLightColor)
 					.Instantiate();
 				if (FadeMaterial != null && FadeSpeed > 0) {
 					obj.GetComponent<Rigidbody>().useGravity = false;
