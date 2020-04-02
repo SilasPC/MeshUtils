@@ -126,7 +126,7 @@ namespace MeshUtils {
                 }
             }
             
-            var analysis = Hierarchy.Analyse(rings.GetRings(), cutting_plane);
+            var analysis = Hierarchy.Analyse(rings.GetRings(param.useSoftFail), cutting_plane);
 
             // generate seperation meshing
             foreach (var ring in analysis.rings) {
@@ -150,11 +150,11 @@ namespace MeshUtils {
 
             // create new objects
             if (param.polySeperation) {
-                cutObjs.AddRange(pos.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,rings.GetRings())));
-                cutObjs.AddRange(neg.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,rings.GetRings())));
+                cutObjs.AddRange(pos.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,rings.GetRings(param.useSoftFail))));
+                cutObjs.AddRange(neg.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,rings.GetRings(param.useSoftFail))));
             } else {
-                cutObjs.Add(new CutObj(pos,target.transform,vel,worldNormal,mat,rings.GetRings()));
-                cutObjs.Add(new CutObj(neg,target.transform,vel,worldNormal,mat,rings.GetRings()));
+                cutObjs.Add(new CutObj(pos,target.transform,vel,worldNormal,mat,rings.GetRings(param.useSoftFail)));
+                cutObjs.Add(new CutObj(neg,target.transform,vel,worldNormal,mat,rings.GetRings(param.useSoftFail)));
             }
 
             CutResult result = new CutResult(

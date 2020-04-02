@@ -29,9 +29,13 @@ public class KnifeExample : MonoBehaviour {
 	[Tooltip("Color of intersection highlighting.")]
 	public Color HighLightColor = Color.white;
 
-	public Vector3 EdgeDirection = Vector3.up, CutDirection = Vector3.forward;
 
 	[MyBox.Separator("Knife options")]
+
+	[Tooltip("Direction from base of edge to tip of edge.")]
+	public Vector3 EdgeDirection = Vector3.up;
+	[Tooltip("Direction edge should cut into objects.")]
+	public Vector3 CutDirection = Vector3.forward;
 
 	[Tooltip("Omnidirectional cutting. Think lightsabers. Cutting direction depends on collision direction.")]
 	public bool _OmnidirectionalMode = false;
@@ -49,6 +53,8 @@ public class KnifeExample : MonoBehaviour {
 	public bool UseContactPoint = true;
 
 	[MyBox.Separator("Cutting options")]
+	[Tooltip("Use soft fail for not so nice meshes.")]
+	public bool UseSoftFail = false;
 	[Tooltip("Further seperate disconnected parts of resulting meshes.")]
 	public bool PolySeperation = true;
 	[Tooltip("Toogle partial mode. Different options are visible.")]
@@ -98,7 +104,7 @@ public class KnifeExample : MonoBehaviour {
 
 		CuttingPlane plane = CuttingPlane.InWorldSpace(normal,pointInPlane);
 		CutParams param = new CutParams(
-			PolySeperation, true, true,
+			PolySeperation, true, true, UseSoftFail,
 			col.gameObject.transform.position,
 			_PartialMode ? CutDistance : float.PositiveInfinity,
 			_PartialMode ? 0 : Gap

@@ -33,6 +33,7 @@ namespace MeshUtils {
             public readonly bool polySeperation;
             public readonly bool destroyOriginal;
             public readonly bool allowSingleResult;
+            public readonly bool useSoftFail;
             public readonly float seperationDistance;
             public readonly float maxCutDistance;
             public readonly Vector3 originPoint;
@@ -40,6 +41,7 @@ namespace MeshUtils {
                 bool polySeperation,
                 bool destroyOriginal,
                 bool allowSingleResult,
+                bool useSoftFail,
                 Vector3 originPoint,
                 float maxCutDistance,
                 float gap
@@ -47,6 +49,7 @@ namespace MeshUtils {
                 this.polySeperation = polySeperation;
                 this.destroyOriginal = destroyOriginal;
                 this.allowSingleResult = allowSingleResult;
+                this.useSoftFail = useSoftFail;
                 this.originPoint = originPoint;
                 this.maxCutDistance = maxCutDistance;
                 this.seperationDistance = gap / 2;

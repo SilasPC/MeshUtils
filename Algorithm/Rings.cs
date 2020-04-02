@@ -28,8 +28,8 @@ namespace MeshUtils {
             return this.partials.Count > 0;
         }
 
-        public List<Ring> GetRings() {
-            if (this.partials.Count > 0) throw OperationException.MalformedMesh();
+        public List<Ring> GetRings(bool softFail = false) {
+            if (!softFail && this.partials.Count > 0) throw OperationException.MalformedMesh();
             return this.complete.ConvertAll(r=>new Ring(r));
         }
 

@@ -29,7 +29,8 @@ public class GunExample : MonoBehaviour
 		if (obj.tag != "Shootable") return;
 
 		CuttingPlane plane = CuttingPlane.InLocalSpace(UnityEngine.Random.insideUnitSphere.normalized,Vector3.zero,obj.transform);
-		CutParams param = new CutParams(false, true, true, Vector3.zero, float.PositiveInfinity, 0), param2 = new CutParams(true, true, true, Vector3.zero, float.PositiveInfinity, 0);
+		CutParams param = new CutParams(false, true, true, true, Vector3.zero, float.PositiveInfinity, 0),
+                    param2 = new CutParams(true, true, true, true, Vector3.zero, float.PositiveInfinity, 0);
 
 		CutResult result = PerformCut(obj,plane,param);
 
