@@ -11,7 +11,7 @@ using static MeshUtils.TriangleGen;
 
 namespace MeshUtils {
 
-    static class BaseAlgorithm {
+    static class BasicAlgorithm {
 
         public static CutResult Run(
             GameObject target,

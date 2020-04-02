@@ -248,7 +248,7 @@ namespace MeshUtils {
             GameObject target,
             CuttingTemplate template
         ) {
-            return Algorithms.NonPlanarCut(target,template.ToLocalSpace(target.transform));
+            return NonPlanarAlgorithm.Run(target,template.ToLocalSpace(target.transform));
         }
 
         public static CutResult PerformCut(
@@ -258,10 +258,10 @@ namespace MeshUtils {
         ) {
             if (param.maxCutDistance != float.PositiveInfinity) {
                 if (param.seperationDistance > 0) throw new Exception("no gap and max cut");
-                return Algorithms.PartialPlanarCut(target,plane,param);
+                return PartialAlgorithm.Run(target,plane,param);
             }
-            if (param.seperationDistance <= 0) return Algorithms.PlanarCutWithoutGap(target,plane,param);
-            return Algorithms.PlanarCutWithGap(target,plane,param);
+            if (param.seperationDistance <= 0) return BasicAlgorithm.Run(target,plane,param);
+            return GapAlgorithm.Run(target,plane,param);
         }
 
     }
