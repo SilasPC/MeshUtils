@@ -204,7 +204,7 @@ namespace MeshUtils {
                         } else throw e;
                     }
                 }
-                    
+                
                 if (this.addRenderer) {
                     MeshRenderer renderer = obj.AddComponent<MeshRenderer>();
                     if (this.copyMaterial && this.material != null)
@@ -217,10 +217,14 @@ namespace MeshUtils {
                             lineObj.transform.SetParent(obj.transform);
                             LineRenderer lr = lineObj.AddComponent<LineRenderer>();
                             lr.positionCount = ring.verts.Count;
+                            lr.numCornerVertices = 2;
                             lr.SetPositions(ring.verts.ToArray());
                             lr.loop = true;
                             lr.widthMultiplier = ringWidth;
-                            // lr.Simplify(0.1f);
+                            lr.material = new Material(Shader.Find("Sprites/Default"));
+                            lr.material.color = ringColor;
+                            lr.startColor = ringColor;
+                            lr.endColor = ringColor;
                             lr.useWorldSpace = false;
                         }
                     }
