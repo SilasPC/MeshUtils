@@ -114,7 +114,7 @@ public class CuttingCollider : MonoBehaviour {
 
 		CuttingPlane plane = CuttingPlane.InWorldSpace(normal,pointInPlane);
 		CutParams param = new CutParams(
-			PolySeparation, true, true, true,
+			PolySeparation, true, true, true, true,
 			col.gameObject.transform.position,
 			_PartialMode ? CutDistance : float.PositiveInfinity,
 			_PartialMode ? 0 : Gap

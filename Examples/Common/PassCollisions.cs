@@ -5,10 +5,17 @@ using UnityEngine;
 public class PassCollisions : MonoBehaviour
 {
 
-    public KnifeExample PassTo;
+    public GameObject[] objects;
 
     public void OnCollisionEnter(Collision col) {
-        PassTo.PassCollision(col);
+        Collider thisCollider = col.GetContact(0).thisCollider;
+        foreach (GameObject obj in objects) {
+            if (obj == null) continue;
+            if (thisCollider == obj.GetComponent<Collider>()) {
+                obj.SendMessage("OnCollisionEnter",col);
+                return;
+            }
+        }
     }
 
 }

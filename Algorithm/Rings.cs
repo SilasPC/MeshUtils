@@ -28,9 +28,16 @@ namespace MeshUtils {
             return this.partials.Count > 0;
         }
 
-        public List<Ring> GetRings(bool softFail = false) {
-            if (!softFail && this.partials.Count > 0) throw OperationException.MalformedMesh("Incomplete intersections found");
-            return this.complete.ConvertAll(r=>new Ring(r));
+        public List<Ring> GetRings(bool selfConnectPartials, bool ignorePartials) {
+            List<Ring> res = this.complete.ConvertAll(r=>new Ring(r));
+            if (selfConnectPartials) {
+                foreach (List<Vector3> p in partials) {
+                    if (p.Count < 3) continue;
+                    res.Add(new Ring(p));
+                }
+            }
+            if (!ignorePartials && !selfConnectPartials && this.partials.Count > 0) throw OperationException.MalformedMesh("Incomplete intersections found");
+            return res;
         }
 
         public void MyDebugLog() {

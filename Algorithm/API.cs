@@ -33,7 +33,8 @@ namespace MeshUtils {
             public readonly bool polySeperation;
             public readonly bool destroyOriginal;
             public readonly bool allowSingleResult;
-            public readonly bool useSoftFail;
+            public readonly bool selfConnectRings;
+            public readonly bool ignorePartialRings;
             public readonly float seperationDistance;
             public readonly float maxCutDistance;
             public readonly Vector3 originPoint;
@@ -41,7 +42,8 @@ namespace MeshUtils {
                 bool polySeperation,
                 bool destroyOriginal,
                 bool allowSingleResult,
-                bool useSoftFail,
+                bool selfConnectRings,
+                bool ignorePartialRings,
                 Vector3 originPoint,
                 float maxCutDistance,
                 float gap
@@ -49,7 +51,8 @@ namespace MeshUtils {
                 this.polySeperation = polySeperation;
                 this.destroyOriginal = destroyOriginal;
                 this.allowSingleResult = allowSingleResult;
-                this.useSoftFail = useSoftFail;
+                this.selfConnectRings = selfConnectRings;
+                this.ignorePartialRings = ignorePartialRings;
                 this.originPoint = originPoint;
                 this.maxCutDistance = maxCutDistance;
                 this.seperationDistance = gap / 2;
@@ -75,6 +78,7 @@ namespace MeshUtils {
             private readonly Vector3? vel;
             private readonly Material material;
             private readonly List<Ring> rings;
+            //private readonly float? density;
 
             private float copyVelocity = 0;
             private float driftVelocity = 0;
@@ -82,6 +86,7 @@ namespace MeshUtils {
             private bool boxColliderFallback = false;
             private bool addCollider = false;
             private bool addRigidbody = false;
+            //private bool copyDensity = false;
             private bool copyMaterial = false;
             private bool copyParent = false;
             private float ringWidth = 0;
@@ -98,6 +103,7 @@ namespace MeshUtils {
                 this.material = material;
                 this.parent = orig.parent;
                 this.rings = rings;
+                //this.density = density;
             }
 
             public Vector3 GetLocalDriftDirection() {
@@ -114,10 +120,11 @@ namespace MeshUtils {
                 CopyParent();
                 CopyMaterial();
                 WithCollider();
-                WithRingWidth(0.02f);
-                WithRingColor(Color.red);
+                WithRingWidth(0.01f);
+                WithRingColor(Color.white);
                 FallbackToBoxCollider();
                 CopyVelocity();
+                WithDriftVelocity(0.1f);
                 return this;
             }
 
@@ -176,6 +183,12 @@ namespace MeshUtils {
                 return this;
             }
 
+            /*public CutObj CopyDensity() {
+                this.addRigidbody = true;
+                this.copyDensity = true;
+                return this;
+            }*/
+
             public CutObj CopyVelocity(float factor = 1) {
                 this.addRigidbody = true;
                 this.copyVelocity = factor;
@@ -194,6 +207,9 @@ namespace MeshUtils {
                     Rigidbody rb = obj.AddComponent<Rigidbody>();
                     if (this.vel is Vector3 vel) rb.velocity = vel * copyVelocity;
                     rb.velocity += GetDriftDirection() * this.driftVelocity;
+                    /*if (this.copyDensity && this.density is float density) {
+                        rb.SetDensity(density);
+                    }*/
                 }
                 if (this.addCollider) {
                     MeshCollider mc = null;
@@ -256,12 +272,16 @@ namespace MeshUtils {
             CuttingPlane plane,
             CutParams param
         ) {
+            DateTime start = DateTime.Now;
+            CutResult res;
             if (param.maxCutDistance != float.PositiveInfinity) {
                 if (param.seperationDistance > 0) throw new Exception("no gap and max cut");
-                return PartialAlgorithm.Run(target,plane,param);
+                res = PartialAlgorithm.Run(target,plane,param);
             }
-            if (param.seperationDistance <= 0) return BasicAlgorithm.Run(target,plane,param);
-            return GapAlgorithm.Run(target,plane,param);
+            if (param.seperationDistance <= 0) res = BasicAlgorithm.Run(target,plane,param);
+            else res = GapAlgorithm.Run(target,plane,param);
+            Debug.Log((DateTime.Now-start).TotalMilliseconds+" elapsed");
+            return res;
         }
 
     }

@@ -104,13 +104,15 @@ public class KnifeExample : MonoBehaviour {
 
 		CuttingPlane plane = CuttingPlane.InWorldSpace(normal,pointInPlane);
 		CutParams param = new CutParams(
-			PolySeperation, true, true, UseSoftFail,
+			PolySeperation, true, true, UseSoftFail, UseSoftFail,
 			col.gameObject.transform.position,
 			_PartialMode ? CutDistance : float.PositiveInfinity,
 			_PartialMode ? 0 : Gap
 		);
 
 		CutResult result = PerformCut(col.gameObject,plane,param);
+
+		Debug.Log(col.collider.bounds.min+" "+col.collider.bounds.size+" "+col.collider.bounds.max);
 
 		if (result != null) {
 			if (ParticlePrefab) {
@@ -138,14 +140,15 @@ public class KnifeExample : MonoBehaviour {
 					.WithRingWidth(HighlightWidth)
 					.WithRingColor(HighLightColor)
 					.Instantiate();
+				Debug.Log(obj.GetComponent<Collider>().bounds.min+" "+obj.GetComponent<Collider>().bounds.size+" "+obj.GetComponent<Collider>().bounds.max);
 				if (FadeMaterial != null && FadeSpeed > 0) {
 					obj.GetComponent<Rigidbody>().useGravity = false;
 					Destroy(obj.GetComponent<Collider>());
-					StartCoroutine(FadeRoutine(obj));
 					var oldMat = obj.GetComponent<MeshRenderer>().material;
 					var mat = obj.GetComponent<MeshRenderer>().material = FadeMaterial;
 					if (oldMat) mat.color = oldMat.color;
 					else mat.color = new Color(0,0.7f,0.3f);
+					StartCoroutine(FadeRoutine(obj));
 					Physics.IgnoreCollision(obj.GetComponent<Collider>(),GetComponent<Collider>());
 				}
 			}

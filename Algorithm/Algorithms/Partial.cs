@@ -78,7 +78,7 @@ namespace MeshUtils {
             Vector3 point = target.transform.InverseTransformPoint(param.originPoint);
 
             List<Ring> resulting_rings = new List<Ring>();
-            foreach (Ring ring in rings.GetRings()) {
+            foreach (Ring ring in rings.GetRings(param.selfConnectRings,param.ignorePartialRings)) {
                 Vector3 vec = ring.FurthestVectorToRingPerimeter(point);
                 vec = target.transform.TransformVector(vec);
                 // Debug.DrawRay(param.originPoint,vec,Color.blue,10);

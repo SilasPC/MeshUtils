@@ -125,8 +125,10 @@ namespace MeshUtils {
                     }
                 }
             }
+
+            var ringOut = rings.GetRings(param.selfConnectRings,param.ignorePartialRings);
             
-            var analysis = Hierarchy.Analyse(rings.GetRings(param.useSoftFail), cutting_plane);
+            var analysis = Hierarchy.Analyse(ringOut, cutting_plane);
 
             // generate seperation meshing
             foreach (var ring in analysis.rings) {
@@ -137,6 +139,7 @@ namespace MeshUtils {
            List<CutObj> cutObjs = new List<CutObj>();
 
             Vector3? vel = null;
+            float? density = null;
             Rigidbody rb;
             if (target.TryGetComponent<Rigidbody>(out rb)) {
                 vel = rb.velocity;
@@ -148,13 +151,14 @@ namespace MeshUtils {
 
             Vector3 worldNormal = cutting_plane.ToWorldSpace().normal;
 
+
             // create new objects
             if (param.polySeperation) {
-                cutObjs.AddRange(pos.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,rings.GetRings(param.useSoftFail))));
-                cutObjs.AddRange(neg.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,rings.GetRings(param.useSoftFail))));
+                cutObjs.AddRange(pos.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,ringOut)));
+                cutObjs.AddRange(neg.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,ringOut)));
             } else {
-                cutObjs.Add(new CutObj(pos,target.transform,vel,worldNormal,mat,rings.GetRings(param.useSoftFail)));
-                cutObjs.Add(new CutObj(neg,target.transform,vel,worldNormal,mat,rings.GetRings(param.useSoftFail)));
+                cutObjs.Add(new CutObj(pos,target.transform,vel,worldNormal,mat,ringOut));
+                cutObjs.Add(new CutObj(neg,target.transform,vel,worldNormal,mat,ringOut));
             }
 
             CutResult result = new CutResult(

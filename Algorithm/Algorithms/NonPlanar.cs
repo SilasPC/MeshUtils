@@ -103,7 +103,7 @@ namespace MeshUtils {
                 rg.TemplateJoin(template,point_data[template.points[i]].Item1);
                 // rg.MyDebugLog();
                 try {
-                    foreach (Ring ring in rg.GetRings()) {
+                    foreach (Ring ring in rg.GetRings(false,false)) {
                         //Debugging.DebugRing(ring.verts);
                         Vector3 normal = Vector3.Cross(template.normal,template.points[i]-template.points[i-1]);
                         TmpGen(ring.verts,pos,normal);
@@ -129,7 +129,7 @@ namespace MeshUtils {
 
             List<Ring> xxx;
             try {
-                xxx = intersection_ring.GetRings();
+                xxx = intersection_ring.GetRings(false,false);
             } catch (Exception e) {
                 Debug.LogError("Intersection rings not complete");
                 intersection_ring.MyDebugLog();
@@ -406,13 +406,13 @@ namespace MeshUtils {
             try {
                 //Debug.Log("gen:");
                 //self_rings.MyDebugLog();
-                foreach (var ring in self_rings.GetRings()) {
+                foreach (var ring in self_rings.GetRings(false, false)) {
                     // Debugging.DebugRing(ring.verts);
                     TmpGen(ring.verts,partToUse?neg:pos,tri_nor);
                 }
                 //Debug.Log("gen2:");
                 //self_rings2.MyDebugLog();
-                foreach (var ring in self_rings2.GetRings()) {
+                foreach (var ring in self_rings2.GetRings(false, false)) {
                     //Debugging.DebugRing(ring.verts);
                     ring.verts.Reverse();
                     TmpGen(ring.verts,partToUse?pos:neg,tri_nor);
@@ -555,6 +555,21 @@ namespace MeshUtils {
                 // reduceHist.Add(set.ConvertAll(s=>s.Item1));
 
             }
+
+        }
+
+        class IvSaver {
+
+            private readonly Dictionary<Tuple<Vector3,Vector3>,Vector3> ivs = new Dictionary<Tuple<Vector3, Vector3>, Vector3>();
+
+            public Vector3 Intersect(MUPlane p, Vector3 v0, Vector3 v1) { // wont work with muplane, needs original verts
+                var key = new Tuple<Vector3,Vector3>(v0,v1);
+                if (ivs.ContainsKey(key)) return ivs[key];
+                Vector3 iv = p.Intersection(v0,v1);
+                ivs[key] = iv;
+                return iv;
+            }
+
 
         }
 

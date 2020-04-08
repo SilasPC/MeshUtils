@@ -285,9 +285,12 @@ namespace MeshUtils {
                 }
                 
             }
+
+            var pos_ring_res = pos_rings.GetRings(param.selfConnectRings,param.ignorePartialRings);
+            var neg_ring_res = neg_rings.GetRings(param.selfConnectRings,param.ignorePartialRings);
             
-            var pos_analysis = Hierarchy.Analyse(pos_rings.GetRings(param.useSoftFail), cutting_plane);
-            var neg_analysis = Hierarchy.Analyse(neg_rings.GetRings(param.useSoftFail), cutting_plane);
+            var pos_analysis = Hierarchy.Analyse(pos_ring_res, cutting_plane);
+            var neg_analysis = Hierarchy.Analyse(neg_ring_res, cutting_plane);
 
             // generate seperation meshing
             foreach (var ring in pos_analysis.rings) {
@@ -314,14 +317,14 @@ namespace MeshUtils {
             // create new objects
             if (param.polySeperation) {
                 if (pos.vertices.Count > 0)
-                    cutObjs.AddRange(pos.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,pos_rings.GetRings(param.useSoftFail))));
+                    cutObjs.AddRange(pos.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,pos_ring_res)));
                 if (neg.vertices.Count > 0)
-                    cutObjs.AddRange(neg.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,neg_rings.GetRings(param.useSoftFail))));
+                    cutObjs.AddRange(neg.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,neg_ring_res)));
             } else {
                 if (pos.vertices.Count > 0)
-                    cutObjs.Add(new CutObj(pos,target.transform,vel,worldNormal,mat,pos_rings.GetRings(param.useSoftFail)));
+                    cutObjs.Add(new CutObj(pos,target.transform,vel,worldNormal,mat,pos_ring_res));
                 if (neg.vertices.Count > 0)
-                    cutObjs.Add(new CutObj(neg,target.transform,vel,worldNormal,mat,neg_rings.GetRings(param.useSoftFail)));
+                    cutObjs.Add(new CutObj(neg,target.transform,vel,worldNormal,mat,neg_ring_res));
             }
 
             if (cutObjs.Count < 2 && !param.allowSingleResult) return null;
