@@ -101,7 +101,7 @@ namespace MeshUtils {
         // ---------------------------------------
         public bool CheckPointInsideRing(Vector3 v, Vector3 normal) {
             int i0, i1;
-            DistanceToRingPerimeter(v,out i0, out i1);
+            DistanceToRingPerimeter(v,out i0, out i1); // method handles degenerate case
             Vector3 side = verts[i0] - verts[i1];
             Vector3 toSide = verts[i0] - v;
             return
@@ -114,19 +114,31 @@ namespace MeshUtils {
         // ---------------------------------------------------------------
         // Determine shortest distance to ring perimeter
         // i0 and i1 are indices for vertexes around closest line in ring
+        // In the case of equality, one is chosen specifically to handle
+        //   the degenerate case in point-in-polygon test
         // ---------------------------------------------------------------
         public float DistanceToRingPerimeter(Vector3 v, out int i0, out int i1) {
             int prevIndex = verts.Count - 1;
             i0 = prevIndex;
             i1 = 0;
             float dMin = float.PositiveInfinity;
+            float lastLineDist;
+            VectorUtil.DistanceToEdge(v,verts[prevIndex-1],verts[prevIndex],out lastLineDist);
             for (int i = 0; i < verts.Count; i++) {
-                float d = VectorUtil.DistanceToEdge(v,verts[prevIndex],verts[i]);
-                if (d < dMin) {
+                float lineDist;
+                float d = VectorUtil.DistanceToEdge(v,verts[prevIndex],verts[i],out lineDist);
+                if (d == dMin) { // handle degenerate case for point-in-polygon test
+                    if (lineDist > lastLineDist) {
+                        dMin = d;
+                        i0 = prevIndex;
+                        i1 = i;
+                    }
+                } else if (d < dMin) {
                     dMin = d;
                     i0 = prevIndex;
                     i1 = i;
                 }
+                lastLineDist = lineDist;
                 prevIndex = i;
             }
             return dMin;
