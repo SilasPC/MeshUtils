@@ -23,15 +23,17 @@ namespace MeshUtils {
             RingGenerator intersection_ring = new RingGenerator();
 
             Vector2[] uvs = mesh.uv;
+            Vector3[] vertices = mesh.vertices;
+            int[] triangles = mesh.triangles;
 
             bool addUVs = uvs.Length > 0;
 
-            if (addUVs && uvs.Length != mesh.vertices.Length)
+            if (addUVs && uvs.Length != vertices.Length)
                 throw OperationException.Internal("UV/Vertex length mismatch");
 
             // divide mesh in half by vertices
             int i = 0;
-            foreach (Vector3 vertex in mesh.vertices) {
+            foreach (Vector3 vertex in vertices) {
                 if (template.IsAbove(vertex)) {
                     pos.indexMap.Add(i,pos.vertices.Count);
                     pos.vertices.Add(vertex);
@@ -55,17 +57,17 @@ namespace MeshUtils {
             }
 
             // put triangles in correct mesh
-            for (i = 0; i < mesh.triangles.Length; i += 3) {
+            for (i = 0; i < triangles.Length; i += 3) {
 
                 // find orignal indices
-                int i_a = mesh.triangles[i],
-                    i_b = mesh.triangles[i+1],
-                    i_c = mesh.triangles[i+2];
+                int i_a = triangles[i],
+                    i_b = triangles[i+1],
+                    i_c = triangles[i+2];
                 
                 // find original verticies
-                Vector3 a = mesh.vertices[i_a],
-                        b = mesh.vertices[i_b],
-                        c = mesh.vertices[i_c];
+                Vector3 a = vertices[i_a],
+                        b = vertices[i_b],
+                        c = vertices[i_c];
 
                 Vector2 txa, txb, txc;
 
