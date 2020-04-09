@@ -65,6 +65,7 @@ namespace MeshUtils {
 
             CuttingPlane plane = CuttingPlane.InWorldSpace(normal,pointInPlane);
             CutParams param = new CutParams(
+                cuttable.CheckForHoles,
                 cuttable.PolySeperate,
                 true,
                 true,

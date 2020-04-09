@@ -20,9 +20,6 @@ public class KnifeExample : MonoBehaviour {
 	[Tooltip("The speed with which to fade cut results, if fade material is given")]
 	public int FadeSpeed = 2;
 
-	[Tooltip("A particle system prefab to spawn at cuts.")]
-	public GameObject ParticlePrefab;
-
 	[Tooltip("Width of seperation intersection highlighting. Zero for no highlighting.")]
 	[Range(0,0.5f)]
 	public float HighlightWidth = 0.015f;
@@ -104,7 +101,7 @@ public class KnifeExample : MonoBehaviour {
 
 		CuttingPlane plane = CuttingPlane.InWorldSpace(normal,pointInPlane);
 		CutParams param = new CutParams(
-			PolySeperation, true, true, UseSoftFail, UseSoftFail,
+			true, PolySeperation, true, true, UseSoftFail, UseSoftFail,
 			col.gameObject.transform.position,
 			_PartialMode ? CutDistance : float.PositiveInfinity,
 			_PartialMode ? 0 : Gap
@@ -115,18 +112,6 @@ public class KnifeExample : MonoBehaviour {
 		Debug.Log(col.collider.bounds.min+" "+col.collider.bounds.size+" "+col.collider.bounds.max);
 
 		if (result != null) {
-			if (ParticlePrefab) {
-				foreach (Vector3 pos in result.cutCenters) {
-					GameObject part = Instantiate(ParticlePrefab);
-					part.transform.SetPositionAndRotation(
-						pos,
-						Quaternion.FromToRotation(
-							Vector3.up,
-							normal
-						)
-					);
-				}
-			}
 
 			foreach (CutObj res in result.results) {
 				GameObject obj = res

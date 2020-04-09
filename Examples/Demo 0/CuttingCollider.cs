@@ -20,9 +20,6 @@ public class CuttingCollider : MonoBehaviour {
 	[Tooltip("The speed with which to fade cut results, if fade material is given")]
 	public int FadeSpeed = 2;
 
-	[Tooltip("A particle system prefab to spawn at cuts.")]
-	public GameObject ParticlePrefab;
-
 	private Vector3 EdgeDirection = Vector3.forward;
 	private Vector3 CutDirection = Vector3.right;
 
@@ -114,7 +111,7 @@ public class CuttingCollider : MonoBehaviour {
 
 		CuttingPlane plane = CuttingPlane.InWorldSpace(normal,pointInPlane);
 		CutParams param = new CutParams(
-			PolySeparation, true, true, true, true,
+			true, PolySeparation, true, true, true, true,
 			col.gameObject.transform.position,
 			_PartialMode ? CutDistance : float.PositiveInfinity,
 			_PartialMode ? 0 : Gap
@@ -123,18 +120,6 @@ public class CuttingCollider : MonoBehaviour {
 		CutResult result = PerformCut(col.gameObject,plane,param);
 
 		if (result != null) {
-			if (ParticlePrefab) {
-				foreach (Vector3 pos in result.cutCenters) {
-					GameObject part = Instantiate(ParticlePrefab);
-					part.transform.SetPositionAndRotation(
-						pos,
-						Quaternion.FromToRotation(
-							Vector3.up,
-							normal
-						)
-					);
-				}
-			}
 
 			foreach (CutObj res in result.results) {
 				GameObject obj = res

@@ -6,21 +6,12 @@ using UnityEngine;
 
 namespace MeshUtils {
 
-    struct HierarchyResult {
-        public List<Ring> rings;
-        public List<Vector3> siblingCenters;
-        public HierarchyResult(List<Ring> rings, List<Vector3> siblingCenters) {
-            this.rings = rings;
-            this.siblingCenters = siblingCenters;
-        }
-    }
-
     // -----------------------------------------------
     // Used to organize rings for further processing
     // -----------------------------------------------
     class Hierarchy {
         
-        public static HierarchyResult Analyse(List<Ring> rings, CuttingPlane plane) {
+        public static List<Ring> Analyse(List<Ring> rings, CuttingPlane plane) {
             List<Hierarchy> siblings = new List<Hierarchy>();
             List<Hierarchy> list = rings.ConvertAll(r => new Hierarchy(r,plane.normal));
             // sort from largest to smallest
@@ -36,13 +27,11 @@ namespace MeshUtils {
                     siblings.Add(h);
             }
             List<Ring> result = new List<Ring>();
-            List<Vector3> centers = new List<Vector3>();
             // Debug.Log(siblings.Count + " top level siblings");
             siblings.ForEach(sib => {
-                centers.Add(sib.BoundingBoxCenter());
                 result.AddRange(sib.Reduce());
             });
-            return new HierarchyResult(result,centers);
+            return result;
         }
 
         private readonly Vector3

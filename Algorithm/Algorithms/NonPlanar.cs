@@ -142,10 +142,7 @@ namespace MeshUtils {
                 new CutObj(neg,target.transform,vel,worldNormal,mat,xxx)
             };
 
-            CutResult result = new CutResult(
-                new List<Vector3>(),
-                cutObjs
-            );
+            CutResult result = new CutResult(cutObjs);
 
             // destroy original object
             MonoBehaviour.Destroy(target);

@@ -126,12 +126,12 @@ namespace MeshUtils {
                 }
             }
 
-            var ringOut = rings.GetRings(param.selfConnectRings,param.ignorePartialRings);
+            List<Ring> ringOut = rings.GetRings(param.selfConnectRings,param.ignorePartialRings);
             
-            var analysis = Hierarchy.Analyse(ringOut, cutting_plane);
+            List<Ring> analysis = param.hiearchyAnalysis ? Hierarchy.Analyse(ringOut, cutting_plane) : ringOut;
 
             // generate seperation meshing
-            foreach (var ring in analysis.rings) {
+            foreach (var ring in analysis) {
                 GenerateRingMesh(ring,pos,cutting_plane.normal,addUVs);
                 GenerateRingMesh(ring,neg,cutting_plane.normal,addUVs); 
             }
@@ -161,10 +161,7 @@ namespace MeshUtils {
                 cutObjs.Add(new CutObj(neg,target.transform,vel,worldNormal,mat,ringOut));
             }
 
-            CutResult result = new CutResult(
-                analysis.siblingCenters.ConvertAll(v=>target.transform.TransformPoint(v)),
-                cutObjs
-            );
+            CutResult result = new CutResult(cutObjs);
 
             // destroy original object
             if (param.destroyOriginal)

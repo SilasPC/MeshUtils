@@ -286,17 +286,17 @@ namespace MeshUtils {
                 
             }
 
-            var pos_ring_res = pos_rings.GetRings(param.selfConnectRings,param.ignorePartialRings);
-            var neg_ring_res = neg_rings.GetRings(param.selfConnectRings,param.ignorePartialRings);
+            List<Ring> pos_ring_res = pos_rings.GetRings(param.selfConnectRings,param.ignorePartialRings);
+            List<Ring> neg_ring_res = neg_rings.GetRings(param.selfConnectRings,param.ignorePartialRings);
             
-            var pos_analysis = Hierarchy.Analyse(pos_ring_res, cutting_plane);
-            var neg_analysis = Hierarchy.Analyse(neg_ring_res, cutting_plane);
+            List<Ring> pos_analysis = param.hiearchyAnalysis ? Hierarchy.Analyse(pos_ring_res, cutting_plane) : pos_ring_res;
+            List<Ring> neg_analysis = param.hiearchyAnalysis ? Hierarchy.Analyse(neg_ring_res, cutting_plane) : neg_ring_res;
 
             // generate seperation meshing
-            foreach (var ring in pos_analysis.rings) {
+            foreach (var ring in pos_analysis) {
                 GenerateRingMesh(ring,pos,cutting_plane.normal,addUVs); 
             }
-            foreach (var ring in neg_analysis.rings) {
+            foreach (var ring in neg_analysis) {
                 GenerateRingMesh(ring,neg,cutting_plane.normal,addUVs);
             }
 
@@ -329,13 +329,7 @@ namespace MeshUtils {
 
             if (cutObjs.Count < 2 && !param.allowSingleResult) return null;
 
-            List<Vector3> centers = pos_analysis.siblingCenters.ConvertAll(v=>target.transform.TransformPoint(v));
-            centers.AddRange(neg_analysis.siblingCenters.ConvertAll(v=>target.transform.TransformPoint(v)));
-
-            CutResult result = new CutResult(
-                centers,
-                cutObjs
-            );
+            CutResult result = new CutResult(cutObjs);
 
             // destroy original object
             if (param.destroyOriginal)

@@ -182,7 +182,7 @@ namespace MeshUtils {
                 }
             }
 
-            var analysis = Hierarchy.Analyse(resulting_rings,cutting_plane);
+            List<Ring> analysis = param.hiearchyAnalysis ? Hierarchy.Analyse(resulting_rings,cutting_plane) : resulting_rings;
 
             List<MeshPart> parts;
             if (param.polySeperation) parts = part.PartialPolySeperate(cutting_plane,allow_cut);
@@ -192,7 +192,7 @@ namespace MeshUtils {
 
             // generate seperation meshing
             if (parts.Count > 1)
-            foreach (var ring in analysis.rings)
+            foreach (var ring in analysis)
             foreach (var resPart in parts)
                 GenerateRingMesh(ring,resPart,cutting_plane.normal,addUVs);
 
@@ -211,10 +211,7 @@ namespace MeshUtils {
             // create new objects
             List<CutObj> cutObjs = parts.ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,resulting_rings));
 
-            CutResult result = new CutResult(
-                analysis.siblingCenters.ConvertAll(v=>target.transform.TransformPoint(v)),
-                cutObjs
-            );
+            CutResult result = new CutResult(cutObjs);
 
             // destroy original object
             if (param.destroyOriginal)

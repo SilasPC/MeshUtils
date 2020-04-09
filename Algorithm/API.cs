@@ -9,27 +9,8 @@ namespace MeshUtils {
 
     static class API {
 
-        /*public class CutParamsBuilder {
-            private bool polySeperation = false;
-            private bool destroyOriginal = false;
-            private bool allowSingleResult = false;
-            private float seperationDistance;
-            private float maxCutDistance;
-            private Vector3 originPoint;
-            public CutParamsBuilder WithPolySeperation() {
-                this.polySeperation = true;
-                return this;
-            }
-            public CutParamsBuilder DoDestroyOriginal() {
-                this.destroyOriginal = true;
-                return this;
-            }
-            public CutParamsBuilder AllowSingleResult() {
-                this.allowSingleResult = true;
-            }
-        }*/
-
         public struct CutParams {
+            public readonly bool hiearchyAnalysis;
             public readonly bool polySeperation;
             public readonly bool destroyOriginal;
             public readonly bool allowSingleResult;
@@ -39,6 +20,7 @@ namespace MeshUtils {
             public readonly float maxCutDistance;
             public readonly Vector3 originPoint;
             public CutParams (
+                bool hiearchyAnalysis,
                 bool polySeperation,
                 bool destroyOriginal,
                 bool allowSingleResult,
@@ -48,6 +30,7 @@ namespace MeshUtils {
                 float maxCutDistance,
                 float gap
             ) {
+                this.hiearchyAnalysis = hiearchyAnalysis;
                 this.polySeperation = polySeperation;
                 this.destroyOriginal = destroyOriginal;
                 this.allowSingleResult = allowSingleResult;
@@ -60,10 +43,8 @@ namespace MeshUtils {
         }
 
         public class CutResult {
-            public readonly List<Vector3> cutCenters;
             public readonly List<CutObj> results;
-            public CutResult (List<Vector3> cutCenters, List<CutObj> results) {
-                this.cutCenters = cutCenters;
+            public CutResult (List<CutObj> results) {
                 this.results = results;
             }
         }
