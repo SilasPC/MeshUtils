@@ -67,6 +67,13 @@ namespace MeshUtils {
             if (dp > de) return dp;
             return de;
         }
+        public static float DistanceToEdge(Vector3 p, Vector3 e0, Vector3 e1, out float lineDistance) {
+            float dp = Math.Min((e0-p).magnitude, (e1-p).magnitude);
+            float de = Vector3.Cross(p-e0,p-e1).magnitude/(e1-e0).magnitude;
+            lineDistance = de;
+            if (dp > de) return dp;
+            return de;
+        }
 
     }
 
