@@ -104,7 +104,8 @@ public class KnifeExample : MonoBehaviour {
 			true, PolySeperation, true, true, UseSoftFail, UseSoftFail,
 			col.gameObject.transform.position,
 			_PartialMode ? CutDistance : float.PositiveInfinity,
-			_PartialMode ? 0 : Gap
+			_PartialMode ? 0 : Gap,
+			Vector3.zero
 		);
 
 		CutResult result = PerformCut(col.gameObject,plane,param);

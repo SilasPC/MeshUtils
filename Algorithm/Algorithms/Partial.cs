@@ -196,7 +196,7 @@ namespace MeshUtils {
             if (parts.Count > 1)
             foreach (var ring in analysis)
             foreach (var resPart in parts)
-                GenerateRingMesh(ring,resPart,cutting_plane.normal,addUVs);
+                GenerateRingMesh(ring,resPart,cutting_plane.normal,addUVs,param.innerTextureCoord);
 
             Vector3? vel = null;
             Rigidbody rb;

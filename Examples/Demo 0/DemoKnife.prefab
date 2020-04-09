@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: 8575101872404590051}
   - component: {fileID: 8575101872999958611}
   - component: {fileID: 8575101872999958610}
-  - component: {fileID: 8575101872999958612}
   - component: {fileID: 8575101872999958613}
   - component: {fileID: 8575101872999958614}
+  - component: {fileID: 8291728119794580583}
   m_Layer: 0
   m_Name: DemoKnife
   m_TagString: Untagged
@@ -99,7 +99,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 32
   m_CollisionDetection: 0
 --- !u!64 &8575101872999958610
 MeshCollider:
@@ -115,19 +115,6 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 4300000, guid: 199602db38638424b902102e3bd89896, type: 3}
---- !u!114 &8575101872999958612
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8575101872402106665}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8240dfe06c258e247a22233b1a0e39bc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  PassTo: {fileID: 8575101871113472728}
 --- !u!114 &8575101872999958613
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -234,6 +221,20 @@ MonoBehaviour:
   highlightOnHover: 1
   hideHighlight: []
   hoverPriority: 0
+--- !u!114 &8291728119794580583
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8575101872402106665}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8240dfe06c258e247a22233b1a0e39bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  objects:
+  - {fileID: 8575101871113472709}
 --- !u!1001 &5212835164568361406
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -303,21 +304,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: beeeab15a74518f4ab879f087e317f02, type: 3}
+--- !u!1 &8575101871113472709 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4564209444237513595, guid: beeeab15a74518f4ab879f087e317f02,
+    type: 3}
+  m_PrefabInstance: {fileID: 5212835164568361406}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &8575101871113472710 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4564209444237513592, guid: beeeab15a74518f4ab879f087e317f02,
     type: 3}
   m_PrefabInstance: {fileID: 5212835164568361406}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &8575101871113472728 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4564209444237513574, guid: beeeab15a74518f4ab879f087e317f02,
-    type: 3}
-  m_PrefabInstance: {fileID: 5212835164568361406}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4a210cdaadb73794ab2889fe03340c5b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

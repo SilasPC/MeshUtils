@@ -19,6 +19,7 @@ namespace MeshUtils {
             public readonly float seperationDistance;
             public readonly float maxCutDistance;
             public readonly Vector3 originPoint;
+            public readonly Vector2 innerTextureCoord;
             public CutParams (
                 bool hiearchyAnalysis,
                 bool polySeperation,
@@ -28,7 +29,8 @@ namespace MeshUtils {
                 bool ignorePartialRings,
                 Vector3 originPoint,
                 float maxCutDistance,
-                float gap
+                float gap,
+                Vector2 innerTextureCoord
             ) {
                 this.hiearchyAnalysis = hiearchyAnalysis;
                 this.polySeperation = polySeperation;
@@ -39,6 +41,7 @@ namespace MeshUtils {
                 this.originPoint = originPoint;
                 this.maxCutDistance = maxCutDistance;
                 this.seperationDistance = gap / 2;
+                this.innerTextureCoord = innerTextureCoord;
             }
         }
 

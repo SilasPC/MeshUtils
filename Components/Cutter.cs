@@ -71,13 +71,20 @@ namespace MeshUtils {
                 true,
                 cuttable.CloseOpenSurfaces,
                 cuttable.AllowOpenSurfaces,
-                Vector3.zero, float.PositiveInfinity, 0
+                Vector3.zero, float.PositiveInfinity, 0,
+                cuttable.InnerTextureCoordinate
             );
 
             CutResult result = PerformCut(col.gameObject,plane,param);
             if (result != null) {
                 foreach (CutObj res in result.results) {
-                    res.UseDefaults().WithColor(new Color(1,0.1f,0.1f)).Instantiate();
+                    res
+                        .UseDefaults()
+                        .WithDriftVelocity(cuttable.DriftVelocity)
+                        .WithRingWidth(cuttable.HighlightWidth)
+                        .WithRingColor(cuttable.HighLightColor)
+                        .WithColor(new Color(1,0.1f,0.1f))
+                        .Instantiate();
                 }
             }
 

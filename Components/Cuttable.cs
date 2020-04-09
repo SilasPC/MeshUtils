@@ -12,6 +12,18 @@ namespace MeshUtils {
 
     public class Cuttable : MonoBehaviour {
 
+        [Tooltip("Width of seperation intersection highlighting. Zero for no highlighting.")]
+        [Range(0,0.5f)]
+        public float HighlightWidth = 0.015f;
+        [Tooltip("Color of intersection highlighting.")]
+        public Color HighLightColor = Color.white;
+
+        [Tooltip("Velocity resulting objects should drift apart with.")]
+        public float DriftVelocity = 0;
+
+        [Tooltip("If object has textures, use this texture coordinate for inner geometry.")]
+        public Vector2 InnerTextureCoordinate = Vector2.zero;
+
         [Tooltip("Analyses intersection for potential holes in intersection.")]
         public bool CheckForHoles = false;
         

@@ -12,13 +12,13 @@ namespace MeshUtils {
         // Generate triangle mesh within possibly concave ring
         // -----------------------------------------------------
         public static void GenerateRingMesh(
-            Ring ring, MeshPart part, Vector3 normal, bool addUVs
-        ) {GenerateRingMesh(ring.verts,part,normal,addUVs);}
+            Ring ring, MeshPart part, Vector3 normal, bool addUVs, Vector2 innerUV
+        ) {GenerateRingMesh(ring.verts,part,normal,addUVs,innerUV);}
         public static void GenerateRingMesh(
-            List<Vector3> ring, MeshPart part, Vector3 normal, bool addUVs
-        ) {GenerateRingMesh(ring,part,normal,addUVs,part.side);}
+            List<Vector3> ring, MeshPart part, Vector3 normal, bool addUVs, Vector2 innerUV
+        ) {GenerateRingMesh(ring,part,normal,addUVs,part.side,innerUV);}
         public static void GenerateRingMesh(
-            List<Vector3> ring, MeshPart part, Vector3 normal, bool addUVs, bool side
+            List<Vector3> ring, MeshPart part, Vector3 normal, bool addUVs, bool side, Vector2 innerUV
         ) {
 
             // List<List<Vector3>> reduceHist = new List<List<Vector3>>();
@@ -26,7 +26,7 @@ namespace MeshUtils {
 
             int indStart = part.vertices.Count;
             part.vertices.AddRange(ring);
-            if (addUVs) foreach (var _ in ring) part.uvs.Add(Vector2.zero);
+            if (addUVs) foreach (var _ in ring) part.uvs.Add(innerUV);
 
             List<Tuple<Vector3,int>> set = ring.ConvertAll(v=>new Tuple<Vector3,int>(v,indStart++));
 

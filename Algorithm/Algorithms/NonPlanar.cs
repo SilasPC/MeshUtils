@@ -485,7 +485,7 @@ namespace MeshUtils {
             List<Vector3> ring, MeshPart part, Vector3 normal, bool swapDir = false
         ) {
 
-            GenerateRingMesh(ring,part,normal,false,!swapDir);
+            GenerateRingMesh(ring,part,normal,false,!swapDir,Vector3.zero);
             return;
 
             // List<List<Vector3>> reduceHist = new List<List<Vector3>>();

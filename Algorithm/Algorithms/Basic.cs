@@ -134,8 +134,8 @@ namespace MeshUtils {
 
             // generate seperation meshing
             foreach (var ring in analysis) {
-                GenerateRingMesh(ring,pos,cutting_plane.normal,addUVs);
-                GenerateRingMesh(ring,neg,cutting_plane.normal,addUVs); 
+                GenerateRingMesh(ring,pos,cutting_plane.normal,addUVs,param.innerTextureCoord);
+                GenerateRingMesh(ring,neg,cutting_plane.normal,addUVs,param.innerTextureCoord); 
             }
 
            List<CutObj> cutObjs = new List<CutObj>();
