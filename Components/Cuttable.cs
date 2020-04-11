@@ -14,30 +14,30 @@ namespace MeshUtils {
 
         [Tooltip("Width of seperation intersection highlighting. Zero for no highlighting.")]
         [Range(0,0.5f)]
-        public float HighlightWidth = 0.015f;
+        public float highlightWidth = 0.015f;
         [Tooltip("Color of intersection highlighting.")]
-        public Color HighLightColor = Color.white;
+        public Color highLightColor = Color.white;
 
         [Tooltip("Velocity resulting objects should drift apart with.")]
-        public float DriftVelocity = 0;
+        public float driftVelocity = 0;
 
         [Tooltip("If object has textures, use this texture coordinate for inner geometry.")]
-        public Vector2 InnerTextureCoordinate = Vector2.zero;
+        public Vector2 innerTextureCoordinate = Vector2.zero;
 
         [Tooltip("Analyses intersection for potential holes in intersection.")]
-        public bool CheckForHoles = false;
+        public bool checkForHoles = false;
         
         [Tooltip("For a less well-formed mesh, this will attempt to merge points in intersection that are almost exactly identical.")]
-        public bool TryApproximation = false;
+        public bool tryApproximation = false;
         
         [Tooltip("Naively close open intersecting surfaces.")]
-        public bool CloseOpenSurfaces = false;
+        public bool closeOpenSurfaces = false;
         
         [Tooltip("Ignore open surfaces. Otherwise an exception is thrown.")]
-        public bool AllowOpenSurfaces = false;
+        public bool allowOpenSurfaces = false;
         
         [Tooltip("Attempt to seperate disconnected parts of mesh. Note: not terribly fast for big objects.")]
-        public bool PolySeperate = false;
+        public bool polySeperate = false;
         
     }
 

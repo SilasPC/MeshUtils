@@ -48,7 +48,7 @@ namespace MeshUtils {
             mesh.vertices = vertices.ToArray();
             mesh.triangles = indices.ToArray();
             if (uvs.Count > 0 && uvs.Count != vertices.Count)
-                throw OperationException.Internal("UV/Vertex length mismatch");
+                throw OperationException.Internal("UV/Vertex length mismatch ("+uvs.Count+" uvs, "+vertices.Count+" verts)");
             if (uvs.Count == vertices.Count) mesh.uv = uvs.ToArray();
             mesh.RecalculateNormals();
             mesh.RecalculateTangents();
@@ -59,7 +59,7 @@ namespace MeshUtils {
             List<List<int>> list = new List<List<int>>();
 
             if (uvs.Count > 0 && uvs.Count != vertices.Count)
-                throw OperationException.Internal("UV/Vertex length mismatch");
+                throw OperationException.Internal("UV/Vertex length mismatch ("+uvs.Count+" uvs, "+vertices.Count+" verts)");
 
             // create index groups
             for (int i = 0; i < indices.Count; i += 3) {
@@ -100,7 +100,7 @@ namespace MeshUtils {
             List<List<int>> list = new List<List<int>>();
 
             if (uvs.Count > 0 && uvs.Count != vertices.Count)
-                throw OperationException.Internal("UV/Vertex length mismatch");
+                throw OperationException.Internal("UV/Vertex length mismatch ("+uvs.Count+" uvs, "+vertices.Count+" verts)");
 
             // create index groups
             for (int i = 0; i < indices.Count; i += 3) {

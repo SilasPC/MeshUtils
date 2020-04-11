@@ -122,11 +122,10 @@ namespace MeshUtils {
             i0 = prevIndex;
             i1 = 0;
             float dMin = float.PositiveInfinity;
-            float lastLineDist;
-            VectorUtil.DistanceToEdge(v,verts[prevIndex-1],verts[prevIndex],out lastLineDist);
+            float lastLineDist = VectorUtil.DistanceToLine(v,verts[prevIndex-1],verts[prevIndex]);
             for (int i = 0; i < verts.Count; i++) {
-                float lineDist;
-                float d = VectorUtil.DistanceToEdge(v,verts[prevIndex],verts[i],out lineDist);
+                float lineDist = VectorUtil.DistanceToLine(v,verts[prevIndex],verts[i]);;
+                float d = VectorUtil.DistanceToEdge(v,verts[prevIndex],verts[i]);
                 if (d == dMin) { // handle degenerate case for point-in-polygon test
                     if (lineDist > lastLineDist) {
                         dMin = d;

@@ -58,21 +58,39 @@ namespace MeshUtils {
         }
 
         // -------------------------------------------------------------
-        // Calculate the shortest distance between a point and an edge.
+        // Calculate the shortest distance between a point and a line
+        //   given by two points
+        // Formula for point/line distance: d=|(p-x1)x(p-x2)|/|x2-x1|
+        // -------------------------------------------------------------
+        public static float DistanceToLine(Vector3 p, Vector3 e0, Vector3 e1) {
+            return Vector3.Cross(p-e0,p-e1).magnitude/(e1-e0).magnitude;
+        }
+
+        // -------------------------------------------------------------
+        // Calculate the shortest distance between a point and an edge
+        //   given by two points
         // Formula for point/line distance: d=|(p-x1)x(p-x2)|/|x2-x1|
         // -------------------------------------------------------------
         public static float DistanceToEdge(Vector3 p, Vector3 e0, Vector3 e1) {
-            float dp = Math.Min((e0-p).magnitude, (e1-p).magnitude);
-            float de = Vector3.Cross(p-e0,p-e1).magnitude/(e1-e0).magnitude;
-            if (dp > de) return dp;
-            return de;
+            return VectorToEdge(p,e0,e1).magnitude;
         }
-        public static float DistanceToEdge(Vector3 p, Vector3 e0, Vector3 e1, out float lineDistance) {
-            float dp = Math.Min((e0-p).magnitude, (e1-p).magnitude);
-            float de = Vector3.Cross(p-e0,p-e1).magnitude/(e1-e0).magnitude;
-            lineDistance = de;
-            if (dp > de) return dp;
-            return de;
+
+        // ----------------------------------------------
+        // Calculate shortest vector from point to edge
+        // ----------------------------------------------
+        public static Vector3 VectorToEdge(Vector3 p, Vector3 e0, Vector3 e1) {
+            bool ae0 = Vector3.Dot((e1-e0).normalized, p - e0) > 0,
+                ae1 = Vector3.Dot((e0-e1).normalized, p - e1) > 0;
+            if (ae0 && ae1) return e0 + Vector3.Project(p-e0,e1-e0) - p;
+            if (ae0) return e1 - p;
+            return e0 - p;   
+        }
+
+        // --------------------------------------------
+        // Calculate closest point on edge to a point
+        // --------------------------------------------
+        public static Vector3 ClosestPointOnEdge(Vector3 p, Vector3 e0, Vector3 e1) {
+            return VectorToEdge(p,e0,e1) + p;
         }
 
     }

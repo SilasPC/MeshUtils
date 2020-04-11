@@ -46,7 +46,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8240dfe06c258e247a22233b1a0e39bc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PassTo: {fileID: 4695702153003913266}
+  objects:
+  - {fileID: 1797485657002566602}
 --- !u!1 &769582257399312262
 GameObject:
   m_ObjectHideFlags: 0
@@ -102,6 +103,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -194,6 +196,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -287,6 +290,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -412,6 +416,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -461,7 +466,7 @@ GameObject:
   - component: {fileID: 1797485657002566607}
   - component: {fileID: 1797485657002566606}
   - component: {fileID: 1797485657002566601}
-  - component: {fileID: 4695702153003913266}
+  - component: {fileID: 1411447216379629490}
   m_Layer: 0
   m_Name: Edge
   m_TagString: Untagged
@@ -505,6 +510,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -542,7 +548,7 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &4695702153003913266
+--- !u!114 &1411447216379629490
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -551,20 +557,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 1797485657002566602}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 630f5ac7cdcefe5469b0e31d3af09ff5, type: 3}
+  m_Script: {fileID: 11500000, guid: 4e652d2abe6082b40869e0c06428fecd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  FadeMaterial: {fileID: 0}
-  FadeSpeed: 2
-  ParticlePrefab: {fileID: 0}
-  EdgeDirection: {x: 0, y: 1, z: 0}
-  CutDirection: {x: 1, y: 0, z: 1}
-  _OmnidirectionalMode: 0
-  MaxAngle: 180
-  MinimumVelocity: 0
+  edgeDirection: {x: 0, y: 1, z: 0}
+  cutDirection: {x: 1, y: 0, z: 1}
+  omnidirectionalMode: 0
+  maxAngle: 33
+  minimumVelocity: 2
   directionsAreNormals: 0
-  UseContactPoint: 0
-  PolySeperation: 1
-  _PartialMode: 0
-  Gap: 0.3
-  CutDistance: 3
+  useContactPoint: 0

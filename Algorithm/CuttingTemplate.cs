@@ -65,16 +65,27 @@ namespace MeshUtils {
             Vector3 pv = plane.Project(v);
             float dMin = float.PositiveInfinity;
             int i0 = 0;
+            Vector3 dif = points[0] - pv;
+            float lastLineDist = VectorUtil.DistanceToLine(pv,points[0],points[1]);
             for (int i = 0; i < points.Count - 1; i++) {
-                float d = VectorUtil.DistanceToEdge(pv,points[i],points[i+1]);
-                if (d < dMin) {
+                float lineDist = VectorUtil.DistanceToLine(pv,points[i],points[i+1]);
+                Vector3 vec = VectorUtil.VectorToEdge(pv,points[i],points[i+1]);
+                if (vec.magnitude == dMin) {
+                    if (lineDist > lastLineDist) {
+                        i0 = i;
+                        dMin = vec.magnitude;
+                        dif = vec;
+                    }
+                } else if (vec.magnitude < dMin) {
                     i0 = i;
-                    dMin = d;
+                    dMin = vec.magnitude;
+                    dif = vec;
                 }
+                lastLineDist = lineDist;
             }
             return Vector3.Dot(
                 Vector3.Cross(
-                    points[i0]-pv,
+                    dif,
                     points[i0+1]-points[i0]
                 ),
                 normal

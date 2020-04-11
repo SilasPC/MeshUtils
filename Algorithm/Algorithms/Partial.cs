@@ -110,7 +110,7 @@ namespace MeshUtils {
 
             bool addUVs = uvs.Length > 0;
 
-            // divide mesh in half by vertices
+            // transfer vertices into MeshPart
             i = 0;
             foreach (Vector3 vertex in vertices) {
                 part.indexMap.Add(i,part.vertices.Count);
@@ -119,7 +119,7 @@ namespace MeshUtils {
                 i++;
             }
 
-            // put triangles in correct mesh
+            // process triangles
             for (i = 0; i < triangles.Length; i += 3) {
 
                 // find orignal indices

@@ -26,7 +26,7 @@ namespace MeshUtils {
             Vector3[] vertices = mesh.vertices;
             int[] triangles = mesh.triangles;
 
-            bool addUVs = uvs.Length > 0;
+            bool addUVs = false; //uvs.Length > 0;
 
             if (addUVs && uvs.Length != vertices.Length)
                 throw OperationException.Internal("UV/Vertex length mismatch");
@@ -72,7 +72,7 @@ namespace MeshUtils {
                 Vector2 txa, txb, txc;
 
                 // find original uvs
-                if (uvs.Length > 0) {
+                if (addUVs) {
                     txa = uvs[i_a];
                     txb = uvs[i_b];
                     txc = uvs[i_c];
@@ -94,6 +94,7 @@ namespace MeshUtils {
                 }
             }
 
+            // Generate strip (inner) geometry
             for (i = 1; i < template.points.Count; i++) {
                 //Debugging.LogLine(template.points[i-1],template.normal);
                 //Debugging.LogLine(template.points[i],template.normal);
@@ -176,7 +177,7 @@ namespace MeshUtils {
             MUPlane ab = new MUPlane(ab_nor,a),
                     bc = new MUPlane(bc_nor,b),
                     ca = new MUPlane(ca_nor,c);
-            //Debug.Log(tri_plane+" "+normal);
+            Debug.Log(tri_plane+" "+normal);
             //Debugging.DebugRing(points);
             Vector3 opi = tri_plane.DirectionalProject(points[0],normal);
             bool oaab = ab.IsAbove(opi),
@@ -189,7 +190,7 @@ namespace MeshUtils {
                 RingGen rings = point_data[points[i-1]].Item2;
                 Vector3 pi = tri_plane.DirectionalProject(points[i],normal);
                 // Debug.Log(opi+" => "+pi);
-                bool aab = ab.IsAbove(pi),
+                bool aab = ab.IsAbove(pi), // above means outside edge
                     abc = bc.IsAbove(pi),
                     aca = ca.IsAbove(pi);
                 bool inside = !(aab||abc||aca);
@@ -313,11 +314,12 @@ namespace MeshUtils {
                     } else { // opposite sides
                         MUPlane edge_plane, edge_plane1;
                         Dictionary<float,Vector3> map, map1;
-                        Vector3 iv, iv1;
+                        Vector3 iv, iv1; // iv is entry, must be one side; iv1 is exit, can be either two other sides
                         float iv_mag, iv1_mag;
                         bool swap_ring_dir = false;
 
                         if (aab && !abc && !aca || oaab && !oabc && !oaca) {
+                            Debug.Log("1 swap "+oaab);
                             if (oaab) swap_ring_dir = true;
                             edge_plane = ab;
                             map = map_ab;
@@ -337,6 +339,7 @@ namespace MeshUtils {
                             }
                             goto connect_opposite;
                         } else if (!aab && abc && !aca || !oaab && oabc && !oaca) {
+                            Debug.Log("2 swap "+oabc);
                             if (oabc) swap_ring_dir = true;
                             edge_plane = bc;
                             map = map_bc;
@@ -356,6 +359,7 @@ namespace MeshUtils {
                             }
                             goto connect_opposite;
                         } else if (!aab && !abc && aca || !oaab && !oabc && oaca) {
+                            Debug.Log("3 swap "+oaca);
                             if (oaca) swap_ring_dir = true;
                             edge_plane = ca;
                             map = map_ca;
@@ -378,13 +382,14 @@ namespace MeshUtils {
 
                         throw OperationException.Internal("Case exhaustion failed");
                     connect_opposite:
-                        Debug.Log("yay");
+                        Debug.Log("yay "+opi+" "+pi+" "+a+" "+b+" "+c+" "+aab+" "+abc+" "+aca+" "+oaab+" "+oabc+" "+oaca);
                         map.Add(iv_mag,iv);
                         map1.Add(iv1_mag,iv1);
-                        exiting_ivs.Add(iv1);
+                        exiting_ivs.Add(swap_ring_dir?iv1:iv);
+                        Debug.Log("exiting is "+(swap_ring_dir?iv1:iv));
                         rings.AddConnected((ring_dir^swap_ring_dir)?iv:iv1,(ring_dir^swap_ring_dir)?iv1:iv);
                         intersection_ring.AddConnected((ring_dir^swap_ring_dir)?iv:iv1,(ring_dir^swap_ring_dir)?iv1:iv);
-                        self_rings.AddConnected(swap_ring_dir?iv1:iv,swap_ring_dir?iv:iv1);
+                        self_rings.AddConnected(swap_ring_dir?iv:iv1,swap_ring_dir?iv1:iv);
                     }
                 }
             continue_for:
@@ -396,21 +401,21 @@ namespace MeshUtils {
             }
             if (!self_rings.HasPartials()) return false;
             //Debugging.DebugRing(points.ConvertAll(p=>tri_plane.DirectionalProject(p,normal)));
-            //Debug.Log(a+" "+b+" "+c);
-            //self_rings.MyDebugLog();
+            Debug.Log(a+" "+b+" "+c);
+            self_rings.MyDebugLog();
             RingGenerator self_rings2 = self_rings.Duplicate();
             ConnectIVs(exiting_ivs,a,b,c,map_ab,map_ca,map_bc,self_rings,self_rings2);
             ConnectIVs(exiting_ivs,b,c,a,map_bc,map_ab,map_ca,self_rings,self_rings2);
             ConnectIVs(exiting_ivs,c,a,b,map_ca,map_bc,map_ab,self_rings,self_rings2);
             try {
-                //Debug.Log("gen:");
-                //self_rings.MyDebugLog();
+                Debug.Log("gen:");
+                self_rings.MyDebugLog();
                 foreach (var ring in self_rings.GetRings(false, false)) {
                     // Debugging.DebugRing(ring.verts);
                     TmpGen(ring.verts,partToUse?neg:pos,tri_nor);
                 }
-                //Debug.Log("gen2:");
-                //self_rings2.MyDebugLog();
+                Debug.Log("gen2:");
+                self_rings2.MyDebugLog();
                 foreach (var ring in self_rings2.GetRings(false, false)) {
                     //Debugging.DebugRing(ring.verts);
                     ring.verts.Reverse();
@@ -419,10 +424,13 @@ namespace MeshUtils {
             } catch (Exception e) {
                 Debug.LogException(e);
             }
-            //Debug.Log("---------------");
+            Debug.Log("---------------");
             return true;
         }
 
+        // ----------------------------
+        // Complete rings in triangle
+        // ----------------------------
         private static void ConnectIVs(
             HashSet<Vector3> exiting_ivs,
             Vector3 ep1, Vector3 ep2, Vector3 oep,
@@ -574,6 +582,9 @@ namespace MeshUtils {
 
         class RingGen : RingGenerator {
 
+            // ------------------------
+            // Connect rings in strip
+            // ------------------------
             public void TemplateJoin(CuttingTemplate template,SortedDictionary<float,Vector3> map) {
                 if (map.Count == 0) return;
                 if (map.Count % 2 == 1) throw OperationException.Internal("Odd strip entry/exit count");
