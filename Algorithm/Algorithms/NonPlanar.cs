@@ -29,7 +29,7 @@ namespace MeshUtils {
             bool addUVs = false; //uvs.Length > 0;
 
             if (addUVs && uvs.Length != vertices.Length)
-                throw OperationException.Internal("UV/Vertex length mismatch");
+                throw MeshUtilsException.Internal("UV/Vertex length mismatch");
 
             // divide mesh in half by vertices
             int i = 0;
@@ -163,13 +163,20 @@ namespace MeshUtils {
             List<Vector3> points = template.points;
             Vector3 normal = template.normal;
             RingGenerator self_rings = new RingGenerator();
-            Vector3 tri_nor = -Vector3.Cross(c-a,c-b);
+            Vector3 tri_nor = -Vector3.Cross(c-a,c-b).normalized;
+            if (tri_nor == Vector3.zero) {
+                Debug.LogWarning("zero area tri");
+                return true;
+            }
             bool partToUse = Vector3.Dot(tri_nor,normal) > 0;
             bool ring_dir = partToUse;
             MUPlane tri_plane = new MUPlane(tri_nor,a); // rounding errors are inbound here
-            Vector3 ab_nor = Vector3.Cross(tri_nor,b-a),
-                    bc_nor = Vector3.Cross(tri_nor,c-b),
-                    ca_nor = Vector3.Cross(tri_nor,a-c);
+            Vector3 ab_nor = Vector3.Cross(tri_nor,(b-a).normalized),
+                    bc_nor = Vector3.Cross(tri_nor,(c-b).normalized),
+                    ca_nor = Vector3.Cross(tri_nor,(a-c).normalized);
+            Debug.Log(a+" "+b+" "+c);
+            Debug.Log((b-a).magnitude+" "+(c-b).magnitude+" "+(a-c).magnitude);
+            Debug.Log("edge norms: "+ab_nor+" "+bc_nor+" "+ca_nor);
             Dictionary<float,Vector3> map_ab = new Dictionary<float, Vector3>(),
                                     map_bc = new Dictionary<float, Vector3>(),
                                     map_ca = new Dictionary<float, Vector3>();
@@ -216,7 +223,7 @@ namespace MeshUtils {
                             iv = edge_plane.Intersection(opi,pi);
                             if (Vector3.Dot(ep1-iv,ep2-iv) < 0) goto connect;
                         }
-                        throw OperationException.Internal("Point on neither side of triangle");
+                        throw MeshUtilsException.Internal("Point on neither side of triangle");
                     connect:
                         float dist_key = template.plane.SignedDistance(pi);
                         if (!dist_map.ContainsKey(dist_key)) dist_map.Add(dist_key,pi);
@@ -242,7 +249,7 @@ namespace MeshUtils {
                             iv = edge_plane.Intersection(opi,pi);
                             if (Vector3.Dot(ep1-iv,ep2-iv) < 0) goto connect;
                         }
-                        throw OperationException.Internal("Point on neither side of triangle");
+                        throw MeshUtilsException.Internal("Point on neither side of triangle");
                     connect:
                         float dist_key = template.plane.SignedDistance(opi);
                         if (!dist_map_old.ContainsKey(dist_key)) dist_map_old.Add(dist_key,opi);
@@ -380,7 +387,7 @@ namespace MeshUtils {
                             goto connect_opposite;
                         }
 
-                        throw OperationException.Internal("Case exhaustion failed");
+                        throw MeshUtilsException.Internal("Case exhaustion failed");
                     connect_opposite:
                         Debug.Log("yay "+opi+" "+pi+" "+a+" "+b+" "+c+" "+aab+" "+abc+" "+aca+" "+oaab+" "+oabc+" "+oaca);
                         map.Add(iv_mag,iv);
@@ -496,73 +503,6 @@ namespace MeshUtils {
             GenerateRingMesh(ring,part,normal,false,!swapDir,Vector3.zero);
             return;
 
-            // List<List<Vector3>> reduceHist = new List<List<Vector3>>();
-            // reduceHist.Add(ring);
-
-            int indStart = part.vertices.Count;
-            part.vertices.AddRange(ring);
-
-            List<Tuple<Vector3,int>> set = ring.ConvertAll(v=>new Tuple<Vector3,int>(v,indStart++));
-
-            int i = -1 , lsc = set.Count;
-            bool didInf = false;
-            while (set.Count > 1) {
-                i++;
-                if (i >= set.Count) {
-                    if (lsc == set.Count) {
-                        if (didInf) {
-                            // Debug.LogError("ear clipping failed");
-                            // DebugRings(reduceHist);
-                            // Debug.Log("normal "+(normal*1000));
-                            // DebugRing(set.ConvertAll(s=>s.Item1));
-                            throw OperationException.Internal("Ear clipping failed");
-                        }
-                        didInf = true;
-                    } else didInf = false;
-                    lsc = set.Count;
-                }
-                i %= set.Count;
-
-                Tuple<Vector3,int> vi0 = set[i],
-                                   vi1 = set[(i+1)%set.Count],
-                                   vi2 = set[(i+2)%set.Count];
-                Vector3 d1 = vi1.Item1 - vi0.Item1; // i0 -> i1
-                Vector3 d2 = vi2.Item1 - vi0.Item1; // i0 -> i2
-
-                // we assume points do not lie in a line (see SimplifyRing)
-                // if they do however, it's just a waste of vertices
-
-                // check convex ear
-                float conv = Vector3.Dot(Vector3.Cross(d1,d2),normal);
-                if (conv > 0) continue;
-
-                // check that there are no other vertices inside this triangle
-                if (set.Exists(v => {
-                    // note: we must compare the vectors, otherwise coinciding vectors do not
-                    // register as being the same
-                    if (v.Item1 == vi0.Item1 || v.Item1 == vi1.Item1 || v.Item1 == vi2.Item1) return false;
-                    return VectorUtil.CheckIsInside(d1,d2,v.Item1-vi0.Item1);
-                })) continue;
-
-                // generate indice
-                if (swapDir) {
-                    part.indices.Add(vi0.Item2);
-                    part.indices.Add(vi2.Item2);
-                    part.indices.Add(vi1.Item2);
-                } else {
-                    part.indices.Add(vi0.Item2);
-                    part.indices.Add(vi1.Item2);
-                    part.indices.Add(vi2.Item2);
-                }
-
-                // eliminate vertex
-                set.RemoveAt((++i)%set.Count);
-                i++;
-
-                // reduceHist.Add(set.ConvertAll(s=>s.Item1));
-
-            }
-
         }
 
         class IvSaver {
@@ -587,7 +527,7 @@ namespace MeshUtils {
             // ------------------------
             public void TemplateJoin(CuttingTemplate template,SortedDictionary<float,Vector3> map) {
                 if (map.Count == 0) return;
-                if (map.Count % 2 == 1) throw OperationException.Internal("Odd strip entry/exit count");
+                if (map.Count % 2 == 1) throw MeshUtilsException.Internal("Odd strip entry/exit count");
                 bool first_is_entry = false;
                 Vector3 first_vec = map.First().Value;
                 foreach (List<Vector3> part in partials) {
@@ -597,9 +537,9 @@ namespace MeshUtils {
                 }
                 var x = map.Values.GetEnumerator();
                 for (int i = 0; i < map.Count; i+=2) {
-                    if (!x.MoveNext()) throw OperationException.Internal("Enumerator exhausted");
+                    if (!x.MoveNext()) throw MeshUtilsException.Internal("Enumerator exhausted");
                     Vector3 a = x.Current;
-                    if (!x.MoveNext()) throw OperationException.Internal("Enumerator exhausted");
+                    if (!x.MoveNext()) throw MeshUtilsException.Internal("Enumerator exhausted");
                     Vector3 b = x.Current;
                     AddConnected(first_is_entry?b:a,first_is_entry?a:b);
                 }

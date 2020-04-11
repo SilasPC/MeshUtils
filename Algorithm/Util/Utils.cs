@@ -8,19 +8,19 @@ using static MeshUtils.Debugging;
 
 namespace MeshUtils {
 
-    class OperationException : Exception {
-        private OperationException(string msg) : base(msg) {}
-        public static OperationException ZeroNormal() {
-            return new OperationException("The supplied normal vector was of zero length");
+    class MeshUtilsException : Exception {
+        private MeshUtilsException(string msg) : base(msg) {}
+        public static MeshUtilsException ZeroNormal() {
+            return new MeshUtilsException("The supplied normal vector was of zero length");
         }
-        public static OperationException ZeroAreaTriangle() {
+        public static MeshUtilsException ZeroAreaTriangle() {
             return MalformedMesh("Zero area triangle");
         }
-        public static OperationException MalformedMesh(string msg) {
-            return new OperationException("The supplied object contains a malformed mesh ("+msg+")");
+        public static MeshUtilsException MalformedMesh(string msg) {
+            return new MeshUtilsException("The supplied object contains a malformed mesh ("+msg+")");
         }
-        public static OperationException Internal(string msg) {
-            return new OperationException("Internal error: " + msg);
+        public static MeshUtilsException Internal(string msg) {
+            return new MeshUtilsException("Internal error: " + msg);
         }
     }
 
@@ -48,7 +48,7 @@ namespace MeshUtils {
             mesh.vertices = vertices.ToArray();
             mesh.triangles = indices.ToArray();
             if (uvs.Count > 0 && uvs.Count != vertices.Count)
-                throw OperationException.Internal("UV/Vertex length mismatch ("+uvs.Count+" uvs, "+vertices.Count+" verts)");
+                throw MeshUtilsException.Internal("UV/Vertex length mismatch ("+uvs.Count+" uvs, "+vertices.Count+" verts)");
             if (uvs.Count == vertices.Count) mesh.uv = uvs.ToArray();
             mesh.RecalculateNormals();
             mesh.RecalculateTangents();
@@ -59,7 +59,7 @@ namespace MeshUtils {
             List<List<int>> list = new List<List<int>>();
 
             if (uvs.Count > 0 && uvs.Count != vertices.Count)
-                throw OperationException.Internal("UV/Vertex length mismatch ("+uvs.Count+" uvs, "+vertices.Count+" verts)");
+                throw MeshUtilsException.Internal("UV/Vertex length mismatch ("+uvs.Count+" uvs, "+vertices.Count+" verts)");
 
             // create index groups
             for (int i = 0; i < indices.Count; i += 3) {
@@ -100,7 +100,7 @@ namespace MeshUtils {
             List<List<int>> list = new List<List<int>>();
 
             if (uvs.Count > 0 && uvs.Count != vertices.Count)
-                throw OperationException.Internal("UV/Vertex length mismatch ("+uvs.Count+" uvs, "+vertices.Count+" verts)");
+                throw MeshUtilsException.Internal("UV/Vertex length mismatch ("+uvs.Count+" uvs, "+vertices.Count+" verts)");
 
             // create index groups
             for (int i = 0; i < indices.Count; i += 3) {
@@ -221,7 +221,7 @@ namespace MeshUtils {
             if (e == d) {
                 return;
                 // not sure if this is nescessary
-                throw OperationException.ZeroAreaTriangle();
+                throw MeshUtilsException.ZeroAreaTriangle();
             }
 
             // find proper direction for ring

@@ -90,6 +90,8 @@ namespace MeshUtils {
                 //this.density = density;
             }
 
+            public bool IsPositive() {return part.side;}
+
             public Vector3 GetLocalDriftDirection() {
                 return parent != null
                     ? parent.InverseTransformDirection(GetDriftDirection())

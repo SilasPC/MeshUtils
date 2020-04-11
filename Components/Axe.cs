@@ -28,11 +28,11 @@ namespace MeshUtils {
                     p = transform.position;
 
             template.AddPoint(p + r - 5 * f);
-            template.AddPoint(p + r + f);
-            //template.AddPoint(p + 0.3f * r + 2 * f);
-            template.AddPoint(p + 2 * f);
-            //template.AddPoint(p - 0.3f * r + 2 * f);
-            template.AddPoint(p - r + f);
+            template.AddPoint(p + r + 1.2f * f);
+            template.AddPoint(p + 0.3f * r + 2.2f * f);
+            //template.AddPoint(p + 2 * f);
+            template.AddPoint(p - 0.3f * r + 2.2f * f);
+            template.AddPoint(p - r + 1.2f * f);
             template.AddPoint(p - r - 5 * f);
 
             template.Draw();
@@ -40,7 +40,14 @@ namespace MeshUtils {
             var res = API.tmp(col.gameObject,template);
             if (res != null) {
                 foreach (var rm in res.results) {
-                    rm.UseDefaults().WithRingWidth(0).Instantiate().tag = "Cuttable";
+                    if (!rm.IsPositive()) continue;
+                    GameObject obj = rm
+                        .CopyParent()
+                        .CopyMaterial()
+                        .WithCollider()
+                        .Instantiate();
+                    obj.tag = "Cuttable";
+                    obj.GetComponent<MeshCollider>().convex = false;
                 }
             } else Debug.Log("fail");
             

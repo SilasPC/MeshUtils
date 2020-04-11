@@ -37,7 +37,7 @@ namespace MeshUtils {
             if (e == d) {
                 return;
                 // not sure if this is nescessary
-                throw OperationException.ZeroAreaTriangle();
+                throw MeshUtilsException.ZeroAreaTriangle();
             }
 
             // new indices
@@ -102,7 +102,7 @@ namespace MeshUtils {
             if (e == d) {
                 return;
                 // not sure if this is nescessary
-                throw OperationException.ZeroAreaTriangle();
+                throw MeshUtilsException.ZeroAreaTriangle();
             }
 
             if (
@@ -171,7 +171,7 @@ namespace MeshUtils {
             if (e == d) {
                 return;
                 // not sure if this is nescessary
-                throw OperationException.ZeroAreaTriangle();
+                throw MeshUtilsException.ZeroAreaTriangle();
             }
 
             // new indices
@@ -233,7 +233,7 @@ namespace MeshUtils {
             if (e == d) {
                 return;
                 // not sure if this is nescessary
-                throw OperationException.ZeroAreaTriangle();
+                throw MeshUtilsException.ZeroAreaTriangle();
             }
 
             // new indices

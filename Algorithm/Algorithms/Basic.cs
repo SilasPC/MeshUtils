@@ -32,7 +32,7 @@ namespace MeshUtils {
             bool addUVs = uvs.Length > 0;
 
             if (addUVs && uvs.Length != vertices.Length)
-                throw OperationException.Internal("UV/Vertex length mismatch");
+                throw MeshUtilsException.Internal("UV/Vertex length mismatch");
 
             // divide mesh in half by vertices
             int i = 0;

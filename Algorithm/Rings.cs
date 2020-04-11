@@ -36,7 +36,7 @@ namespace MeshUtils {
                     res.Add(new Ring(p));
                 }
             }
-            if (!ignorePartials && !selfConnectPartials && this.partials.Count > 0) throw OperationException.MalformedMesh("Incomplete intersections found");
+            if (!ignorePartials && !selfConnectPartials && this.partials.Count > 0) throw MeshUtilsException.MalformedMesh("Incomplete intersections found");
             return res;
         }
 

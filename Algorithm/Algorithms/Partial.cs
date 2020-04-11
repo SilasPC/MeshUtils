@@ -106,7 +106,7 @@ namespace MeshUtils {
             //
 
             if (uvs.Length > 0 && uvs.Length != vertices.Length)
-                throw OperationException.Internal("UV/Vertex length mismatch");
+                throw MeshUtilsException.Internal("UV/Vertex length mismatch");
 
             bool addUVs = uvs.Length > 0;
 

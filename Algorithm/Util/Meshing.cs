@@ -41,7 +41,7 @@ namespace MeshUtils {
                             // DebugRings(reduceHist);
                             // Debug.Log("normal "+(normal*1000));
                             // DebugRing(set.ConvertAll(s=>s.Item1));
-                            throw OperationException.Internal("Ear clipping failed");
+                            throw MeshUtilsException.Internal("Ear clipping failed");
                         }
                         didInf = true;
                     } else didInf = false;

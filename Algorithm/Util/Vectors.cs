@@ -16,7 +16,7 @@ namespace MeshUtils {
             if (v.x != 0) return new Vector3(1,1,-(v.y+v.z)/v.x).normalized;
             if (v.y != 0) return new Vector3(1,1,-(v.x+v.z)/v.y).normalized;
             if (v.z != 0) return new Vector3(1,1,-(v.x+v.y)/v.z).normalized;
-            throw OperationException.ZeroNormal();
+            throw MeshUtilsException.ZeroNormal();
         }
         
         // ------------------------------------------------------------------------------------

@@ -10,6 +10,7 @@ namespace MeshUtils {
         public readonly Vector3 pointInPlane, normal;
 
         public MUPlane(Vector3 normal, Vector3 pointInPlane) {
+                if (normal == Vector3.zero) throw MeshUtilsException.Internal("Zero normal");
                 this.pointInPlane = pointInPlane;
                 this.normal = normal.normalized;
                 this.d = -Vector3.Dot(pointInPlane,this.normal);
@@ -50,9 +51,9 @@ namespace MeshUtils {
                 Vector3 tmp = p0;
                 p0 = p1;
                 p1 = tmp;
-            } else if (!IsAbove(p1)) Debug.LogException(OperationException.Internal("both below"));
+            } else if (!IsAbove(p1)) Debug.LogException(MeshUtilsException.Internal("both below"));
 
-            if (IsAbove(p0)) Debug.LogException(OperationException.Internal("both above"));
+            if (IsAbove(p0)) Debug.LogException(MeshUtilsException.Internal("both above"));
 
             float dist0 = Distance(p0);
             float dist1 = Distance(p1);
@@ -70,6 +71,8 @@ namespace MeshUtils {
 
         public Vector3 DirectionalProject(Vector3 v, Vector3 dir) {
             float t = -(Vector3.Dot(v,normal)+d)/Vector3.Dot(dir,normal);
+            if (float.IsInfinity(t) || float.IsNaN(t))
+                throw MeshUtilsException.Internal("Directional projection failed: t="+t+" v="+v+" n="+normal+" d="+d+" dir="+dir);
             return v + dir * t;
         }
         
