@@ -13,10 +13,12 @@ namespace MeshUtils {
         // Exact direction is obviously unknown
         // ------------------------------------------------------
         public static Vector3 UnitPerpendicular(Vector3 v) {
-            if (v.x != 0) return new Vector3(1,1,-(v.y+v.z)/v.x).normalized;
+            if (v == Vector3.zero) throw MeshUtilsException.ZeroNormal();
+            return new Vector3(v.y-v.z,v.z-v.x,v.x-v.y).normalized;
+            /*if (v.x != 0) return new Vector3(1,1,-(v.y+v.z)/v.x).normalized;
             if (v.y != 0) return new Vector3(1,1,-(v.x+v.z)/v.y).normalized;
             if (v.z != 0) return new Vector3(1,1,-(v.x+v.y)/v.z).normalized;
-            throw MeshUtilsException.ZeroNormal();
+            throw MeshUtilsException.ZeroNormal();*/
         }
         
         // ------------------------------------------------------------------------------------

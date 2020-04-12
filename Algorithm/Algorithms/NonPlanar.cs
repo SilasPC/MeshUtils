@@ -95,25 +95,31 @@ namespace MeshUtils {
             }
 
             // Generate strip (inner) geometry
-            for (i = 1; i < template.points.Count; i++) {
+            SortedDictionary<float, Vector3> next_dist_map = point_data[template.points[template.isClosed ? 0 : template.points.Count - 1]].Item1;
+            Vector3 next_point = template.isClosed ? template.points.First() : template.points.Last();
+            for (i = template.points.Count - (template.isClosed ? 1 : 2); i >= 0; i--) {
+                SortedDictionary<float, Vector3> dist_map = point_data[template.points[i]].Item1;
+                Vector3 point = template.points[i];
                 //Debugging.LogLine(template.points[i-1],template.normal);
                 //Debugging.LogLine(template.points[i],template.normal);
                 //Debugging.LogList(point_data[template.points[i-1]].Item1.Keys);
                 //Debugging.LogList(point_data[template.points[i]].Item1.Keys);
-                RingGen rg = point_data[template.points[i-1]].Item2;
+                RingGen rg = point_data[template.points[i]].Item2;
                 //rg.MyDebugLog();
-                rg.TemplateJoin(template,point_data[template.points[i-1]].Item1);
-                rg.TemplateJoin(template,point_data[template.points[i]].Item1);
+                rg.TemplateJoin(template,dist_map);
+                rg.TemplateJoin(template,next_dist_map);
                 // rg.MyDebugLog();
                 try {
                     foreach (Ring ring in rg.GetRings(false,false)) {
                         //Debugging.DebugRing(ring.verts);
-                        Vector3 normal = Vector3.Cross(template.normal,template.points[i]-template.points[i-1]);
+                        Vector3 normal = Vector3.Cross(template.normal,next_point-point);
                         TmpGen(ring.verts,pos,normal);
                         TmpGen(ring.verts,neg,normal,true);
                     }
                 } catch (Exception e) {Debug.LogException(e);}
                 //Debug.Log("---------------------------");
+                next_dist_map = dist_map;
+                next_point = point;
             }
 
             Debug.Log(template);
@@ -186,15 +192,28 @@ namespace MeshUtils {
                     ca = new MUPlane(ca_nor,c);
             Debug.Log(tri_plane+" "+normal);
             //Debugging.DebugRing(points);
-            Vector3 opi = tri_plane.DirectionalProject(points[0],normal);
-            bool oaab = ab.IsAbove(opi),
-                oabc = bc.IsAbove(opi),
+            Vector3 opi;
+            bool oaab, oabc, oaca;
+            SortedDictionary<float,Vector3> dist_map_old;
+            RingGen rings;
+            if (template.isClosed) {
+                opi = tri_plane.DirectionalProject(points.Last(),normal);
+                oaab = ab.IsAbove(opi);
+                oabc = bc.IsAbove(opi);
                 oaca = ca.IsAbove(opi);
+                dist_map_old = point_data[points.Last()].Item1;
+                rings = point_data[points.Last()].Item2;
+            } else {
+                opi = tri_plane.DirectionalProject(points.First(),normal);
+                oaab = ab.IsAbove(opi);
+                oabc = bc.IsAbove(opi);
+                oaca = ca.IsAbove(opi);
+                dist_map_old = point_data[points.First()].Item1;
+                rings = point_data[points.First()].Item2;
+            }
             bool oldInside = !(oaab||oabc||oaca);
-            for (int i = 1; i < points.Count; i++) {
-                SortedDictionary<float,Vector3> dist_map_old = point_data[points[i-1]].Item1,
-                                                dist_map = point_data[points[i]].Item1;
-                RingGen rings = point_data[points[i-1]].Item2;
+            for (int i = template.isClosed ? 0 : 1; i < points.Count; i++) {
+                SortedDictionary<float,Vector3> dist_map = point_data[points[i]].Item1;
                 Vector3 pi = tri_plane.DirectionalProject(points[i],normal);
                 // Debug.Log(opi+" => "+pi);
                 bool aab = ab.IsAbove(pi), // above means outside edge
@@ -405,6 +424,8 @@ namespace MeshUtils {
                 oabc = abc;
                 oaca = aca;
                 opi = pi;
+                dist_map_old = dist_map;
+                rings = point_data[points[i]].Item2;
             }
             if (!self_rings.HasPartials()) return false;
             //Debugging.DebugRing(points.ConvertAll(p=>tri_plane.DirectionalProject(p,normal)));

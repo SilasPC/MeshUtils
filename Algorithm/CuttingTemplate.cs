@@ -1,5 +1,6 @@
 
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,6 +8,8 @@ using UnityEngine;
 namespace MeshUtils {
 
     class CuttingTemplate {
+
+        public bool isClosed = true;
 
         public static CuttingTemplate InLocalSpace(Vector3 normal, Vector3 pointInPlane, Transform transform) {
             Vector3 world_normal = transform.TransformDirection(normal),
@@ -63,10 +66,21 @@ namespace MeshUtils {
         // ----------------------------------------------------------
         public bool IsAbove(Vector3 v) {
             Vector3 pv = plane.Project(v);
-            float dMin = float.PositiveInfinity;
-            int i0 = 0;
-            Vector3 dif = points[0] - pv;
-            float lastLineDist = VectorUtil.DistanceToLine(pv,points[0],points[1]);
+            float dMin;
+            int i0;
+            Vector3 dif;
+            float lastLineDist;
+            if (isClosed) {
+                dif = VectorUtil.VectorToEdge(pv,points.Last(),points.First());
+                lastLineDist = VectorUtil.DistanceToLine(pv,points.Last(),points.First());
+                i0 = points.Count - 1;
+                dMin = dif.magnitude;
+            } else {
+                dif = VectorUtil.VectorToEdge(pv,points[0],points[1]);
+                lastLineDist = VectorUtil.DistanceToLine(pv,points[0],points[1]);
+                i0 = 0;
+                dMin = dif.magnitude;
+            }
             for (int i = 0; i < points.Count - 1; i++) {
                 float lineDist = VectorUtil.DistanceToLine(pv,points[i],points[i+1]);
                 Vector3 vec = VectorUtil.VectorToEdge(pv,points[i],points[i+1]);
@@ -83,10 +97,11 @@ namespace MeshUtils {
                 }
                 lastLineDist = lineDist;
             }
+            int i1 = i0 + 1 == points.Count ? 0 : i0 + 1;
             return Vector3.Dot(
                 Vector3.Cross(
                     dif,
-                    points[i0+1]-points[i0]
+                    points[i1]-points[i0]
                 ),
                 normal
             ) > 0;
@@ -107,12 +122,17 @@ namespace MeshUtils {
         }
 
         public void Draw() {
-            foreach(Vector3 p in points)
-                Debug.DrawRay(p-normal,normal * 2,Color.red,1,true);
             for (int i = 0; i < points.Count - 1; i++) {
-                Debug.DrawRay(points[i]+normal,points[i+1]-points[i],Color.red,1,true);
-                Debug.DrawRay(points[i],points[i+1]-points[i],Color.red,1,true);
-                Debug.DrawRay(points[i]-normal,points[i+1]-points[i],Color.red,1,true);
+                Debug.DrawRay(points[i]-normal,normal * 2,Color.red,10,true);
+                Debug.DrawRay(points[i]+normal,points[i+1]-points[i],Color.red,10,true);
+                Debug.DrawRay(points[i],points[i+1]-points[i],Color.red,10,true);
+                Debug.DrawRay(points[i]-normal,points[i+1]-points[i],Color.red,10,true);
+            }
+            if (isClosed) {
+                Debug.DrawRay(points.Last()-normal,normal * 2,Color.blue,10,true);
+                Debug.DrawRay(points.Last()+normal,points[0]-points.Last(),Color.blue,10,true);
+                Debug.DrawRay(points.Last(),points[0]-points.Last(),Color.blue,10,true);
+                Debug.DrawRay(points.Last()-normal,points[0]-points.Last(),Color.blue,10,true);
             }
         }
 
