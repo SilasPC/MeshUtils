@@ -26,7 +26,7 @@ namespace MeshUtils {
             Vector3[] vertices = mesh.vertices;
             int[] triangles = mesh.triangles;
 
-            bool addUVs = false; //uvs.Length > 0;
+            bool addUVs = uvs.Length > 0;
 
             if (addUVs && uvs.Length != vertices.Length)
                 throw MeshUtilsException.Internal("UV/Vertex length mismatch");
@@ -79,7 +79,7 @@ namespace MeshUtils {
                 } else txa = txb = txc = Vector2.zero;
 
                 // seperation check
-                if (!ProcessTriangle(template,a,b,c,point_data,pos,neg,intersection_ring)) {
+                if (!ProcessTriangle(template,a,b,c,point_data,pos,neg,intersection_ring,addUVs)) {
                     if (template.IsAbove(a)) {
                         // triangle above plane
                         pos.indices.Add(pos.indexMap[i_a]);
@@ -113,8 +113,10 @@ namespace MeshUtils {
                     foreach (Ring ring in rg.GetRings(false,false)) {
                         //Debugging.DebugRing(ring.verts);
                         Vector3 normal = Vector3.Cross(template.normal,next_point-point);
-                        TmpGen(ring.verts,pos,normal);
-                        TmpGen(ring.verts,neg,normal,true);
+                        GenerateRingMesh(ring.verts,pos,normal,addUVs,true,Vector3.zero);
+                        //TmpGen(ring.verts,pos,normal);
+                        GenerateRingMesh(ring.verts,neg,normal,addUVs,false,Vector3.zero);
+                        //TmpGen(ring.verts,neg,normal,true);
                     }
                 } catch (Exception e) {Debug.LogException(e);}
                 //Debug.Log("---------------------------");
@@ -164,7 +166,8 @@ namespace MeshUtils {
             Vector3 a, Vector3 b, Vector3 c,
             Dictionary<Vector3,Tuple<SortedDictionary<float,Vector3>,RingGen>> point_data,
             MeshPart pos, MeshPart neg,
-            RingGenerator intersection_ring
+            RingGenerator intersection_ring,
+            bool addUVs
         ) {
             List<Vector3> points = template.points;
             Vector3 normal = template.normal;
@@ -440,14 +443,16 @@ namespace MeshUtils {
                 self_rings.MyDebugLog();
                 foreach (var ring in self_rings.GetRings(false, false)) {
                     // Debugging.DebugRing(ring.verts);
-                    TmpGen(ring.verts,partToUse?neg:pos,tri_nor);
+                    GenerateRingMesh(ring.verts,partToUse?neg:pos,tri_nor,addUVs,true,Vector3.zero);
+                    // TmpGen(ring.verts,partToUse?neg:pos,tri_nor);
                 }
                 Debug.Log("gen2:");
                 self_rings2.MyDebugLog();
                 foreach (var ring in self_rings2.GetRings(false, false)) {
                     //Debugging.DebugRing(ring.verts);
                     ring.verts.Reverse();
-                    TmpGen(ring.verts,partToUse?pos:neg,tri_nor);
+                    GenerateRingMesh(ring.verts,partToUse?pos:neg,tri_nor,addUVs,true,Vector3.zero);
+                    // TmpGen(ring.verts,partToUse?pos:neg,tri_nor);
                 }
             } catch (Exception e) {
                 Debug.LogException(e);
