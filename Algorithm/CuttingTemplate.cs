@@ -107,15 +107,15 @@ namespace MeshUtils {
             ) > 0;
         }
 
-        public bool AddPoint(Vector3 p) {
+        public bool AddPoint(Vector3 p, float maxAngle = 0, float minDist = 0.03f) {
             p = plane.Project(p);
-            if (points.Count > 1) {
+            if (maxAngle > 0 && points.Count > 1) {
                 Vector3 dif = points[points.Count-1] - points[points.Count-2];
-                if (Vector3.Angle(dif,p-points[points.Count-1]) < 0) return false;
+                if (Vector3.Angle(dif,p-points[points.Count-1]) < maxAngle) return false;
             }
             if (points.Count > 0) {
                 Vector3 last = points[points.Count-1];
-                if ((last-p).magnitude < 0.03f) return false;
+                if ((last-p).magnitude < minDist) return false;
             }
             points.Add(p);
             return true;

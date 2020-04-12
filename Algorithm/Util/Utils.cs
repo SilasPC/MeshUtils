@@ -28,6 +28,7 @@ namespace MeshUtils {
         public readonly List<Vector3> vertices = new List<Vector3>();
         public readonly List<int> indices = new List<int>();
         public readonly List<Vector2> uvs = new List<Vector2>();
+        public readonly List<Vector3> normals = new List<Vector3>();
         
         // Map from original indices to new indices
         public readonly Dictionary<int,int> indexMap = new Dictionary<int, int>();
@@ -45,21 +46,27 @@ namespace MeshUtils {
 
         public void AddMeshTo(GameObject obj) {
             var mesh = obj.AddComponent<MeshFilter>().mesh;
+            AssertMatchingCounts();
             mesh.vertices = vertices.ToArray();
             mesh.triangles = indices.ToArray();
-            if (uvs.Count > 0 && uvs.Count != vertices.Count)
-                throw MeshUtilsException.Internal("UV/Vertex length mismatch ("+uvs.Count+" uvs, "+vertices.Count+" verts)");
             if (uvs.Count == vertices.Count) mesh.uv = uvs.ToArray();
-            mesh.RecalculateNormals();
+            if (normals.Count == vertices.Count) mesh.normals = normals.ToArray();
+            else mesh.RecalculateNormals(); // allow control of these ?
             mesh.RecalculateTangents();
+        }
+
+        private void AssertMatchingCounts() {
+            if (uvs.Count > 0 && uvs.Count != vertices.Count)
+                throw MeshUtilsException.Internal("UV/vertex count mismatch ("+uvs.Count+" uvs, "+vertices.Count+" verts)");
+            if (normals.Count > 0 && normals.Count != vertices.Count)
+                throw MeshUtilsException.Internal("Normal/vertex count mismatch ("+normals.Count+" normals, "+vertices.Count+" verts)");
         }
 
         public List<MeshPart> PolySeperate() {
 
             List<List<int>> list = new List<List<int>>();
-
-            if (uvs.Count > 0 && uvs.Count != vertices.Count)
-                throw MeshUtilsException.Internal("UV/Vertex length mismatch ("+uvs.Count+" uvs, "+vertices.Count+" verts)");
+            
+            AssertMatchingCounts();
 
             // create index groups
             for (int i = 0; i < indices.Count; i += 3) {
@@ -79,6 +86,7 @@ namespace MeshUtils {
                         part.indices.Add(part.vertices.Count);
                         part.vertices.Add(vertices[ind]);
                         if (uvs.Count > 0) part.uvs.Add(uvs[ind]);
+                        if (normals.Count > 0) part.normals.Add(normals[ind]);
                     }
                 }
 
@@ -99,8 +107,7 @@ namespace MeshUtils {
 
             List<List<int>> list = new List<List<int>>();
 
-            if (uvs.Count > 0 && uvs.Count != vertices.Count)
-                throw MeshUtilsException.Internal("UV/Vertex length mismatch ("+uvs.Count+" uvs, "+vertices.Count+" verts)");
+            AssertMatchingCounts();
 
             // create index groups
             for (int i = 0; i < indices.Count; i += 3) {
@@ -110,7 +117,6 @@ namespace MeshUtils {
                     ci1 = allow_cut.Contains(v1),
                     ci2 = allow_cut.Contains(v2);
                 AddIndices(list,vertices,v0,v1,v2,i0,i1,i2,ci0,ci1,ci2);
-                //AddIndices(list,vertices,v0,v1,v2,i0,i1,i2,true,true,true);
             }
 
             return list.ConvertAll(indices=>{
@@ -135,6 +141,8 @@ namespace MeshUtils {
                 }
 
                 if (doSwap > doStay) part.SwapSide();
+
+                part.AssertMatchingCounts();
 
                 return part;
 

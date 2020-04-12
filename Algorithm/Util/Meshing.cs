@@ -12,13 +12,13 @@ namespace MeshUtils {
         // Generate triangle mesh within possibly concave ring
         // -----------------------------------------------------
         public static void GenerateRingMesh(
-            Ring ring, MeshPart part, Vector3 normal, bool addUVs, Vector2 innerUV
-        ) {GenerateRingMesh(ring.verts,part,normal,addUVs,innerUV);}
+            Ring ring, MeshPart part, Vector3 normal, bool addUVs, Vector2 innerUV, bool addNormals = false
+        ) {GenerateRingMesh(ring.verts,part,normal,addUVs,innerUV,addNormals);}
         public static void GenerateRingMesh(
-            List<Vector3> ring, MeshPart part, Vector3 normal, bool addUVs, Vector2 innerUV
-        ) {GenerateRingMesh(ring,part,normal,addUVs,part.side,innerUV);}
+            List<Vector3> ring, MeshPart part, Vector3 normal, bool addUVs, Vector2 innerUV, bool addNormals = false
+        ) {GenerateRingMesh(ring,part,normal,addUVs,part.side,innerUV,addNormals);}
         public static void GenerateRingMesh(
-            List<Vector3> ring, MeshPart part, Vector3 normal, bool addUVs, bool side, Vector2 innerUV
+            List<Vector3> ring, MeshPart part, Vector3 normal, bool addUVs, bool side, Vector2 innerUV, bool addNormals = false
         ) {
 
             // List<List<Vector3>> reduceHist = new List<List<Vector3>>();
@@ -26,7 +26,11 @@ namespace MeshUtils {
 
             int indStart = part.vertices.Count;
             part.vertices.AddRange(ring);
-            if (addUVs) foreach (var _ in ring) part.uvs.Add(innerUV);
+            if (addUVs || addNormals)
+            foreach (var _ in ring) {
+                if (addUVs) part.uvs.Add(innerUV);
+                if (addNormals) part.normals.Add(side ? -normal : normal);
+            }
 
             List<Tuple<Vector3,int>> set = ring.ConvertAll(v=>new Tuple<Vector3,int>(v,indStart++));
 

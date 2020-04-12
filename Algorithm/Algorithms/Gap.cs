@@ -31,9 +31,6 @@ namespace MeshUtils {
 
             bool addUVs = uvs.Length > 0;
 
-            if (addUVs && uvs.Length != vertices.Length)
-                throw MeshUtilsException.Internal("UV/Vertex length mismatch");
-
             // removed indices
             HashSet<int> removed = new HashSet<int>();
 

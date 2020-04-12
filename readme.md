@@ -1,6 +1,9 @@
 
 # Mesh Utilities
 
+### Note
+ - PartialPolySeperate only copies UVs
+
 ### Problems so far
  - Sorting siblings (?)
  - Time complexity in ring generation
@@ -19,3 +22,4 @@
  - Builder pattern for param
  - NonPlanar strip rings need hiearchical analysis
  - Finish/use IvSaver
+ - Add normals to other algorithms

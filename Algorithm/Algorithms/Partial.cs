@@ -105,9 +105,6 @@ namespace MeshUtils {
             // Start of cutting
             //
 
-            if (uvs.Length > 0 && uvs.Length != vertices.Length)
-                throw MeshUtilsException.Internal("UV/Vertex length mismatch");
-
             bool addUVs = uvs.Length > 0;
 
             // transfer vertices into MeshPart

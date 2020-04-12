@@ -27,12 +27,11 @@ namespace MeshUtils {
 
             Vector2[] uvs = mesh.uv;
             Vector3[] vertices = mesh.vertices;
+            Vector3[] normals = mesh.normals;
             int[] triangles = mesh.triangles;
 
-            bool addUVs = uvs.Length > 0;
-
-            if (addUVs && uvs.Length != vertices.Length)
-                throw MeshUtilsException.Internal("UV/Vertex length mismatch");
+            bool addUVs = uvs.Length > 0,
+                addNormals = normals.Length > 0;
 
             // divide mesh in half by vertices
             int i = 0;
@@ -41,10 +40,12 @@ namespace MeshUtils {
                     pos.indexMap.Add(i,pos.vertices.Count);
                     pos.vertices.Add(vertex);
                     if (addUVs) pos.uvs.Add(uvs[i]);
+                    if (addNormals) pos.normals.Add(normals[i]);
                 } else {
                     neg.indexMap.Add(i,neg.vertices.Count);
                     neg.vertices.Add(vertex);
                     if (addUVs) neg.uvs.Add(uvs[i]);
+                    if (addNormals) neg.normals.Add(normals[i]);
                 }
                 i++;
             }
@@ -66,14 +67,21 @@ namespace MeshUtils {
                         b = vertices[i_b],
                         c = vertices[i_c];
 
-                Vector2 txa, txb, txc;
-
                 // find original uvs
-                if (uvs.Length > 0) {
+                Vector2 txa, txb, txc;
+                if (addUVs) {
                     txa = uvs[i_a];
                     txb = uvs[i_b];
                     txc = uvs[i_c];
-                } else txa = txb = txc = Vector2.zero;
+                } else txa = txb = txc = Vector3.zero;
+
+                // find original normals
+                Vector3 na, nb, nc;
+                if (addNormals) {
+                    na = normals[i_a];
+                    nb = normals[i_b];
+                    nc = normals[i_c];
+                } else na = nb = nc = Vector3.zero;
 
                 // seperation check
                 bool aAbove = cutting_plane.IsAbove(a),
@@ -99,9 +107,10 @@ namespace MeshUtils {
                             cutting_plane,
                             aAbove ? pos : neg,
                             !aAbove ? pos : neg,
-                            a, b, c, txa, txb, txc, i_a, i_b, i_c,
+                            a, b, c, txa, txb, txc, na, nb, nc, i_a, i_b, i_c,
                             rings,
-                            addUVs
+                            addUVs,
+                            addNormals
                         );
                     } else if (aAbove == cAbove) {
                         // c, a, b
@@ -109,9 +118,10 @@ namespace MeshUtils {
                             cutting_plane,
                             aAbove ? pos : neg,
                             !aAbove ? pos : neg,
-                            c, a, b, txc, txa, txb, i_c, i_a, i_b,
+                            c, a, b, txc, txa, txb, na, nb, nc, i_c, i_a, i_b,
                             rings,
-                            addUVs
+                            addUVs,
+                            addNormals
                         );
 
                     } else if (bAbove == cAbove) {
@@ -120,9 +130,10 @@ namespace MeshUtils {
                             cutting_plane,
                             bAbove ? pos : neg,
                             !bAbove ? pos : neg,
-                            b, c, a, txb, txc, txa, i_b, i_c, i_a,
+                            b, c, a, txb, txc, txa, na, nb, nc, i_b, i_c, i_a,
                             rings,
-                            addUVs
+                            addUVs,
+                            addNormals
                         );
                     }
                 }
@@ -134,8 +145,8 @@ namespace MeshUtils {
 
             // generate seperation meshing
             foreach (var ring in analysis) {
-                GenerateRingMesh(ring,pos,cutting_plane.normal,addUVs,param.innerTextureCoord);
-                GenerateRingMesh(ring,neg,cutting_plane.normal,addUVs,param.innerTextureCoord); 
+                GenerateRingMesh(ring,pos,cutting_plane.normal,addUVs,param.innerTextureCoord,addNormals);
+                GenerateRingMesh(ring,neg,cutting_plane.normal,addUVs,param.innerTextureCoord,addNormals); 
             }
 
            List<CutObj> cutObjs = new List<CutObj>();

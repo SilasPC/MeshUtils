@@ -20,17 +20,20 @@ namespace MeshUtils {
             MeshPart pos, MeshPart neg,
             Vector3 a, Vector3 b,Vector3 c,
             Vector2 txa, Vector2 txb, Vector2 txc,
+            Vector3 na, Vector3 nb, Vector3 nc,
             int i_a, int i_b, int i_c,
             RingGenerator rings,
-            bool addUVs
+            bool addUVs,
+            bool addNormals
         ) {
 
             // find intersection vertices / uvs
-            var es = plane.Intersection(a, c, txa, txc, 0);
-            var ds = plane.Intersection(b, c, txb, txc, 0);
+            var es = plane.Intersection(a, c, txa, txc, na, nc, 0);
+            var ds = plane.Intersection(b, c, txb, txc, nb, nc, 0);
 
             Vector3 e = es.Item1, d = ds.Item1;
             Vector2 txe = es.Item2, txd = ds.Item2;
+            Vector3 ne = es.Item3, nd = ds.Item3;
 
             // if e == d, the three vertices lie in a line,
             //   and thus do not make up a triangle
@@ -61,6 +64,12 @@ namespace MeshUtils {
                 pos.uvs.Add(txe);
                 neg.uvs.Add(txd);
                 neg.uvs.Add(txe);
+            }
+            if (addNormals) {
+                pos.normals.Add(nd);
+                pos.normals.Add(ne);
+                neg.normals.Add(nd);
+                neg.normals.Add(ne);
             }
 
             // generate triangles for sides ...

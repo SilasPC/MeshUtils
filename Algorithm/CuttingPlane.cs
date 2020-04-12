@@ -150,6 +150,47 @@ namespace MeshUtils {
 
         }
 
+        // --------------------------------------------------------
+        // Intersection point of edge between p0 and p1 with plane
+        // --------------------------------------------------------
+        public Tuple<Vector3,Vector2,Vector3> Intersection(
+            Vector3 p0, Vector3 p1,
+            Vector2 uv0, Vector2 uv1,
+            Vector3 n0, Vector3 n1,
+            float shift
+        ) {
+
+            // to avoid rounding errors, always make sure float calculations are done in this order
+            if (IsAbove(p0)) {
+                Vector3 tmp = p0;
+                p0 = p1;
+                p1 = tmp;
+                tmp = n0;
+                n0 = n1;
+                n1 = tmp;
+                Vector2 uvtmp = uv0;
+                uv0 = uv1;
+                uv1 = uvtmp;
+                shift *= -1; // is this rounding-safe ?
+            }
+
+            float dist0 = Distance(p0);
+            float dist1 = Distance(p1);
+
+            float factor = (dist0 + shift) / (dist0 + dist1);
+
+            //Debug.Log(Debugging.VecStr(p0));
+            //Debug.Log(Debugging.VecStr(p1));
+            //Debug.Log(Debugging.VecStr(res));
+
+            return new Tuple<Vector3,Vector2,Vector3>(
+                p0 + (p1 - p0) * factor,
+                uv0 + (uv1 - uv0) * factor,
+                (n0 * (1 - factor) + n1 * factor).normalized
+            );
+
+        }
+
     }
 
 }
