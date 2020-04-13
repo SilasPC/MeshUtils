@@ -696,8 +696,9 @@ MonoBehaviour:
   highlightWidth: 0.015
   highLightColor: {r: 1, g: 1, b: 1, a: 1}
   driftVelocity: 0
+  seperationDistance: 0.02
   innerTextureCoordinate: {x: 0, y: 0}
-  checkForHoles: 0
+  checkForHoles: 1
   tryApproximation: 0
   closeOpenSurfaces: 0
   allowOpenSurfaces: 0

@@ -29,6 +29,12 @@ namespace MeshUtils {
         public bool directionsAreNormals = false;
         [Tooltip("If true, uses first contact point as basis for cutting plane. Otherwise uses object center.")]
         public bool useContactPoint = true;
+
+        [Tooltip("Velocity resulting objects should drift apart with.")]
+        public float driftVelocity = 0;
+
+        [Tooltip("Distance to seperate resulting objects after cut")]
+        public float seperationDistance = 0.02f;
         
         public void OnCollisionEnter(Collision col) {
 
@@ -89,7 +95,8 @@ namespace MeshUtils {
                 foreach (CutObj res in result.results) {
                     res
                         .UseDefaults()
-                        .WithDriftVelocity(cuttable.driftVelocity)
+                        .WithDriftVelocity(driftVelocity)
+                        .WithSeperationDistance(seperationDistance)
                         .WithRingWidth(cuttable.highlightWidth)
                         .WithRingColor(cuttable.highLightColor)
                         .WithColor(new Color(1,0.1f,0.1f))

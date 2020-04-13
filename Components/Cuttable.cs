@@ -18,14 +18,11 @@ namespace MeshUtils {
         [Tooltip("Color of intersection highlighting.")]
         public Color highLightColor = Color.white;
 
-        [Tooltip("Velocity resulting objects should drift apart with.")]
-        public float driftVelocity = 0;
-
         [Tooltip("If object has textures, use this texture coordinate for inner geometry.")]
         public Vector2 innerTextureCoordinate = Vector2.zero;
 
-        [Tooltip("Analyses intersection for potential holes in intersection.")]
-        public bool checkForHoles = false;
+        [Tooltip("Analyses intersection for potential holes in intersection. If unsure and object is concave, leave on.")]
+        public bool checkForHoles = true;
         
         [Tooltip("For a less well-formed mesh, this will attempt to merge points in intersection that are almost exactly identical.")]
         public bool tryApproximation = false;
@@ -36,7 +33,7 @@ namespace MeshUtils {
         [Tooltip("Ignore open surfaces. Otherwise an exception is thrown.")]
         public bool allowOpenSurfaces = false;
         
-        [Tooltip("Attempt to seperate disconnected parts of mesh. Note: not terribly fast for big objects.")]
+        [Tooltip("Attempt to seperate disconnected parts of resulting meshes. Note: not terribly fast for big objects.")]
         public bool polySeperate = false;
         
     }

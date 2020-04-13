@@ -66,6 +66,7 @@ namespace MeshUtils {
 
             private float copyVelocity = 0;
             private float driftVelocity = 0;
+            private float seperationDistance = 0;
             private bool addRenderer = false;
             private bool boxColliderFallback = false;
             private bool addCollider = false;
@@ -111,6 +112,7 @@ namespace MeshUtils {
                 FallbackToBoxCollider();
                 CopyVelocity();
                 WithDriftVelocity(0.1f);
+                WithSeperationDistance(0.02f);
                 return this;
             }
 
@@ -186,6 +188,11 @@ namespace MeshUtils {
                 return this;
             }
 
+            public CutObj WithSeperationDistance(float dist) {
+                this.seperationDistance = dist;
+                return this;
+            }
+
             public GameObject Instantiate() {
                 GameObject obj = new GameObject();
                 this.part.AddMeshTo(obj);
@@ -235,7 +242,7 @@ namespace MeshUtils {
                     }
                 }
 
-                obj.transform.position = this.pos;
+                obj.transform.position = this.pos + GetDriftDirection() * Math.Max(0f, seperationDistance / 2f);
                 obj.transform.rotation = this.rot;
                 SetGlobalScale(obj.transform,this.scale);
                 if (this.copyParent) obj.transform.SetParent(this.parent);

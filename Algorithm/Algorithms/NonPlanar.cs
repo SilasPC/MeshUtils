@@ -22,11 +22,8 @@ namespace MeshUtils {
             MeshPart pos = new MeshPart(true), neg = new MeshPart(false);
             RingGenerator intersection_ring = new RingGenerator();
 
-            Vector2[] uvs = mesh.uv;
             Vector3[] vertices = mesh.vertices;
             int[] triangles = mesh.triangles;
-
-            bool addUVs = uvs.Length > 0;
 
             // divide mesh in half by vertices
             int i = 0;
@@ -34,19 +31,17 @@ namespace MeshUtils {
                 if (template.IsAbove(vertex)) {
                     pos.indexMap.Add(i,pos.vertices.Count);
                     pos.vertices.Add(vertex);
-                    if (addUVs) pos.uvs.Add(uvs[i]);
                 } else {
                     neg.indexMap.Add(i,neg.vertices.Count);
                     neg.vertices.Add(vertex);
-                    if (addUVs) neg.uvs.Add(uvs[i]);
                 }
                 i++;
             }
 
-            // if either vertex list is empty the template didn't collide
-            // if (pos.vertices.Count == 0 || neg.vertices.Count == 0) return null;
-
             // RingGen's are associated to first template point
+            //   these define the rings used for generating strip-wise inner geometry
+            // SortedDictionary are for connecting edges of strip-wise inner geometry
+            //   Sorted by signed distance to template plane, so they get connected in the right order
             Dictionary<Vector3,Tuple<SortedDictionary<float,Vector3>,RingGen>> point_data = new Dictionary<Vector3,Tuple<SortedDictionary<float,Vector3>,RingGen>>();
 
             foreach (Vector3 point in template.points) {
@@ -66,17 +61,8 @@ namespace MeshUtils {
                         b = vertices[i_b],
                         c = vertices[i_c];
 
-                Vector2 txa, txb, txc;
-
-                // find original uvs
-                if (addUVs) {
-                    txa = uvs[i_a];
-                    txb = uvs[i_b];
-                    txc = uvs[i_c];
-                } else txa = txb = txc = Vector2.zero;
-
                 // seperation check
-                if (!ProcessTriangle(template,a,b,c,point_data,pos,neg,intersection_ring,addUVs)) {
+                if (!ProcessTriangle(template,a,b,c,point_data,pos,neg,intersection_ring)) {
                     if (template.IsAbove(a)) {
                         // triangle above plane
                         pos.indices.Add(pos.indexMap[i_a]);
@@ -110,9 +96,9 @@ namespace MeshUtils {
                     foreach (Ring ring in rg.GetRings(false,false)) {
                         //Debugging.DebugRing(ring.verts);
                         Vector3 normal = Vector3.Cross(template.normal,next_point-point);
-                        GenerateRingMesh(ring.verts,pos,normal,addUVs,true,Vector3.zero);
+                        GenerateRingMesh(ring.verts,pos,normal,false,true,Vector3.zero);
                         //TmpGen(ring.verts,pos,normal);
-                        GenerateRingMesh(ring.verts,neg,normal,addUVs,false,Vector3.zero);
+                        GenerateRingMesh(ring.verts,neg,normal,false,false,Vector3.zero);
                         //TmpGen(ring.verts,neg,normal,true);
                     }
                 } catch (Exception e) {Debug.LogException(e);}
@@ -163,12 +149,11 @@ namespace MeshUtils {
             Vector3 a, Vector3 b, Vector3 c,
             Dictionary<Vector3,Tuple<SortedDictionary<float,Vector3>,RingGen>> point_data,
             MeshPart pos, MeshPart neg,
-            RingGenerator intersection_ring,
-            bool addUVs
+            RingGenerator intersection_ring
         ) {
             List<Vector3> points = template.points;
             Vector3 normal = template.normal;
-            RingGenerator self_rings = new RingGenerator();
+            RingGenerator tri_rings = new RingGenerator();
             Vector3 tri_nor = -Vector3.Cross(c-a,c-b).normalized;
             if (tri_nor == Vector3.zero) {
                 Debug.LogWarning("zero area tri");
@@ -177,17 +162,17 @@ namespace MeshUtils {
             bool partToUse = Vector3.Dot(tri_nor,normal) > 0;
             bool ring_dir = partToUse;
             MUPlane tri_plane = new MUPlane(tri_nor,a); // rounding errors are inbound here
-            Vector3 ab_nor = Vector3.Cross(tri_nor,(b-a).normalized),
+            Vector3 ab_nor = Vector3.Cross(tri_nor,(b-a).normalized), // vector perpendicular to edge and pointing away from triangle
                     bc_nor = Vector3.Cross(tri_nor,(c-b).normalized),
                     ca_nor = Vector3.Cross(tri_nor,(a-c).normalized);
             Debug.Log(a+" "+b+" "+c);
             Debug.Log((b-a).magnitude+" "+(c-b).magnitude+" "+(a-c).magnitude);
             Debug.Log("edge norms: "+ab_nor+" "+bc_nor+" "+ca_nor);
-            Dictionary<float,Vector3> map_ab = new Dictionary<float, Vector3>(),
-                                    map_bc = new Dictionary<float, Vector3>(),
+            Dictionary<float,Vector3> map_ab = new Dictionary<float, Vector3>(), // distance (from first vertex in edge) -> vertex in edge
+                                    map_bc = new Dictionary<float, Vector3>(), // used for sorting... TODO: change to SortedDictionary
                                     map_ca = new Dictionary<float, Vector3>();
             HashSet<Vector3> exiting_ivs = new HashSet<Vector3>();
-            MUPlane ab = new MUPlane(ab_nor,a),
+            MUPlane ab = new MUPlane(ab_nor,a), // planes passing through edges, perpendicular to triangle
                     bc = new MUPlane(bc_nor,b),
                     ca = new MUPlane(ca_nor,c);
             Debug.Log(tri_plane+" "+normal);
@@ -249,7 +234,7 @@ namespace MeshUtils {
                         map.Add((ep1-iv).magnitude,iv);
                         rings.AddConnected(ring_dir?iv:pi,ring_dir?pi:iv);
                         intersection_ring.AddConnected(ring_dir?iv:pi,ring_dir?pi:iv);
-                        self_rings.AddConnected(iv,pi);
+                        tri_rings.AddConnected(iv,pi);
                     } else {
                         //Debug.Log(a+" "+b+" "+c+" "+template_plane);
                         //Debug.Log(pa+" "+pb+" "+pc+" "+points[i-1]+" "+points[i]);
@@ -275,14 +260,14 @@ namespace MeshUtils {
                         map.Add((ep1-iv).magnitude,iv);
                         rings.AddConnected(ring_dir?opi:iv,ring_dir?iv:opi);
                         intersection_ring.AddConnected(ring_dir?opi:iv,ring_dir?iv:opi);
-                        self_rings.AddConnected(opi,iv);
+                        tri_rings.AddConnected(opi,iv);
                         exiting_ivs.Add(iv);
                     }
                 } else if (inside) {
                     // add inner pair
                     rings.AddConnected(ring_dir?opi:pi,ring_dir?pi:opi);
                     intersection_ring.AddConnected(ring_dir?opi:pi,ring_dir?pi:opi);
-                    self_rings.AddConnected(opi,pi);
+                    tri_rings.AddConnected(opi,pi);
                     float dist_key = template.plane.SignedDistance(pi);
                     if (!dist_map.ContainsKey(dist_key)) dist_map.Add(dist_key,pi);
                     dist_key = template.plane.SignedDistance(opi);
@@ -306,7 +291,7 @@ namespace MeshUtils {
                         map_ca.Add((c-iv1).magnitude,iv1);
                         bool iv0_first = (iv0-opi).magnitude < (iv1-opi).magnitude;
                         exiting_ivs.Add(iv0_first?iv1:iv0);
-                        self_rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
+                        tri_rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                         rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                         intersection_ring.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                     } else if (!abc && !oabc) { // not bc
@@ -320,7 +305,7 @@ namespace MeshUtils {
                         map_ab.Add((a-iv1).magnitude,iv1);
                         bool iv0_first = (iv0-opi).magnitude < (iv1-opi).magnitude;
                         exiting_ivs.Add(iv0_first?iv1:iv0);
-                        self_rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
+                        tri_rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                         rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                         intersection_ring.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                     } else if (!aca && !oaca) { // not ca
@@ -334,7 +319,7 @@ namespace MeshUtils {
                         map_bc.Add((b-iv1).magnitude,iv1);
                         bool iv0_first = (iv0-opi).magnitude < (iv1-opi).magnitude;
                         exiting_ivs.Add(iv0_first?iv1:iv0);
-                        self_rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
+                        tri_rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                         rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                         intersection_ring.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                     } else { // opposite sides
@@ -415,7 +400,7 @@ namespace MeshUtils {
                         Debug.Log("exiting is "+(swap_ring_dir?iv1:iv));
                         rings.AddConnected((ring_dir^swap_ring_dir)?iv:iv1,(ring_dir^swap_ring_dir)?iv1:iv);
                         intersection_ring.AddConnected((ring_dir^swap_ring_dir)?iv:iv1,(ring_dir^swap_ring_dir)?iv1:iv);
-                        self_rings.AddConnected(swap_ring_dir?iv:iv1,swap_ring_dir?iv1:iv);
+                        tri_rings.AddConnected(swap_ring_dir?iv:iv1,swap_ring_dir?iv1:iv);
                     }
                 }
             continue_for:
@@ -427,32 +412,32 @@ namespace MeshUtils {
                 dist_map_old = dist_map;
                 rings = point_data[points[i]].Item2;
             }
-            if (!self_rings.HasPartials()) return false;
+            if (!tri_rings.HasPartials()) return false;
             //Debugging.DebugRing(points.ConvertAll(p=>tri_plane.DirectionalProject(p,normal)));
             Debug.Log(a+" "+b+" "+c);
-            self_rings.MyDebugLog();
-            RingGenerator self_rings2 = self_rings.Duplicate();
-            ConnectIVs(exiting_ivs,a,b,c,map_ab,map_ca,map_bc,self_rings,self_rings2);
-            ConnectIVs(exiting_ivs,b,c,a,map_bc,map_ab,map_ca,self_rings,self_rings2);
-            ConnectIVs(exiting_ivs,c,a,b,map_ca,map_bc,map_ab,self_rings,self_rings2);
+            tri_rings.MyDebugLog();
+            RingGenerator inv_tri_rings = tri_rings.Duplicate(); // rings needed for other MeshPart
+            ConnectIVs(exiting_ivs,a,b,c,map_ab,map_ca,map_bc,tri_rings,inv_tri_rings); // connect edges around in triangle rings
+            ConnectIVs(exiting_ivs,b,c,a,map_bc,map_ab,map_ca,tri_rings,inv_tri_rings); // one call per edge
+            ConnectIVs(exiting_ivs,c,a,b,map_ca,map_bc,map_ab,tri_rings,inv_tri_rings);
             try {
                 Debug.Log("gen:");
-                self_rings.MyDebugLog();
-                foreach (var ring in self_rings.GetRings(false, false)) {
+                tri_rings.MyDebugLog();
+                foreach (var ring in tri_rings.GetRings(false, false)) {
                     // Debugging.DebugRing(ring.verts);
-                    GenerateRingMesh(ring.verts,partToUse?neg:pos,tri_nor,addUVs,true,Vector3.zero);
+                    GenerateRingMesh(ring.verts,partToUse?neg:pos,tri_nor,false,true,Vector3.zero);
                     // TmpGen(ring.verts,partToUse?neg:pos,tri_nor);
                 }
-                Debug.Log("gen2:");
-                self_rings2.MyDebugLog();
-                foreach (var ring in self_rings2.GetRings(false, false)) {
+                Debug.Log("gen inv:");
+                inv_tri_rings.MyDebugLog();
+                foreach (var ring in inv_tri_rings.GetRings(false, false)) {
                     //Debugging.DebugRing(ring.verts);
                     ring.verts.Reverse();
-                    GenerateRingMesh(ring.verts,partToUse?pos:neg,tri_nor,addUVs,true,Vector3.zero);
+                    GenerateRingMesh(ring.verts,partToUse?pos:neg,tri_nor,false,true,Vector3.zero);
                     // TmpGen(ring.verts,partToUse?pos:neg,tri_nor);
                 }
             } catch (Exception e) {
-                Debug.LogException(e);
+                Debug.LogException(e); // debug purposes, remove try-catch or re-throw internal exception
             }
             Debug.Log("---------------");
             return true;
@@ -517,15 +502,6 @@ namespace MeshUtils {
                     rings2.AddConnected(oep,ep2);
                 }
             }
-        }
-
-        private static void TmpGen(
-            List<Vector3> ring, MeshPart part, Vector3 normal, bool swapDir = false
-        ) {
-
-            GenerateRingMesh(ring,part,normal,false,!swapDir,Vector3.zero);
-            return;
-
         }
 
         class IvSaver {
