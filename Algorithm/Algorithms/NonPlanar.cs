@@ -48,6 +48,8 @@ namespace MeshUtils {
                 point_data.Add(point,new Tuple<SortedDictionary<float,Vector3>,RingGen>(new SortedDictionary<float,Vector3>(),new RingGen()));
             }
 
+            IvSaver ivSaver = new IvSaver();
+
             // put triangles in correct mesh
             for (i = 0; i < triangles.Length; i += 3) {
 
@@ -62,7 +64,7 @@ namespace MeshUtils {
                         c = vertices[i_c];
 
                 // seperation check
-                if (!ProcessTriangle(template,a,b,c,point_data,pos,neg,intersection_ring)) {
+                if (!ProcessTriangle(template,a,b,c,point_data,pos,neg,intersection_ring,ivSaver)) {
                     if (template.IsAbove(a)) {
                         // triangle above plane
                         pos.indices.Add(pos.indexMap[i_a]);
@@ -149,7 +151,8 @@ namespace MeshUtils {
             Vector3 a, Vector3 b, Vector3 c,
             Dictionary<Vector3,Tuple<SortedDictionary<float,Vector3>,RingGen>> point_data,
             MeshPart pos, MeshPart neg,
-            RingGenerator intersection_ring
+            RingGenerator intersection_ring,
+            IvSaver ivSaver
         ) {
             List<Vector3> points = template.points;
             Vector3 normal = template.normal;
@@ -177,12 +180,13 @@ namespace MeshUtils {
                     ca = new MUPlane(ca_nor,c);
             Debug.Log(tri_plane+" "+normal);
             //Debugging.DebugRing(points);
-            Vector3 opi;
+            Vector3 opi, old_point;
             bool oaab, oabc, oaca;
             SortedDictionary<float,Vector3> dist_map_old;
             RingGen rings;
             if (template.isClosed) {
                 opi = tri_plane.DirectionalProject(points.Last(),normal);
+                old_point = points.Last();
                 oaab = ab.IsAbove(opi);
                 oabc = bc.IsAbove(opi);
                 oaca = ca.IsAbove(opi);
@@ -190,6 +194,7 @@ namespace MeshUtils {
                 rings = point_data[points.Last()].Item2;
             } else {
                 opi = tri_plane.DirectionalProject(points.First(),normal);
+                old_point = points.First();
                 oaab = ab.IsAbove(opi);
                 oabc = bc.IsAbove(opi);
                 oaca = ca.IsAbove(opi);
@@ -198,8 +203,9 @@ namespace MeshUtils {
             }
             bool oldInside = !(oaab||oabc||oaca);
             for (int i = template.isClosed ? 0 : 1; i < points.Count; i++) {
-                SortedDictionary<float,Vector3> dist_map = point_data[points[i]].Item1;
-                Vector3 pi = tri_plane.DirectionalProject(points[i],normal);
+                Vector3 cur_point = points[i];
+                SortedDictionary<float,Vector3> dist_map = point_data[cur_point].Item1;
+                Vector3 pi = tri_plane.DirectionalProject(cur_point,normal);
                 // Debug.Log(opi+" => "+pi);
                 bool aab = ab.IsAbove(pi), // above means outside edge
                     abc = bc.IsAbove(pi),
@@ -214,17 +220,17 @@ namespace MeshUtils {
                     if (inside) {
                         if (oaab) {
                             edge_plane = ab; map = map_ab; ep1 = a; ep2 = b;
-                            iv = edge_plane.Intersection(opi,pi);
+                            iv = ivSaver.Intersect(edge_plane,ep1,ep2,opi,pi,old_point,cur_point);
                             if (Vector3.Dot(ep1-iv,ep2-iv) < 0) goto connect;
                         }
                         if (oabc) {
                             edge_plane = bc; map = map_bc; ep1 = b; ep2 = c;
-                            iv = edge_plane.Intersection(opi,pi);
+                            iv = ivSaver.Intersect(edge_plane,ep1,ep2,opi,pi,old_point,cur_point);
                             if (Vector3.Dot(ep1-iv,ep2-iv) < 0) goto connect;
                         }
                         if (oaca) {
                             edge_plane = ca; map = map_ca; ep1 = c; ep2 = a;
-                            iv = edge_plane.Intersection(opi,pi);
+                            iv = ivSaver.Intersect(edge_plane,ep1,ep2,opi,pi,old_point,cur_point);
                             if (Vector3.Dot(ep1-iv,ep2-iv) < 0) goto connect;
                         }
                         throw MeshUtilsException.Internal("Point on neither side of triangle");
@@ -240,17 +246,17 @@ namespace MeshUtils {
                         //Debug.Log(pa+" "+pb+" "+pc+" "+points[i-1]+" "+points[i]);
                         if (aab) {
                             edge_plane = ab; map = map_ab; ep1 = a; ep2 = b;
-                            iv = edge_plane.Intersection(opi,pi);
+                            iv = ivSaver.Intersect(edge_plane,ep1,ep2,opi,pi,old_point,cur_point);
                             if (Vector3.Dot(ep1-iv,ep2-iv) < 0) goto connect;
                         }
                         if (abc) {
                             edge_plane = bc; map = map_bc; ep1 = b; ep2 = c;
-                            iv = edge_plane.Intersection(opi,pi);
+                            iv = ivSaver.Intersect(edge_plane,ep1,ep2,opi,pi,old_point,cur_point);
                             if (Vector3.Dot(ep1-iv,ep2-iv) < 0) goto connect;
                         }
                         if (aca) {
                             edge_plane = ca; map = map_ca; ep1 = c; ep2 = a;
-                            iv = edge_plane.Intersection(opi,pi);
+                            iv = ivSaver.Intersect(edge_plane,ep1,ep2,opi,pi,old_point,cur_point);
                             if (Vector3.Dot(ep1-iv,ep2-iv) < 0) goto connect;
                         }
                         throw MeshUtilsException.Internal("Point on neither side of triangle");
@@ -281,8 +287,8 @@ namespace MeshUtils {
                     ) goto continue_for;
                     // crosses triangle
                     if (!aab && !oaab) { // not ab
-                        Vector3 iv0 = bc.Intersection(opi,pi),
-                                iv1 = ca.Intersection(opi,pi);
+                        Vector3 iv0 = ivSaver.Intersect(bc,b,c,opi,pi,old_point,cur_point),
+                                iv1 = ivSaver.Intersect(ca,c,a,opi,pi,old_point,cur_point);
                         if (
                             Vector3.Dot(b-iv0,c-iv0) > 0 ||
                             Vector3.Dot(c-iv1,a-iv1) > 0
@@ -295,8 +301,8 @@ namespace MeshUtils {
                         rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                         intersection_ring.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                     } else if (!abc && !oabc) { // not bc
-                        Vector3 iv0 = ca.Intersection(opi,pi),
-                                iv1 = ab.Intersection(opi,pi);
+                        Vector3 iv0 = ivSaver.Intersect(ca,c,a,opi,pi,old_point,cur_point),
+                                iv1 = ivSaver.Intersect(ab,a,b,opi,pi,old_point,cur_point);
                         if (
                             Vector3.Dot(c-iv0,a-iv0) > 0 ||
                             Vector3.Dot(a-iv1,b-iv1) > 0
@@ -309,8 +315,8 @@ namespace MeshUtils {
                         rings.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                         intersection_ring.AddConnected(iv0_first?iv0:iv1,iv0_first?iv1:iv0);
                     } else if (!aca && !oaca) { // not ca
-                        Vector3 iv0 = ab.Intersection(opi,pi),
-                                iv1 = bc.Intersection(opi,pi);
+                        Vector3 iv0 = ivSaver.Intersect(ab,a,b,opi,pi,old_point,cur_point),
+                                iv1 = ivSaver.Intersect(bc,b,c,opi,pi,old_point,cur_point);
                         if (
                             Vector3.Dot(a-iv0,b-iv0) > 0 ||
                             Vector3.Dot(b-iv1,c-iv1) > 0
@@ -334,12 +340,12 @@ namespace MeshUtils {
                             if (oaab) swap_ring_dir = true;
                             edge_plane = ab;
                             map = map_ab;
-                            iv = ab.Intersection(opi,pi);
+                            iv = ivSaver.Intersect(ab,a,b,opi,pi,old_point,cur_point);
                             iv_mag = (a-iv).magnitude;
                             if (Vector3.Dot(a-iv,b-iv) > 0) goto continue_for;
-                            iv1 = bc.Intersection(opi,pi);
+                            iv1 = ivSaver.Intersect(bc,b,c,opi,pi,old_point,cur_point);
                             if (Vector3.Dot(b-iv1,c-iv1) > 0) {
-                                iv1 = ca.Intersection(opi,pi);
+                                iv1 = ivSaver.Intersect(ca,c,a,opi,pi,old_point,cur_point);
                                 iv1_mag = (c-iv1).magnitude;
                                 edge_plane1 = ca;
                                 map1 = map_ca;
@@ -354,12 +360,12 @@ namespace MeshUtils {
                             if (oabc) swap_ring_dir = true;
                             edge_plane = bc;
                             map = map_bc;
-                            iv = bc.Intersection(opi,pi);
+                            iv = ivSaver.Intersect(bc,b,c,opi,pi,old_point,cur_point);
                             iv_mag = (b-iv).magnitude;
                             if (Vector3.Dot(b-iv,c-iv) > 0) goto continue_for;
-                            iv1 = ca.Intersection(opi,pi);
+                            iv1 = ivSaver.Intersect(ca,c,a,opi,pi,old_point,cur_point);
                             if (Vector3.Dot(c-iv1,a-iv1) > 0) {
-                                iv1 = ab.Intersection(opi,pi);
+                                iv1 = ivSaver.Intersect(ab,a,b,opi,pi,old_point,cur_point);
                                 iv1_mag = (a-iv1).magnitude;
                                 edge_plane1 = ab;
                                 map1 = map_ab;
@@ -374,12 +380,12 @@ namespace MeshUtils {
                             if (oaca) swap_ring_dir = true;
                             edge_plane = ca;
                             map = map_ca;
-                            iv = ca.Intersection(opi,pi);
+                            iv = ivSaver.Intersect(ca,c,a,opi,pi,old_point,cur_point);
                             iv_mag = (c-iv).magnitude;
                             if (Vector3.Dot(c-iv,a-iv) > 0) goto continue_for;
-                            iv1 = ab.Intersection(opi,pi);
+                            iv1 = ivSaver.Intersect(ab,a,b,opi,pi,old_point,cur_point);
                             if (Vector3.Dot(a-iv1,b-iv1) > 0) {
-                                iv1 = bc.Intersection(opi,pi);
+                                iv1 = ivSaver.Intersect(bc,b,c,opi,pi,old_point,cur_point);
                                 iv1_mag = (b-iv1).magnitude;
                                 edge_plane1 = bc;
                                 map1 = map_bc;
@@ -404,6 +410,7 @@ namespace MeshUtils {
                     }
                 }
             continue_for:
+                old_point = cur_point;
                 oldInside = inside;
                 oaab = aab;
                 oabc = abc;
@@ -506,16 +513,33 @@ namespace MeshUtils {
 
         class IvSaver {
 
-            private readonly Dictionary<Tuple<Vector3,Vector3>,Vector3> ivs = new Dictionary<Tuple<Vector3, Vector3>, Vector3>();
+            struct DualKey {
+                Vector3 a,b;
+                public DualKey(Vector3 a, Vector3 b) {
+                    bool swap = (
+                        b.x > a.x ||
+                        (b.x == a.x && b.y > a.y) || 
+                        (b.y == a.y && b.z > a.z)
+                    );
+                    this.a = swap ? b : a;
+                    this.b = swap ? a : b;
+                }
+            }
 
-            public Vector3 Intersect(MUPlane p, Vector3 v0, Vector3 v1) { // wont work with muplane, needs original verts
-                var key = new Tuple<Vector3,Vector3>(v0,v1);
+            private readonly Dictionary<Tuple<DualKey, DualKey>,Vector3> ivs = new Dictionary<Tuple<DualKey, DualKey>, Vector3>();
+
+            public Vector3 Intersect(
+                MUPlane p,
+                Vector3 e0, Vector3 e1, // edge points
+                Vector3 pp0, Vector3 pp1, // projected points for calculation
+                Vector3 p0, Vector3 p1 // template points
+            ) {
+                var key = new Tuple<DualKey, DualKey>(new DualKey(e0,e1),new DualKey(p0,p1));
                 if (ivs.ContainsKey(key)) return ivs[key];
-                Vector3 iv = p.Intersection(v0,v1);
+                Vector3 iv = p.Intersection(pp0,pp1);
                 ivs[key] = iv;
                 return iv;
             }
-
 
         }
 
