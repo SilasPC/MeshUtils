@@ -88,10 +88,10 @@ namespace MeshUtils {
                 //Debugging.LogList(point_data[template.points[i-1]].Item1.Keys);
                 //Debugging.LogList(point_data[template.points[i]].Item1.Keys);
                 RingGen rg = point_data[template.points[i]].Item2;
-                //rg.MyDebugLog();
+                rg.MyDebugLog();
                 rg.TemplateJoin(template,dist_map);
                 rg.TemplateJoin(template,next_dist_map);
-                // rg.MyDebugLog();
+                rg.MyDebugLog();
                 try {
                     foreach (Ring ring in rg.GetRings(false,false)) {
                         //Debugging.DebugRing(ring.verts);

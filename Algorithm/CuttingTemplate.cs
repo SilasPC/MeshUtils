@@ -9,7 +9,7 @@ namespace MeshUtils {
 
     class CuttingTemplate {
 
-        public bool isClosed = true;
+        public bool isClosed = false;
 
         public static CuttingTemplate InLocalSpace(Vector3 normal, Vector3 pointInPlane, Transform transform) {
             Vector3 world_normal = transform.TransformDirection(normal),
