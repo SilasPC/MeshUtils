@@ -14,17 +14,18 @@ namespace MeshUtils {
         public static CuttingTemplate InLocalSpace(Vector3 normal, Vector3 pointInPlane, Transform transform) {
             Vector3 world_normal = transform.TransformDirection(normal),
                     world_point = transform.TransformPoint(pointInPlane);
-            return new CuttingTemplate(normal, pointInPlane,world_normal,world_point);
+            return new CuttingTemplate(normal, pointInPlane,world_normal,world_point, false);
         }
 
         public static CuttingTemplate InWorldSpace(Vector3 normal, Vector3 pointInPlane) {
-            return new CuttingTemplate(normal, pointInPlane, normal, pointInPlane);
+            return new CuttingTemplate(normal, pointInPlane, normal, pointInPlane, false);
         }
 
         public CuttingTemplate ToWorldSpace() {
             return new CuttingTemplate(
                 worldNormal, world_pointInPlane,
-                worldNormal, world_pointInPlane
+                worldNormal, world_pointInPlane,
+                isClosed
             );
             // points tmp
         }
@@ -34,11 +35,17 @@ namespace MeshUtils {
                 transform.InverseTransformDirection(worldNormal),
                 transform.InverseTransformPoint(world_pointInPlane),
                 worldNormal,
-                world_pointInPlane
+                world_pointInPlane,
+                isClosed
             );
             foreach (Vector3 p in points)
                 t.AddPoint(transform.InverseTransformPoint(p)); // tmp. p is assumed to be in world space
             return t;
+        }
+
+        public CuttingTemplate SetClosed() {
+            this.isClosed = true;
+            return this;
         }
 
         public readonly List<Vector3> points = new List<Vector3>();
@@ -48,13 +55,15 @@ namespace MeshUtils {
 
         private CuttingTemplate(
             Vector3 normal, Vector3 pointInPlane,
-            Vector3 worldNormal, Vector3 world_pointInPlane
+            Vector3 worldNormal, Vector3 world_pointInPlane,
+            bool isClosed
         ) {
             this.worldNormal = worldNormal;
             this.world_pointInPlane = world_pointInPlane;
             this.pointInPlane = pointInPlane;
             this.normal = normal.normalized;
             this.plane = new MUPlane(this.normal,pointInPlane);
+            this.isClosed = isClosed;
         }
 
         override public string ToString() {
