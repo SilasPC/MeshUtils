@@ -20,6 +20,7 @@ namespace MeshUtils {
         }
 
         void TriggerPulled(SteamVR_Action_Boolean action, SteamVR_Input_Sources src) {
+            if (GetComponent<Valve.VR.InteractionSystem.Interactable>().attachedToHand == null) return;
             RaycastHit rayHit;
             Ray ray = new Ray(transform.position + transform.up * 0.025f, -transform.forward);
             if (

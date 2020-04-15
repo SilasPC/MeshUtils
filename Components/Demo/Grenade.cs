@@ -13,8 +13,9 @@ namespace MeshUtils {
 
     public class Grenade : MonoBehaviour {
 
-        
         public SteamVR_Action_Boolean onDetachAction;
+
+        public GameObject explosionPrefab;
         
         bool triggered = false;
         int ttl = 180;
@@ -24,7 +25,8 @@ namespace MeshUtils {
         }
 
         void OnDetach(SteamVR_Action_Boolean action, SteamVR_Input_Sources src) {
-            triggered = true;
+            if (GetComponent<Valve.VR.InteractionSystem.Interactable>().attachedToHand != null)
+                triggered = true;
         }
 
         void Update() {
@@ -33,18 +35,24 @@ namespace MeshUtils {
         }
 
         IEnumerator Explode() {
+            Debug.Log("lol");
+            GameObject expl = Instantiate(explosionPrefab);
+            expl.transform.position = transform.position;
+            expl.transform.localScale = new Vector3(0.58f, 0.58f, 0.58f);
             List<Rigidbody> rbs = new List<Rigidbody>();
-            foreach (Collider col in Physics.OverlapSphere(transform.position,3)) {
+            foreach (Collider col in Physics.OverlapSphere(transform.position, 3)) {
                 if (col.gameObject.tag != "Shootable") continue;
-                foreach (GameObject obj in IterativeCut(col.gameObject,2)) {
-                    Rigidbody rb;
-                    if (obj.TryGetComponent<Rigidbody>(out rb))
-                        rbs.Add(rb);
-                }
+                foreach (GameObject obj in IterativeCut(col.gameObject, 2))
+                    rbs.Add(obj.GetComponent<Rigidbody>());
             }
             yield return null;
-            foreach (Rigidbody rb in rbs)
-                rb.AddExplosionForce(40, transform.position, 3, 0.5f);
+            foreach (Collider col in Physics.OverlapSphere(transform.position, 4)) {
+                Rigidbody rb;
+                if (col.TryGetComponent<Rigidbody>(out rb))
+                    rb.AddExplosionForce(40, transform.position, 3, 0.5f);
+            }   
+            Destroy(expl, 1.8f);
+            onDetachAction.RemoveOnStateUpListener(OnDetach, SteamVR_Input_Sources.Any);
             Destroy(gameObject);
         }
 
