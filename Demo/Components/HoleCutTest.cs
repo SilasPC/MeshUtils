@@ -25,7 +25,7 @@ namespace MeshUtils {
             
             Vector3 n = (con.normal + VectorUtil.UnitPerpendicular(con.normal) * 0.07f).normalized;
 
-            CuttingTemplate template = CuttingTemplate.InWorldSpace(n,con.point);
+            CuttingTemplate template = CuttingTemplate.InWorldSpace(n,con.point).SetClosed();
 
             Vector3 a = VectorUtil.UnitPerpendicular(n) * 0.15f;
             Vector3 b = Vector3.Cross(a,n).normalized * 0.15f;
@@ -38,8 +38,6 @@ namespace MeshUtils {
             template.AddPoint(con.point+a-b);
             template.AddPoint(con.point-a-b);
             template.AddPoint(con.point-a+b);
-
-            template.isClosed = true;
 
             template.Draw();
 

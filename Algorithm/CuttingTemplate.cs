@@ -9,7 +9,7 @@ namespace MeshUtils {
 
     class CuttingTemplate {
 
-        public bool isClosed = true;
+        public bool isClosed { get; protected set; } = false;
 
         public static CuttingTemplate InLocalSpace(Vector3 normal, Vector3 pointInPlane, Transform transform) {
             Vector3 world_normal = transform.TransformDirection(normal),
@@ -39,6 +39,11 @@ namespace MeshUtils {
             foreach (Vector3 p in points)
                 t.AddPoint(transform.InverseTransformPoint(p)); // tmp. p is assumed to be in world space
             return t;
+        }
+
+        public CuttingTemplate SetClosed() {
+            this.isClosed = true;
+            return this;
         }
 
         public readonly List<Vector3> points = new List<Vector3>();

@@ -1,5 +1,6 @@
 
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -42,6 +43,9 @@ namespace MeshUtils {
 
         public void MyDebugLog() {
             Debugging.DebugRings(partials);
+            /*foreach (var p in partials) {
+                Debug.Log(p.First().GetHashCode()+" -> "+p.Last().GetHashCode());
+            }*/
             Debug.Log(complete.Count + " complete rings, " +  partials.Count + " partial rings");
         }
 

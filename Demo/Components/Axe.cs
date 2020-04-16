@@ -12,13 +12,23 @@ namespace MeshUtils {
 
     public class Axe : MonoBehaviour {
 
-        DateTime lastChop = DateTime.Now;
 
         public void OnCollisionEnter(Collision col) {
 
-            if (col.gameObject.tag != "Cuttable") return;
+            if (col.gameObject.tag == "Chopable") Chop(col.gameObject);
+            
+        }
+
+        void Cut(GameObject obj, Cuttable cc) {
+
+        }
+
+        DateTime lastChop = DateTime.Now;
+
+        void Chop(GameObject obj) {
 
             if ((DateTime.Now-lastChop).TotalSeconds < 2) return;
+
             lastChop = DateTime.Now;
 
             CuttingTemplate template = CuttingTemplate.InLocalSpace(Vector3.up,Vector3.zero,transform).ToWorldSpace();
@@ -37,20 +47,19 @@ namespace MeshUtils {
 
             template.Draw();
 
-            var res = API.tmp(col.gameObject,template);
+            var res = API.tmp(obj,template);
             if (res != null) {
                 foreach (var rm in res.results) {
                     if (!rm.IsPositive()) continue;
-                    GameObject obj = rm
+                    GameObject robj = rm
                         .CopyParent()
                         .CopyMaterial()
                         .WithCollider()
                         .Instantiate();
-                    obj.tag = "Cuttable";
-                    obj.GetComponent<MeshCollider>().convex = false;
+                    robj.tag = "Chopable";
+                    robj.GetComponent<MeshCollider>().convex = false;
                 }
             } else Debug.Log("fail");
-            
         }
 
     }
