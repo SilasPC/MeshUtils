@@ -9,7 +9,7 @@ namespace MeshUtils {
 
     class CuttingTemplate {
 
-        public bool isClosed = false;
+        public bool isClosed { get; protected set; } = false;
 
         public static CuttingTemplate InLocalSpace(Vector3 normal, Vector3 pointInPlane, Transform transform) {
             Vector3 world_normal = transform.TransformDirection(normal),
@@ -130,7 +130,7 @@ namespace MeshUtils {
             return true;
         }
 
-        public void Draw() {
+        public void DrawDebug() {
             for (int i = 0; i < points.Count - 1; i++) {
                 Debug.DrawRay(points[i]-normal,normal * 2,Color.red,10,true);
                 Debug.DrawRay(points[i]+normal,points[i+1]-points[i],Color.red,10,true);

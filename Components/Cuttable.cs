@@ -4,10 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-using static MeshUtils.API;
-using static MeshUtils.VectorUtil;
-using CuttingPlane = MeshUtils.CuttingPlane;
-
 namespace MeshUtils {
 
     public class Cuttable : MonoBehaviour {
@@ -35,6 +31,24 @@ namespace MeshUtils {
         
         [Tooltip("Attempt to seperate disconnected parts of resulting meshes. Note: not terribly fast for big objects.")]
         public bool polySeperate = false;
+
+        [Tooltip("Number of consecutive cuts allowed. Zero for unlimited.")]
+        public uint maxCutCount = 1;
+
+        public bool CopyTo(GameObject obj) {
+            if (maxCutCount == 1) return false;
+            Cuttable c = obj.AddComponent<Cuttable>();
+            c.highlightWidth = 0.015f;
+            c.highLightColor = highLightColor;
+            c.innerTextureCoordinate = innerTextureCoordinate;
+            c.checkForHoles = checkForHoles;
+            c.tryApproximation = tryApproximation;
+            c.closeOpenSurfaces = closeOpenSurfaces;
+            c.allowOpenSurfaces = allowOpenSurfaces;
+            c.polySeperate = polySeperate;
+            c.maxCutCount = maxCutCount == 0 ? 0 : maxCutCount - 1;
+            return true;
+        }
         
     }
 

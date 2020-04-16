@@ -12,6 +12,8 @@ namespace MeshUtils {
 
     public class Cutter : MonoBehaviour {
 
+        HashSet<Collider> ignoreColliders = new HashSet<Collider>();
+
         [Tooltip("Direction from base of edge to tip of edge.")]
         public Vector3 edgeDirection = Vector3.up;
         [Tooltip("Direction edge should cut into objects.")]
@@ -35,8 +37,13 @@ namespace MeshUtils {
 
         [Tooltip("Distance to seperate resulting objects after cut")]
         public float seperationDistance = 0.02f;
-        
+
         public void OnCollisionEnter(Collision col) {
+
+            if (ignoreColliders.Contains(col.collider)) {
+                ignoreColliders.Remove(col.collider);
+                return;
+            }
 
             Cuttable cuttable;
             if (!col.gameObject.TryGetComponent<Cuttable>(out cuttable)) return;
@@ -93,7 +100,7 @@ namespace MeshUtils {
             CutResult result = PerformCut(col.gameObject,plane,param);
             if (result != null) {
                 foreach (CutObj res in result.results) {
-                    res
+                    GameObject resObj = res
                         .UseDefaults()
                         .WithDriftVelocity(driftVelocity)
                         .WithSeperationDistance(seperationDistance)
@@ -101,6 +108,8 @@ namespace MeshUtils {
                         .WithRingColor(cuttable.highLightColor)
                         .WithColor(new Color(1,0.1f,0.1f))
                         .Instantiate();
+                    cuttable.CopyTo(resObj);
+                    ignoreColliders.Add(resObj.GetComponent<Collider>());
                 }
             }
 
