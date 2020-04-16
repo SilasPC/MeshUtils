@@ -92,6 +92,10 @@ namespace MeshUtils {
             return new CuttingPlane(normal, pointInPlane, worldSpace);
         }
 
+        public static CuttingPlane RandomInWorldSpace(Vector3 pointInPlane) {
+            return new CuttingPlane(UnityEngine.Random.insideUnitSphere,pointInPlane,null);
+        }
+
         public static CuttingPlane InWorldSpace(Vector3 normal, Vector3 pointInPlane) {
             return new CuttingPlane(normal, pointInPlane, null);
         }

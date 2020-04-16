@@ -156,6 +156,10 @@ namespace MeshUtils {
             Rigidbody rb;
             if (target.TryGetComponent<Rigidbody>(out rb)) {
                 vel = rb.velocity;
+                float oldMass = rb.mass;
+                rb.SetDensity(1);
+                density = oldMass / rb.mass;
+                rb.mass = oldMass;
             }
 
             Material mat = null;
@@ -167,11 +171,11 @@ namespace MeshUtils {
 
             // create new objects
             if (param.polySeperation) {
-                cutObjs.AddRange(pos.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,ringOut)));
-                cutObjs.AddRange(neg.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,ringOut)));
+                cutObjs.AddRange(pos.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,ringOut,density)));
+                cutObjs.AddRange(neg.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,ringOut,density)));
             } else {
-                cutObjs.Add(new CutObj(pos,target.transform,vel,worldNormal,mat,ringOut));
-                cutObjs.Add(new CutObj(neg,target.transform,vel,worldNormal,mat,ringOut));
+                cutObjs.Add(new CutObj(pos,target.transform,vel,worldNormal,mat,ringOut,density));
+                cutObjs.Add(new CutObj(neg,target.transform,vel,worldNormal,mat,ringOut,density));
             }
 
             CutResult result = new CutResult(cutObjs);

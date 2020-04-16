@@ -62,7 +62,7 @@ namespace MeshUtils {
             private readonly Vector3? vel;
             private readonly Material material;
             private readonly List<Ring> rings;
-            //private readonly float? density;
+            private readonly float? density;
 
             private float copyVelocity = 0;
             private float driftVelocity = 0;
@@ -71,14 +71,14 @@ namespace MeshUtils {
             private bool boxColliderFallback = false;
             private bool addCollider = false;
             private bool addRigidbody = false;
-            //private bool copyDensity = false;
+            private bool copyDensity = false;
             private bool copyMaterial = false;
             private bool copyParent = false;
             private float ringWidth = 0;
             private Color ringColor = Color.white;
             private Color? addColor = null;
             
-            public CutObj(MeshPart part, Transform orig, Vector3? vel, Vector3 worldNormal, Material material, List<Ring> rings) {
+            public CutObj(MeshPart part, Transform orig, Vector3? vel, Vector3 worldNormal, Material material, List<Ring> rings, float? density = null) {
                 this.part = part;
                 this.vel = vel;
                 this.pos = orig.position;
@@ -88,7 +88,7 @@ namespace MeshUtils {
                 this.material = material;
                 this.parent = orig.parent;
                 this.rings = rings;
-                //this.density = density;
+                this.density = density;
             }
 
             public bool IsPositive() {return part.side;}
@@ -111,6 +111,7 @@ namespace MeshUtils {
                 WithRingColor(Color.white);
                 FallbackToBoxCollider();
                 CopyVelocity();
+                CopyDensity();
                 WithDriftVelocity(0.1f);
                 WithSeperationDistance(0.02f);
                 return this;
@@ -171,11 +172,11 @@ namespace MeshUtils {
                 return this;
             }
 
-            /*public CutObj CopyDensity() {
+            public CutObj CopyDensity() {
                 this.addRigidbody = true;
                 this.copyDensity = true;
                 return this;
-            }*/
+            }
 
             public CutObj CopyVelocity(float factor = 1) {
                 this.addRigidbody = true;
@@ -196,14 +197,12 @@ namespace MeshUtils {
             public GameObject Instantiate() {
                 GameObject obj = new GameObject();
                 this.part.AddMeshTo(obj);
-                if (this.addRigidbody) {
-                    Rigidbody rb = obj.AddComponent<Rigidbody>();
-                    if (this.vel is Vector3 vel) rb.velocity = vel * copyVelocity;
-                    rb.velocity += GetDriftDirection() * this.driftVelocity;
-                    /*if (this.copyDensity && this.density is float density) {
-                        rb.SetDensity(density);
-                    }*/
-                }
+
+                obj.transform.position = this.pos + GetDriftDirection() * Math.Max(0f, seperationDistance / 2f);
+                obj.transform.rotation = this.rot;
+                SetGlobalScale(obj.transform,this.scale);
+                if (this.copyParent) obj.transform.SetParent(this.parent);
+
                 if (this.addCollider) {
                     MeshCollider mc = null;
                     try {
@@ -216,7 +215,15 @@ namespace MeshUtils {
                         } else throw e;
                     }
                 }
-                
+                if (this.addRigidbody) {
+                    Rigidbody rb = obj.AddComponent<Rigidbody>();
+                    if (this.vel is Vector3 vel) rb.velocity = vel * copyVelocity;
+                    rb.velocity += GetDriftDirection() * this.driftVelocity;
+                    if (this.copyDensity && this.density is float density) {
+                        rb.SetDensity(density);
+                        rb.mass = rb.mass; // update mass in component view
+                    }
+                }
                 if (this.addRenderer) {
                     MeshRenderer renderer = obj.AddComponent<MeshRenderer>();
                     if (this.copyMaterial && this.material != null)
@@ -242,11 +249,6 @@ namespace MeshUtils {
                     }
                 }
 
-                obj.transform.position = this.pos + GetDriftDirection() * Math.Max(0f, seperationDistance / 2f);
-                obj.transform.rotation = this.rot;
-                SetGlobalScale(obj.transform,this.scale);
-                if (this.copyParent) obj.transform.SetParent(this.parent);
-
                 return obj;
 
             }
@@ -265,7 +267,7 @@ namespace MeshUtils {
             CuttingPlane plane,
             CutParams param
         ) {
-            DateTime start = DateTime.Now;
+            //DateTime start = DateTime.Now;
             CutResult res;
             if (param.maxCutDistance != float.PositiveInfinity) {
                 if (param.seperationDistance > 0) throw new Exception("no gap and max cut");
@@ -273,7 +275,7 @@ namespace MeshUtils {
             }
             if (param.seperationDistance <= 0) res = BasicAlgorithm.Run(target,plane,param);
             else res = GapAlgorithm.Run(target,plane,param);
-            Debug.Log((DateTime.Now-start).TotalMilliseconds+" elapsed");
+            //Debug.Log((DateTime.Now-start).TotalMilliseconds+" elapsed");
             return res;
         }
 
