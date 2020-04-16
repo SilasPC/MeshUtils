@@ -12,20 +12,17 @@ namespace MeshUtils {
 
     public class Axe : MonoBehaviour {
 
+        public bool pointy = true;
 
         public void OnCollisionEnter(Collision col) {
 
-            if (col.gameObject.tag == "Chopable") Chop(col.gameObject);
+            Chopable chopable;
+            if (col.gameObject.TryGetComponent<Chopable>(out chopable)) Chop(col.gameObject,chopable);
             
         }
 
-        void Cut(GameObject obj, Cuttable cc) {
-
-        }
-
         DateTime lastChop = DateTime.Now;
-
-        void Chop(GameObject obj) {
+        void Chop(GameObject obj, Chopable cc) {
 
             if ((DateTime.Now-lastChop).TotalSeconds < 2) return;
 
@@ -39,13 +36,12 @@ namespace MeshUtils {
 
             template.AddPoint(p + r - 5 * f);
             template.AddPoint(p + r + 1.2f * f);
-            template.AddPoint(p + 0.3f * r + 2.2f * f);
-            //template.AddPoint(p + 2 * f);
-            template.AddPoint(p - 0.3f * r + 2.2f * f);
+            if (!pointy) {
+                template.AddPoint(p + 0.3f * r + 2.2f * f);
+                template.AddPoint(p - 0.3f * r + 2.2f * f);
+            } else template.AddPoint(p + 2 * f);
             template.AddPoint(p - r + 1.2f * f);
             template.AddPoint(p - r - 5 * f);
-
-            template.Draw();
 
             var res = API.tmp(obj,template);
             if (res != null) {
@@ -56,8 +52,8 @@ namespace MeshUtils {
                         .CopyMaterial()
                         .WithCollider()
                         .Instantiate();
-                    robj.tag = "Chopable";
                     robj.GetComponent<MeshCollider>().convex = false;
+                    cc.CopyTo(robj);
                 }
             } else Debug.Log("fail");
         }

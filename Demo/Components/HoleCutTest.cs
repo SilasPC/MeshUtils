@@ -39,7 +39,7 @@ namespace MeshUtils {
             template.AddPoint(con.point-a-b);
             template.AddPoint(con.point-a+b);
 
-            template.Draw();
+            // template.DrawDebug();
 
             var res = API.tmp(col.gameObject,template);
             if (res != null) {

@@ -25,6 +25,10 @@ namespace MeshUtils {
             return gen;
         }
 
+        public bool HasComplete() {
+            return this.complete.Count > 0;
+        }
+
         public bool HasPartials() {
             return this.partials.Count > 0;
         }
