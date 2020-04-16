@@ -35,13 +35,12 @@ namespace MeshUtils {
         }
 
         IEnumerator Explode() {
-            Debug.Log("lol");
             GameObject expl = Instantiate(explosionPrefab);
             expl.transform.position = transform.position;
             expl.transform.localScale = new Vector3(0.58f, 0.58f, 0.58f);
             List<Rigidbody> rbs = new List<Rigidbody>();
             foreach (Collider col in Physics.OverlapSphere(transform.position, 3)) {
-                if (col.gameObject.tag != "Shootable") continue;
+                if (col.gameObject.tag != "Shootable" && col.gameObject.tag != "Explodable") continue;
                 foreach (GameObject obj in IterativeCut(col.gameObject, 2))
                     rbs.Add(obj.GetComponent<Rigidbody>());
             }
@@ -49,7 +48,7 @@ namespace MeshUtils {
             foreach (Collider col in Physics.OverlapSphere(transform.position, 4)) {
                 Rigidbody rb;
                 if (col.TryGetComponent<Rigidbody>(out rb))
-                    rb.AddExplosionForce(40, transform.position, 3, 0.5f);
+                    rb.AddExplosionForce(40, transform.position, 4, 0.5f);
             }   
             Destroy(expl, 1.8f);
             onDetachAction.RemoveOnStateUpListener(OnDetach, SteamVR_Input_Sources.Any);
@@ -57,8 +56,12 @@ namespace MeshUtils {
         }
 
         List<GameObject> IterativeCut(GameObject obj, int count) {
-            CutParams param = new CutParams(false,false,true,false,false,false,Vector3.zero,float.PositiveInfinity,0,Vector3.zero);
+            CutParams param = new CutParams(true,false,true,false,false,false,Vector3.zero,float.PositiveInfinity,0,Vector3.zero);
             try {
+                Vector3 pos = obj.transform.position;
+                Collider col;
+                if (obj.TryGetComponent<Collider>(out col))
+                    pos = col.bounds.center;
                 CutResult res = API.PerformCut(obj,CuttingPlane.RandomInWorldSpace(obj.transform.position),param);
                 if (res == null) return new List<GameObject>();
                 if (count > 1) {
