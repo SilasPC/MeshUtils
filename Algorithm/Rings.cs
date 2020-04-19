@@ -98,6 +98,94 @@ namespace MeshUtils {
 
     }
 
+    // Newer version, not in use atm.
+    // Time complexity should be better, not tested much yet
+    public class RingGenerator2 {
+
+        protected List<List<Vector3>> complete = new List<List<Vector3>>();
+        protected Dictionary<Vector3, List<Vector3>> startMap = new Dictionary<Vector3, List<Vector3>>(), endMap = new Dictionary<Vector3, List<Vector3>>();
+
+        public void MyDebugLog() {
+            Debug.Log(complete.Count + " complete rings, " +  startMap.Count + " partial rings");
+        }
+
+        public RingGenerator2 Duplicate() {
+            RingGenerator2 gen = new RingGenerator2();
+            gen.complete = complete.ConvertAll(r=>new List<Vector3>(r));
+            List<List<Vector3>> partials = new List<List<Vector3>>(startMap.Values.Select(l => new List<Vector3>(l)));
+            foreach (var p in partials) {
+                gen.startMap.Add(p.First(),p);
+                gen.endMap.Add(p.Last(),p);
+            }
+            return gen;
+        }
+
+        public bool HasComplete() {
+            return this.complete.Count > 0;
+        }
+
+        public bool HasPartials() {
+            return this.startMap.Count > 0;
+        }
+
+        public List<Ring> GetRings(bool selfConnectPartials, bool ignorePartials) {
+            List<Ring> res = this.complete.ConvertAll(r=>new Ring(r));
+            if (selfConnectPartials) {
+                foreach (List<Vector3> p in startMap.Values) {
+                    if (p.Count < 3) continue;
+                    res.Add(new Ring(p));
+                }
+            }
+            if (!ignorePartials && !selfConnectPartials && this.startMap.Count > 0) throw MeshUtilsException.MalformedMesh("Incomplete intersections found");
+            return res;
+        }
+
+        public void AddConnected(Vector3 v0, Vector3 v1) {
+            if (startMap.ContainsKey(v1)) {
+                List<Vector3> p = startMap[v1];
+                List<Vector3> p2 = null;
+                endMap.TryGetValue(v0, out p2);
+                startMap.Remove(v1);
+                if (p == p2) {
+                    complete.Add(p);
+                    endMap.Remove(v0);
+                    return;
+                }
+                if (p2 != null) {
+                    // prepend p2 to p
+                    endMap[p.Last()] = p2;
+                    p2.AddRange(p);
+                    return;
+                }
+                p.Insert(0, v0);
+                startMap.Add(v0,p);
+                return;
+            } else if (endMap.ContainsKey(v0)) {
+                List<Vector3> p = endMap[v0];
+                List<Vector3> p2 = null;
+                startMap.TryGetValue(v1, out p2);
+                endMap.Remove(v0);
+                if (p == p2) {
+                    complete.Add(p);
+                    startMap.Remove(v1);
+                    return;
+                }
+                if (p2 != null) {
+                    // append p2 to p
+                    endMap[p2.Last()] = p;
+                    p.AddRange(p2);
+                    return;
+                }
+                p.Add(v1);
+                endMap.Add(v1,p);
+                return;
+            }
+            List<Vector3> pNew = new List<Vector3>() {v0,v1};
+            startMap.Add(v0,pNew);
+            endMap.Add(v1,pNew);
+        }
+    }
+
     public struct Ring {
         public readonly List<Vector3> verts;
         public Ring(List<Vector3> ring) {

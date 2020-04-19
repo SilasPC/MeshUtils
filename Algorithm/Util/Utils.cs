@@ -64,7 +64,7 @@ namespace MeshUtils {
 
         public List<MeshPart> PolySeperate() {
 
-            List<List<int>> list = new List<List<int>>();
+            List<Tuple<HashSet<int>, HashSet<Vector3>, List<int>>> list = new List<Tuple<HashSet<int>, HashSet<Vector3>, List<int>>>();
             
             AssertMatchingCounts();
 
@@ -75,11 +75,11 @@ namespace MeshUtils {
                 AddIndices(list,vertices,v0,v1,v2,i0,i1,i2,false,false,false);
             }
 
-            return list.ConvertAll(indices=>{
+            return list.ConvertAll(set=>{
 
                 MeshPart part = new MeshPart(side);
 
-                foreach (int ind in indices) {
+                foreach (int ind in set.Item3) {
                     if (part.indexMap.ContainsKey(ind)) part.indices.Add(part.indexMap[ind]);
                     else {
                         part.indexMap.Add(ind,part.vertices.Count);
@@ -109,8 +109,10 @@ namespace MeshUtils {
 
             AssertMatchingCounts();
 
+            throw new Exception("wait");
+
             // create index groups
-            for (int i = 0; i < indices.Count; i += 3) {
+            /*for (int i = 0; i < indices.Count; i += 3) {
                 int i0 = indices[i], i1 = indices[i+1], i2 = indices[i+2];
                 Vector3 v0 = vertices[i0], v1 = vertices[i1], v2 = vertices[i2];
                 bool ci0 = allow_cut.Contains(v0),
@@ -146,43 +148,38 @@ namespace MeshUtils {
 
                 return part;
 
-            });
+            });*/
 
         }
 
         static void AddIndices(
-            List<List<int>> list,
+            List<Tuple<HashSet<int>,HashSet<Vector3>,List<int>>> list,
             List<Vector3> verts,
             Vector3 v0, Vector3 v1, Vector3 v2,
             int i0, int i1, int i2,
             bool ci0, bool ci1, bool ci2
         ) {
 
-            List<int> l0 = null, l1 = null, l2 = null;
+            Tuple<HashSet<int>,HashSet<Vector3>,List<int>> l0 = null, l1 = null, l2 = null;
 
             // find the set that each vertex belongs to
-            foreach (List<int> set in list) {
-                foreach (int i in set){
-                    Vector3 v = verts[i];
-                    if (
-                        (ci0 && i == i0 && l0 == null) ||
-                        (!ci0 && v == v0 && l0 == null)
-                    ) l0 = set;
-                    if (
-                        (ci1 && i == i1 && l1 == null) ||
-                        (!ci1 && v == v1 && l1 == null)
-                    ) l1 = set;
-                    if (
-                        (ci2 && i == i2 && l2 == null) ||
-                        (!ci2 && v == v2 && l2 == null)
-                    ) l2 = set;
-                }
+            foreach (Tuple<HashSet<int>,HashSet<Vector3>,List<int>> set in list) {
+                if (l0 == null && (ci0 ? set.Item1.Contains(i0) : set.Item2.Contains(v0)))
+                    l0 = set;
+                if (l1 == null && (ci1 ? set.Item1.Contains(i1) : set.Item2.Contains(v1)))
+                    l1 = set;
+                if (l2 == null && (ci2 ? set.Item1.Contains(i2) : set.Item2.Contains(v2)))
+                    l2 = set;
                 if (l0 != null && l1 != null && l2 != null) break;
             }
 
             // if no sets were found, make a new set
             if (l0 == null && l1 == null && l2 == null) {
-                list.Add(new List<int>() {i0,i1,i2});
+                list.Add(new Tuple<HashSet<int>, HashSet<Vector3>, List<int>>(
+                    new HashSet<int>() {i0,i1,i2},
+                    new HashSet<Vector3>() {v0,v1,v2},
+                    new List<int>() {i0,i1,i2}
+                ));
                 return;
             }
 
@@ -191,7 +188,9 @@ namespace MeshUtils {
                 if (l1 == null) l1 = l0;
                 else if (l0 != l1 && l0 != l2) {
                     list.Remove(l0);
-                    l1.AddRange(l0);
+                    l1.Item1.UnionWith(l0.Item1);
+                    l1.Item2.UnionWith(l0.Item2);
+                    l1.Item3.AddRange(l0.Item3);
                 }
             }
 
@@ -200,14 +199,22 @@ namespace MeshUtils {
                 if (l2 == null) l2 = l1;
                 else if (l1 != l2) {
                     list.Remove(l1);
-                    l2.AddRange(l1);
+                    l2.Item1.UnionWith(l1.Item1);
+                    l2.Item2.UnionWith(l1.Item2);
+                    l2.Item3.AddRange(l1.Item3);
                 }
             }
 
             // add to l2
-            l2.Add(i0);
-            l2.Add(i1);
-            l2.Add(i2);
+            l2.Item1.Add(i0);
+            l2.Item1.Add(i1);
+            l2.Item1.Add(i2);
+            l2.Item2.Add(v0);
+            l2.Item2.Add(v1);
+            l2.Item2.Add(v2);
+            l2.Item3.Add(i0);
+            l2.Item3.Add(i1);
+            l2.Item3.Add(i2);
 
         }
 

@@ -24,6 +24,8 @@ namespace MeshUtils {
             Mesh mesh = target.GetComponent<MeshFilter>().mesh;
             MeshPart pos = new MeshPart(true), neg = new MeshPart(false);
             RingGenerator rings = new RingGenerator();
+            
+            //DateTime start = DateTime.Now;
 
             Vector2[] uvs = mesh.uv;
             Vector3[] vertices = mesh.vertices;
@@ -49,6 +51,9 @@ namespace MeshUtils {
                 }
                 i++;
             }
+            
+            //Debug.Log((DateTime.Now-start).TotalMilliseconds+" elapsed (1)");
+            //start = DateTime.Now;
 
             // if either vertex list is empty the knife plane didn't collide
             if (pos.vertices.Count == 0 || neg.vertices.Count == 0)
@@ -139,6 +144,9 @@ namespace MeshUtils {
                 }
             }
 
+            //Debug.Log((DateTime.Now-start).TotalMilliseconds+" elapsed (2)");
+            //start = DateTime.Now;
+
             List<Ring> ringOut = rings.GetRings(param.selfConnectRings,param.ignorePartialRings);
             
             List<Ring> analysis = param.hiearchyAnalysis ? Hierarchy.Analyse(ringOut, cutting_plane) : ringOut;
@@ -183,6 +191,9 @@ namespace MeshUtils {
             // destroy original object
             if (param.destroyOriginal)
                 MonoBehaviour.Destroy(target);
+
+            //Debug.Log((DateTime.Now-start).TotalMilliseconds+" elapsed (3)");
+            //start = DateTime.Now;
 
             return result;
 

@@ -259,7 +259,10 @@ namespace MeshUtils {
             GameObject target,
             CuttingTemplate template
         ) {
-            return NonPlanarAlgorithm.Run(target,template.ToLocalSpace(target.transform));
+            DateTime start = DateTime.Now;
+            var res = NonPlanarAlgorithm.Run(target,template.ToLocalSpace(target.transform));
+            Debug.Log((DateTime.Now-start).TotalMilliseconds+" elapsed");
+            return res;
         }
 
         public static CutResult PerformCut(

@@ -25,6 +25,8 @@ namespace MeshUtils {
             Vector3[] vertices = mesh.vertices;
             int[] triangles = mesh.triangles;
 
+            // Debug.Log(vertices.Length + " verts, " + triangles.Length / 3 + " tris, " + template.points.Count + "tpl. points");
+
             // divide mesh in half by vertices
             int i = 0;
             foreach (Vector3 vertex in vertices) {
@@ -91,10 +93,10 @@ namespace MeshUtils {
                 //Debugging.LogList(point_data[template.points[i]].Item1.Keys);
                 RingGen rg = point_data[template.points[i]].Item2;
                 // Debug.Log("points: "+point+" -> "+next_point);
-                rg.MyDebugLog();
+                //rg.MyDebugLog();
                 rg.TemplateJoin(template,dist_map);
                 rg.TemplateJoin(template,next_dist_map);
-                rg.MyDebugLog();
+                //rg.MyDebugLog();
                 try {
                     foreach (Ring ring in rg.GetRings(false,false)) {
                         //Debugging.DebugRing(ring.verts);
@@ -125,13 +127,13 @@ namespace MeshUtils {
             Vector3 worldNormal = Vector3.zero;// cutting_plane.ToWorldSpace().normal;
 
             List<Ring> xxx;
-            try {
+            //try {
                 xxx = intersection_ring.GetRings(false,false);
-            } catch (Exception e) {
-                Debug.LogError("Intersection rings not complete");
-                intersection_ring.MyDebugLog();
-                xxx = new List<Ring>();
-            }
+            //} catch (Exception e) {
+            //    Debug.LogError("Intersection rings not complete");
+            //    intersection_ring.MyDebugLog();
+            //    xxx = new List<Ring>();
+            //}
 
             // create new objects
             List<CutObj> cutObjs = new List<CutObj>() {
@@ -433,22 +435,22 @@ namespace MeshUtils {
             if (!tri_rings.HasPartials()) return false;
             //Debugging.DebugRing(points.ConvertAll(p=>tri_plane.DirectionalProject(p,normal)));
             // Debug.Log("tri verts:"+a+" "+b+" "+c);
-            tri_rings.MyDebugLog();
+            //tri_rings.MyDebugLog();
             // Debug.Log("connecting ivs...");
-            RingGenerator inv_tri_rings = tri_rings.Duplicate(); // rings needed for other MeshPart
+            RingGenerator inv_tri_rings = tri_rings.Duplicate(); // seperate rings needed for other MeshPart
             ConnectIVs(exiting_ivs,a,b,c,map_ab,map_ca,map_bc,tri_rings,inv_tri_rings); // connect edges around in triangle rings
             ConnectIVs(exiting_ivs,b,c,a,map_bc,map_ab,map_ca,tri_rings,inv_tri_rings); // one call per edge
             ConnectIVs(exiting_ivs,c,a,b,map_ca,map_bc,map_ab,tri_rings,inv_tri_rings);
             //try {
                 // Debug.Log("gen:");
-                tri_rings.MyDebugLog();
+                //tri_rings.MyDebugLog();
                 foreach (var ring in tri_rings.GetRings(false, false)) {
                     // Debugging.DebugRing(ring.verts);
                     GenerateRingMesh(ring.verts,partToUse?neg:pos,tri_nor,false,true,Vector3.zero);
                     // TmpGen(ring.verts,partToUse?neg:pos,tri_nor);
                 }
                 // Debug.Log("gen inv:");
-                inv_tri_rings.MyDebugLog();
+                //inv_tri_rings.MyDebugLog();
                 foreach (var ring in inv_tri_rings.GetRings(false, false)) {
                     //Debugging.DebugRing(ring.verts);
                     ring.verts.Reverse();
