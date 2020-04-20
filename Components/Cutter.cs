@@ -99,7 +99,8 @@ namespace MeshUtils {
 
             CutResult result = PerformCut(col.gameObject,plane,param);
             if (result != null) {
-                foreach (CutObj res in result.results) {
+                result.DestroyObject();
+                foreach (CutObj res in result.Results) {
                     GameObject resObj = res
                         .UseDefaults()
                         .WithDriftVelocity(driftVelocity)

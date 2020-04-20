@@ -157,45 +157,21 @@ namespace MeshUtils {
                 GenerateRingMesh(ring,neg,cutting_plane.normal,addUVs,param.innerTextureCoord,addNormals); 
             }
 
-           List<CutObj> cutObjs = new List<CutObj>();
+           List<MeshPart> resParts = new List<MeshPart>();
 
-            Vector3? vel = null;
-            float? density = null;
-            Rigidbody rb;
-            if (target.TryGetComponent<Rigidbody>(out rb)) {
-                vel = rb.velocity;
-                float oldMass = rb.mass;
-                rb.SetDensity(1);
-                density = oldMass / rb.mass;
-                rb.mass = oldMass;
-            }
-
-            Material mat = null;
-            Renderer renderer;
-            if (target.TryGetComponent<Renderer>(out renderer)) mat = renderer.material;
-
-            Vector3 worldNormal = cutting_plane.ToWorldSpace().normal;
-
-
-            // create new objects
+            // create new MeshParts
             if (param.polySeperation) {
-                cutObjs.AddRange(pos.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,ringOut,density)));
-                cutObjs.AddRange(neg.PolySeperate().ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,ringOut,density)));
+                resParts.AddRange(pos.PolySeperate());
+                resParts.AddRange(neg.PolySeperate());
             } else {
-                cutObjs.Add(new CutObj(pos,target.transform,vel,worldNormal,mat,ringOut,density));
-                cutObjs.Add(new CutObj(neg,target.transform,vel,worldNormal,mat,ringOut,density));
+                resParts.Add(pos);
+                resParts.Add(neg);
             }
-
-            CutResult result = new CutResult(cutObjs);
-
-            // destroy original object
-            if (param.destroyOriginal)
-                MonoBehaviour.Destroy(target);
 
             //Debug.Log((DateTime.Now-start).TotalMilliseconds+" elapsed (3)");
             //start = DateTime.Now;
 
-            return result;
+            return new CutResult(target,resParts,cutting_plane.ToWorldSpace().normal,ringOut);
 
         }
 

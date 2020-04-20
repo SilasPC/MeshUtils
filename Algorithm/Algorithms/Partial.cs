@@ -183,40 +183,19 @@ namespace MeshUtils {
 
             List<Ring> analysis = param.hiearchyAnalysis ? Hierarchy.Analyse(resulting_rings,cutting_plane) : resulting_rings;
 
-            List<MeshPart> parts;
-            if (param.polySeperation) parts = part.PartialPolySeperate(cutting_plane,allow_cut);
-            else parts = new List<MeshPart>() {part};
+            if (param.polySeperation)
+                throw MeshUtilsException.Internal("remove poly sep from param");
+            List<MeshPart> parts = part.PartialPolySeperate(cutting_plane,allow_cut);
 
             if (parts.Count < 2 && !param.allowSingleResult) return null;
 
             // generate seperation meshing
-            if (parts.Count > 1)
+            if (parts.Count > 0)
             foreach (var ring in analysis)
             foreach (var resPart in parts)
                 GenerateRingMesh(ring,resPart,cutting_plane.normal,addUVs,param.innerTextureCoord);
 
-            Vector3? vel = null;
-            Rigidbody rb;
-            if (target.TryGetComponent<Rigidbody>(out rb)) {
-                vel = rb.velocity;
-            }
-
-            Material mat = null;
-            Renderer renderer;
-            if (target.TryGetComponent<Renderer>(out renderer)) mat = renderer.material;
-
-            Vector3 worldNormal = cutting_plane.ToWorldSpace().normal;
-
-            // create new objects
-            List<CutObj> cutObjs = parts.ConvertAll(p=>new CutObj(p,target.transform,vel,worldNormal,mat,resulting_rings));
-
-            CutResult result = new CutResult(cutObjs);
-
-            // destroy original object
-            if (param.destroyOriginal)
-                MonoBehaviour.Destroy(target);
-
-            return result;
+            return new CutResult(target,parts,cutting_plane.ToWorldSpace().normal,resulting_rings);
 
         }
 

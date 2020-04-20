@@ -130,6 +130,11 @@ namespace MeshUtils {
             return true;
         }
 
+        public void AddPoints(params Vector3[] ps) {
+            foreach (Vector3 p in ps)
+                points.Add(plane.Project(p));
+        }
+
         public void DrawDebug() {
             for (int i = 0; i < points.Count - 1; i++) {
                 Debug.DrawRay(points[i]-normal,normal * 2,Color.red,10,true);

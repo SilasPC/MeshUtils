@@ -1,5 +1,6 @@
 
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -12,7 +13,6 @@ namespace MeshUtils {
         public struct CutParams {
             public readonly bool hiearchyAnalysis;
             public readonly bool polySeperation;
-            public readonly bool destroyOriginal;
             public readonly bool allowSingleResult;
             public readonly bool selfConnectRings;
             public readonly bool ignorePartialRings;
@@ -34,7 +34,6 @@ namespace MeshUtils {
             ) {
                 this.hiearchyAnalysis = hiearchyAnalysis;
                 this.polySeperation = polySeperation;
-                this.destroyOriginal = destroyOriginal;
                 this.allowSingleResult = allowSingleResult;
                 this.selfConnectRings = selfConnectRings;
                 this.ignorePartialRings = ignorePartialRings;
@@ -46,23 +45,94 @@ namespace MeshUtils {
         }
 
         public class CutResult {
-            public readonly List<CutObj> results;
-            public CutResult (List<CutObj> results) {
-                this.results = results;
+            
+            private readonly GameObject originalObject;
+            
+            public Vector3 Position { get; private set; }
+            public Vector3 Scale { get; private set; }
+            public Quaternion Rotation { get; private set; }
+            public Vector3? Velocity { get; private set; }
+            public Material Material { get; private set; }
+            public float? Density { get; private set; }
+
+            public readonly Transform parentTransform;
+            public readonly Vector3 worldNormal;
+            public readonly IReadOnlyCollection<Ring> rings;
+
+            public List<CutObj> PositiveResults { get {
+                return new List<CutObj>(_results.Where(r=>r.IsPositive()));
+            }}
+            public List<CutObj> NegativeResults { get {
+                return new List<CutObj>(_results.Where(r=>r.IsNegative()));
+            }}
+            
+            private readonly List<CutObj> _results;
+            public IReadOnlyCollection<CutObj> Results { get => _results; }
+            public CutResult (
+                GameObject original,
+                List<MeshPart> results,
+                Vector3 worldNormal,
+                List<Ring> rings
+            ) {
+                this._results = results.ConvertAll(p=>new CutObj(p,this));
+                this.originalObject = original;
+                this.worldNormal = worldNormal;
+                this.rings = rings;
+                this.parentTransform = original.transform.parent;
+                UpdateMeta();
             }
+
+            public CutResult UpdateMeta() {
+
+                Position = originalObject.transform.position;
+                Scale = originalObject.transform.lossyScale;
+                Rotation = originalObject.transform.rotation;
+                
+                Rigidbody rb;
+                if (originalObject.TryGetComponent<Rigidbody>(out rb)) {
+                    Velocity = rb.velocity;
+                    float oldMass = rb.mass;
+                    rb.SetDensity(1);
+                    Density = oldMass / rb.mass;
+                    rb.mass = oldMass;
+                } else {
+                    Velocity = null;
+                    Density = null;
+                }
+
+                Renderer renderer;
+                if (originalObject.TryGetComponent<Renderer>(out renderer)) 
+                    Material = renderer.material;
+                else
+                    Material = null;
+
+                return this;
+
+            }
+
+            /*public CutResult PolySeperate() {
+
+            }
+            public CutResult PolySeperatePositive() {
+                
+            }
+            public CutResult PolySeperateNegative() {
+                
+            }*/
+
+            public CutResult DestroyObject() {
+                MonoBehaviour.Destroy(originalObject);
+                return this;
+            }
+
+            public List<T> ConvertAll<T>(Converter<CutObj,T> f) => _results.ConvertAll(f);
+
         }
 
         public class CutObj {
 
-            private readonly Transform parent;
+            private CutResult cutResult;
             private readonly MeshPart part;
-            private readonly Vector3 pos, scale;
-            private readonly Quaternion rot;
-            private readonly Vector3 worldNormal;
-            private readonly Vector3? vel;
-            private readonly Material material;
-            private readonly List<Ring> rings;
-            private readonly float? density;
 
             private float copyVelocity = 0;
             private float driftVelocity = 0;
@@ -70,7 +140,9 @@ namespace MeshUtils {
             private bool addRenderer = false;
             private bool boxColliderFallback = false;
             private bool addCollider = false;
+            private bool setConvex = true;
             private bool addRigidbody = false;
+            private bool setKinematic = false;
             private bool copyDensity = false;
             private bool copyMaterial = false;
             private bool copyParent = false;
@@ -78,30 +150,25 @@ namespace MeshUtils {
             private Color ringColor = Color.white;
             private Color? addColor = null;
             
-            public CutObj(MeshPart part, Transform orig, Vector3? vel, Vector3 worldNormal, Material material, List<Ring> rings, float? density = null) {
+            public CutObj(MeshPart part, CutResult res) {
                 this.part = part;
-                this.vel = vel;
-                this.pos = orig.position;
-                this.rot = orig.rotation;
-                this.scale = orig.lossyScale;
-                this.worldNormal = worldNormal.normalized;
-                this.material = material;
-                this.parent = orig.parent;
-                this.rings = rings;
-                this.density = density;
+                this.cutResult = res;
             }
 
-            public bool IsPositive() {return part.side;}
+            public CutObj(MeshPart part) {
+                this.part = part;
+            }
+
+            public bool IsPositive() => part.side;
+            public bool IsNegative() => !part.side;
 
             public Vector3 GetLocalDriftDirection() {
-                return parent != null
-                    ? parent.InverseTransformDirection(GetDriftDirection())
+                return cutResult.parentTransform != null
+                    ? cutResult.parentTransform.InverseTransformDirection(GetDriftDirection())
                     : GetDriftDirection();
             }
 
-            public Vector3 GetDriftDirection() {
-                return worldNormal * (part.side ? 1 : -1);
-            }
+            public Vector3 GetDriftDirection() => cutResult.worldNormal * (part.side ? 1 : -1);
             
             public CutObj UseDefaults() {
                 CopyParent();
@@ -157,8 +224,10 @@ namespace MeshUtils {
                 return this;
             }
 
-            public CutObj WithCollider() {
+            public CutObj WithCollider(bool concave = false) {
                 this.addCollider = true;
+                this.setConvex = !concave;
+                if (concave) this.setKinematic = true;
                 return this;
             }
 
@@ -167,8 +236,11 @@ namespace MeshUtils {
                 return this;
             }
 
-            public CutObj WithRigidbody() {
+            public CutObj WithRigidbody(bool kinematic = false) {
                 this.addRigidbody = true;
+                if (!this.setConvex) {
+                    this.setKinematic = true;
+                } else this.setKinematic = kinematic;
                 return this;
             }
 
@@ -196,18 +268,18 @@ namespace MeshUtils {
 
             public GameObject Instantiate() {
                 GameObject obj = new GameObject();
-                this.part.AddMeshTo(obj);
+                part.AddMeshTo(obj);
 
-                obj.transform.position = this.pos + GetDriftDirection() * Math.Max(0f, seperationDistance / 2f);
-                obj.transform.rotation = this.rot;
-                SetGlobalScale(obj.transform,this.scale);
-                if (this.copyParent) obj.transform.SetParent(this.parent);
+                obj.transform.position = cutResult.Position + GetDriftDirection() * Math.Max(0f, seperationDistance / 2f);
+                obj.transform.rotation = cutResult.Rotation;
+                SetGlobalScale(obj.transform,cutResult.Scale);
+                if (copyParent) obj.transform.SetParent(cutResult.parentTransform);
 
-                if (this.addCollider) {
+                if (addCollider) {
                     MeshCollider mc = null;
                     try {
                         mc = obj.AddComponent<MeshCollider>();
-                        mc.convex = true;
+                        if (setConvex) mc.convex = true;
                     } catch (System.Exception e) {
                         if (boxColliderFallback) {
                             if (mc != null) MonoBehaviour.Destroy(mc);
@@ -215,23 +287,24 @@ namespace MeshUtils {
                         } else throw e;
                     }
                 }
-                if (this.addRigidbody) {
+                if (addRigidbody) {
                     Rigidbody rb = obj.AddComponent<Rigidbody>();
-                    if (this.vel is Vector3 vel) rb.velocity = vel * copyVelocity;
-                    rb.velocity += GetDriftDirection() * this.driftVelocity;
-                    if (this.copyDensity && this.density is float density) {
+                    if (setKinematic) rb.isKinematic = true;
+                    if (cutResult.Velocity is Vector3 vel) rb.velocity = vel * copyVelocity;
+                    rb.velocity += GetDriftDirection() * driftVelocity;
+                    if (copyDensity && cutResult.Density is float density) {
                         rb.SetDensity(density);
                         rb.mass = rb.mass; // update mass in component view
                     }
                 }
-                if (this.addRenderer) {
+                if (addRenderer) {
                     MeshRenderer renderer = obj.AddComponent<MeshRenderer>();
-                    if (this.copyMaterial && this.material != null)
-                        renderer.material = this.material;
-                    else if (this.addColor is Color color)
+                    if (copyMaterial && cutResult.Material is Material mat)
+                        renderer.material = mat;
+                    else if (addColor is Color color)
                         renderer.material.color = color;
                     if (ringWidth > 0) {
-                        foreach (Ring ring in rings) {
+                        foreach (Ring ring in cutResult.rings) {
                             GameObject lineObj = new GameObject();
                             lineObj.transform.SetParent(obj.transform);
                             LineRenderer lr = lineObj.AddComponent<LineRenderer>();
@@ -257,10 +330,11 @@ namespace MeshUtils {
 
         public static CutResult tmp(
             GameObject target,
-            CuttingTemplate template
+            CuttingTemplate template,
+            bool polySep = false
         ) {
             DateTime start = DateTime.Now;
-            var res = NonPlanarAlgorithm.Run(target,template.ToLocalSpace(target.transform));
+            var res = NonPlanarAlgorithm.Run(target,template.ToLocalSpace(target.transform),polySep);
             Debug.Log((DateTime.Now-start).TotalMilliseconds+" elapsed");
             return res;
         }

@@ -60,7 +60,7 @@ namespace MeshUtils {
             template.DrawDebug();
             var res = API.tmp(col.gameObject,template);
             if (res != null) {
-                foreach (var r in res.results) {
+                foreach (var r in res.Results) {
                     r.UseDefaults().Instantiate();
                 }
                 Debug.Break();

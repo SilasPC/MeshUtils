@@ -15,7 +15,8 @@ namespace MeshUtils {
 
         public static CutResult Run(
             GameObject target,
-            CuttingTemplate template
+            CuttingTemplate template,
+            bool polySep
         ) {
 
             Mesh mesh = target.GetComponent<MeshFilter>().mesh;
@@ -114,39 +115,19 @@ namespace MeshUtils {
 
             // Debug.Log("template: "+template);
 
-            Vector3? vel = null;
-            Rigidbody rb;
-            if (target.TryGetComponent<Rigidbody>(out rb)) {
-                vel = rb.velocity;
+            // create new MeshParts
+            List<MeshPart> resParts = new List<MeshPart>();
+
+            if (polySep) {
+                resParts.AddRange(pos.PolySeperate());
+                resParts.AddRange(neg.PolySeperate());
+            } else {
+                resParts.Add(pos);
+                resParts.Add(neg);
             }
 
-            Material mat = null;
-            Renderer renderer;
-            if (target.TryGetComponent<Renderer>(out renderer)) mat = renderer.material;
+            return new CutResult(target, resParts, Vector3.zero, intersection_ring.GetRings(false,false));
 
-            Vector3 worldNormal = Vector3.zero;// cutting_plane.ToWorldSpace().normal;
-
-            List<Ring> xxx;
-            //try {
-                xxx = intersection_ring.GetRings(false,false);
-            //} catch (Exception e) {
-            //    Debug.LogError("Intersection rings not complete");
-            //    intersection_ring.MyDebugLog();
-            //    xxx = new List<Ring>();
-            //}
-
-            // create new objects
-            List<CutObj> cutObjs = new List<CutObj>() {
-                new CutObj(pos,target.transform,vel,worldNormal,mat,xxx),
-                new CutObj(neg,target.transform,vel,worldNormal,mat,xxx)
-            };
-
-            CutResult result = new CutResult(cutObjs);
-
-            // destroy original object
-            MonoBehaviour.Destroy(target);
-
-            return result;
         }
 
         private static bool ProcessTriangle(
@@ -162,7 +143,7 @@ namespace MeshUtils {
             RingGenerator tri_rings = new RingGenerator();
             Vector3 tri_nor = -Vector3.Cross(c-a,c-b).normalized;
             if (tri_nor == Vector3.zero) {
-                Debug.LogWarning("zero area tri");
+                // Debug.LogWarning("zero area tri");
                 return true;
             }
             bool partToUse = Vector3.Dot(tri_nor,normal) > 0;

@@ -42,10 +42,11 @@ namespace MeshUtils {
             CutParams param = new CutParams(false,false,true,false,false,false,Vector3.zero,float.PositiveInfinity,0,Vector3.zero);
             try {
                 CutResult res = API.PerformCut(obj,CuttingPlane.RandomInWorldSpace(obj.transform.position),param);
+                res.DestroyObject();
                 if (res == null) return new List<GameObject>();
                 if (count > 1) {
                     List<GameObject> ret = new List<GameObject>();
-                    foreach (CutObj robj in res.results)
+                    foreach (CutObj robj in res.Results)
                         ret.AddRange(
                             IterativeCut(
                                 robj
@@ -58,7 +59,7 @@ namespace MeshUtils {
                             )
                         );
                     return ret;
-                } else return res.results.ConvertAll(
+                } else return res.ConvertAll(
                     robj =>
                         robj
                             .CopyParent()
