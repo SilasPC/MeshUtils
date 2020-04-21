@@ -25,7 +25,7 @@ namespace MeshUtils {
                 foreach (GameObject obj in objs) {
                     Debug.Log(obj);
                     DateTime start = DateTime.Now;
-                    CutParams p = new CutParams(false,true,false,false,false,false,Vector3.zero,0.2f,0,Vector2.zero);
+                    CutParams p = new CutParams(false,false,false,false,false,Vector3.zero,0.2f,0,Vector2.zero);
                     CuttingPlane pl = CuttingPlane.InWorldSpace(obj.transform.up,obj.transform.position);
                     if (GapAlgorithm.Run(obj,pl,p) == null) throw new Exception("test failed");
                     Debug.Log((DateTime.Now-start).TotalMilliseconds+" elapsed");

@@ -39,7 +39,7 @@ namespace MeshUtils {
         }
 
         List<GameObject> IterativeCut(GameObject obj, int count) {
-            CutParams param = new CutParams(false,false,true,false,false,false,Vector3.zero,float.PositiveInfinity,0,Vector3.zero);
+            CutParams param = new CutParams(false,true,false,false,false,Vector3.zero,float.PositiveInfinity,0,Vector3.zero);
             try {
                 CutResult res = API.PerformCut(obj,CuttingPlane.RandomInWorldSpace(obj.transform.position),param);
                 res.DestroyObject();

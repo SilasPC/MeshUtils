@@ -12,12 +12,23 @@ namespace MeshUtils {
 
     public class Axe : MonoBehaviour {
 
+        public Vector3 cutDirection, edgeDirection;
+        public float maxAngle = 15;
+
         public bool pointy = true;
 
         public void OnCollisionEnter(Collision col) {
 
-            if (col.relativeVelocity.magnitude < 2.5f) return;
+            /*if (col.relativeVelocity.magnitude < 2.5f) return;
 
+            Vector3 cutDir = transform.TransformDirection(cutDirection);
+
+            Vector3 edge = transform.TransformDirection(edgeDirection);
+
+            Vector3 angleProjection = Vector3.ProjectOnPlane(gameObject.GetComponentInParent<Rigidbody>().velocity,edge);
+
+            if (Vector3.Angle(angleProjection,cutDir) > maxAngle) return;
+*/
             Chopable chopable;
             TreeChopablePart tcc;
             if (col.gameObject.TryGetComponent(out chopable)) Chop(col.gameObject,chopable);
@@ -31,9 +42,10 @@ namespace MeshUtils {
 
             lastChop = DateTime.Now;
 
-            var res = API.tmp(obj,GetTemplate(),true);
+            var res = API.tmp(obj,GetTemplate());
             if (res != null) {
                 res.DestroyObject();
+                res.PolySeperatePositive();
                 List<GameObject> robjs = res.PositiveResults.ConvertAll(
                     rm => rm
                         .CopyParent()
@@ -52,6 +64,7 @@ namespace MeshUtils {
                             maxY = y;
                         }
                     }
+                    above.GetComponent<MeshCollider>().convex = true;
                     above.transform.SetParent(tcc.abovePart.transform);
                 } else foreach (GameObject robj in robjs) tcc.CopyTo(robj);
             } else Debug.Log("fail");
@@ -84,7 +97,7 @@ namespace MeshUtils {
 
             CuttingTemplate template = CuttingTemplate.InLocalSpace(Vector3.up,Vector3.zero,transform).ToWorldSpace();
 
-            Vector3 r = transform.forward * 0.1f,
+            Vector3 r = transform.forward * 0.07f,
                     f = transform.right * -0.2f,
                     p = transform.position;
 
@@ -94,10 +107,10 @@ namespace MeshUtils {
             );
             if (!pointy) {
                 template.AddPoints(
-                    p + 0.3f * r + 2.2f * f,
-                    p - 0.3f * r + 2.2f * f
+                    p + 0.3f * r + 1.8f * f,
+                    p - 0.3f * r + 1.8f * f
                 );
-            } else template.AddPoint(p + 2 * f);
+            } else template.AddPoint(p + 1.8f * f);
             template.AddPoints(
                 p - r + 1.2f * f,
                 p - r - 5 * f

@@ -87,7 +87,7 @@ namespace MeshUtils {
                 vec = target.transform.TransformVector(vec);
                 // Debug.DrawRay(param.originPoint,vec,Color.blue,10);
                 float mag = vec.magnitude;
-                // Debug.Log(mag);
+                Debug.Log(mag);
                 if (mag < param.maxCutDistance) resulting_rings.Add(ring);
             }
 
@@ -183,8 +183,6 @@ namespace MeshUtils {
 
             List<Ring> analysis = param.hiearchyAnalysis ? Hierarchy.Analyse(resulting_rings,cutting_plane) : resulting_rings;
 
-            if (param.polySeperation)
-                throw MeshUtilsException.Internal("remove poly sep from param");
             List<MeshPart> parts = part.PartialPolySeperate(cutting_plane,allow_cut);
 
             if (parts.Count < 2 && !param.allowSingleResult) return null;
@@ -195,7 +193,7 @@ namespace MeshUtils {
             foreach (var resPart in parts)
                 GenerateRingMesh(ring,resPart,cutting_plane.normal,addUVs,param.innerTextureCoord);
 
-            return new CutResult(target,parts,cutting_plane.ToWorldSpace().normal,resulting_rings);
+            return new CutResult(target,parts,cutting_plane.ToWorldSpace().normal,resulting_rings,true);
 
         }
 

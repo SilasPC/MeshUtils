@@ -56,7 +56,7 @@ namespace MeshUtils {
         }
 
         List<GameObject> IterativeCut(GameObject obj, int count) {
-            CutParams param = new CutParams(true,false,true,false,false,false,Vector3.zero,float.PositiveInfinity,0,Vector3.zero);
+            CutParams param = new CutParams(true,true,false,false,false,Vector3.zero,float.PositiveInfinity,0,Vector3.zero);
             try {
                 Vector3 pos = obj.transform.position;
                 Collider col;

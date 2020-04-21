@@ -157,21 +157,10 @@ namespace MeshUtils {
                 GenerateRingMesh(ring,neg,cutting_plane.normal,addUVs,param.innerTextureCoord,addNormals); 
             }
 
-           List<MeshPart> resParts = new List<MeshPart>();
-
-            // create new MeshParts
-            if (param.polySeperation) {
-                resParts.AddRange(pos.PolySeperate());
-                resParts.AddRange(neg.PolySeperate());
-            } else {
-                resParts.Add(pos);
-                resParts.Add(neg);
-            }
-
             //Debug.Log((DateTime.Now-start).TotalMilliseconds+" elapsed (3)");
             //start = DateTime.Now;
 
-            return new CutResult(target,resParts,cutting_plane.ToWorldSpace().normal,ringOut);
+            return new CutResult(target,cutting_plane.ToWorldSpace().normal,ringOut,pos,neg);
 
         }
 

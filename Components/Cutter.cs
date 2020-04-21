@@ -88,7 +88,6 @@ namespace MeshUtils {
             CuttingPlane plane = CuttingPlane.InWorldSpace(normal,pointInPlane);
             CutParams param = new CutParams(
                 cuttable.checkForHoles,
-                cuttable.polySeperate,
                 true,
                 true,
                 cuttable.closeOpenSurfaces,
@@ -99,6 +98,8 @@ namespace MeshUtils {
 
             CutResult result = PerformCut(col.gameObject,plane,param);
             if (result != null) {
+                if (cuttable.polySeperate)
+                    result.PolySeperate();
                 result.DestroyObject();
                 foreach (CutObj res in result.Results) {
                     GameObject resObj = res

@@ -105,14 +105,12 @@ namespace MeshUtils {
             //foreach (Vector3 v in allow_cut) Debug.Log(VecStr(v));
             //Debug.Log("missing");
 
-            List<List<int>> list = new List<List<int>>();
+            List<Tuple<HashSet<int>, HashSet<Vector3>, List<int>>> list = new List<Tuple<HashSet<int>, HashSet<Vector3>, List<int>>>();
 
             AssertMatchingCounts();
 
-            throw new Exception("wait");
-
             // create index groups
-            /*for (int i = 0; i < indices.Count; i += 3) {
+            for (int i = 0; i < indices.Count; i += 3) {
                 int i0 = indices[i], i1 = indices[i+1], i2 = indices[i+2];
                 Vector3 v0 = vertices[i0], v1 = vertices[i1], v2 = vertices[i2];
                 bool ci0 = allow_cut.Contains(v0),
@@ -121,13 +119,13 @@ namespace MeshUtils {
                 AddIndices(list,vertices,v0,v1,v2,i0,i1,i2,ci0,ci1,ci2);
             }
 
-            return list.ConvertAll(indices=>{
+            return list.ConvertAll(set=>{
 
                 MeshPart part = new MeshPart(false);
 
                 int doSwap = 0, doStay = 0; // temporary solution (?)
 
-                foreach (int ind in indices) {
+                foreach (int ind in set.Item3) {
                     Vector3 point = vertices[ind];
                     if (!allow_cut.Contains(point)) {
                         if (plane.IsAbove(point)) doSwap++;
@@ -148,7 +146,7 @@ namespace MeshUtils {
 
                 return part;
 
-            });*/
+            });
 
         }
 

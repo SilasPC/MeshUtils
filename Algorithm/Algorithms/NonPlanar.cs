@@ -115,18 +115,7 @@ namespace MeshUtils {
 
             // Debug.Log("template: "+template);
 
-            // create new MeshParts
-            List<MeshPart> resParts = new List<MeshPart>();
-
-            if (polySep) {
-                resParts.AddRange(pos.PolySeperate());
-                resParts.AddRange(neg.PolySeperate());
-            } else {
-                resParts.Add(pos);
-                resParts.Add(neg);
-            }
-
-            return new CutResult(target, resParts, Vector3.zero, intersection_ring.GetRings(false,false));
+            return new CutResult(target, Vector3.zero, intersection_ring.GetRings(false,false), pos, neg);
 
         }
 

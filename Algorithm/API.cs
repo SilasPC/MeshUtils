@@ -12,7 +12,6 @@ namespace MeshUtils {
 
         public struct CutParams {
             public readonly bool hiearchyAnalysis;
-            public readonly bool polySeperation;
             public readonly bool allowSingleResult;
             public readonly bool selfConnectRings;
             public readonly bool ignorePartialRings;
@@ -22,7 +21,6 @@ namespace MeshUtils {
             public readonly Vector2 innerTextureCoord;
             public CutParams (
                 bool hiearchyAnalysis,
-                bool polySeperation,
                 bool destroyOriginal,
                 bool allowSingleResult,
                 bool selfConnectRings,
@@ -33,7 +31,6 @@ namespace MeshUtils {
                 Vector2 innerTextureCoord
             ) {
                 this.hiearchyAnalysis = hiearchyAnalysis;
-                this.polySeperation = polySeperation;
                 this.allowSingleResult = allowSingleResult;
                 this.selfConnectRings = selfConnectRings;
                 this.ignorePartialRings = ignorePartialRings;
@@ -72,13 +69,28 @@ namespace MeshUtils {
                 GameObject original,
                 List<MeshPart> results,
                 Vector3 worldNormal,
-                List<Ring> rings
+                List<Ring> rings,
+                bool isPolySeperated
             ) {
-                this._results = results.ConvertAll(p=>new CutObj(p,this));
-                this.originalObject = original;
+                _results = results.ConvertAll(p=>new CutObj(p,this,isPolySeperated));
+                originalObject = original;
                 this.worldNormal = worldNormal;
                 this.rings = rings;
-                this.parentTransform = original.transform.parent;
+                parentTransform = original.transform.parent;
+                UpdateMeta();
+            }
+
+            public CutResult (
+                GameObject original,
+                Vector3 worldNormal,
+                List<Ring> rings,
+                params MeshPart[] results
+            ) {
+                _results = new List<CutObj>(from result in results select new CutObj(result,this,false));
+                originalObject = original;
+                this.worldNormal = worldNormal;
+                this.rings = rings;
+                parentTransform = original.transform.parent;
                 UpdateMeta();
             }
 
@@ -110,29 +122,56 @@ namespace MeshUtils {
 
             }
 
-            /*public CutResult PolySeperate() {
+            public bool PolySeperate() {
+                bool success = false;
+                success |= PolySeperatePositive();
+                success |= PolySeperateNegative();
+                return success;
+            }
+            public bool PolySeperatePositive() {
+                bool success = false;
+                PositiveResults.ForEach(c => success |= c.PolySeperate());
+                return success;
+            }
+            public bool PolySeperateNegative() {
+                bool success = false;
+                NegativeResults.ForEach(c => success |= c.PolySeperate());
+                return success;
+            }
 
-            }
-            public CutResult PolySeperatePositive() {
-                
-            }
-            public CutResult PolySeperateNegative() {
-                
-            }*/
-
-            public CutResult DestroyObject() {
-                MonoBehaviour.Destroy(originalObject);
-                return this;
-            }
+            public void DestroyObject() => MonoBehaviour.Destroy(originalObject);
 
             public List<T> ConvertAll<T>(Converter<CutObj,T> f) => _results.ConvertAll(f);
 
+            public abstract class FriendlyCutObj {
+
+                protected readonly CutResult cutResult;
+                protected readonly MeshPart part;
+
+                private bool isPolySeperated;
+
+                public FriendlyCutObj(MeshPart part, CutResult result, bool isPolySeperated) {
+                    this.part = part;
+                    this.cutResult = result;
+                    this.isPolySeperated = isPolySeperated;
+                }
+
+                public bool PolySeperate() {
+                    if (isPolySeperated) return false;
+                    List<MeshPart> newParts = part.PolySeperate();
+                    if (newParts.Count > 1) {
+                        newParts.ForEach(p => cutResult._results.Add(new CutObj(p, cutResult, true)));
+                        cutResult._results.Remove((CutObj)this);
+                        return true;
+                    }
+                    return false;
+                }
+
+            }
+
         }
 
-        public class CutObj {
-
-            private CutResult cutResult;
-            private readonly MeshPart part;
+        public class CutObj : CutResult.FriendlyCutObj {
 
             private float copyVelocity = 0;
             private float driftVelocity = 0;
@@ -150,14 +189,7 @@ namespace MeshUtils {
             private Color ringColor = Color.white;
             private Color? addColor = null;
             
-            public CutObj(MeshPart part, CutResult res) {
-                this.part = part;
-                this.cutResult = res;
-            }
-
-            public CutObj(MeshPart part) {
-                this.part = part;
-            }
+            public CutObj(MeshPart part, CutResult res, bool isPolySeperated) : base(part, res, isPolySeperated) {}
 
             public bool IsPositive() => part.side;
             public bool IsNegative() => !part.side;
@@ -350,7 +382,7 @@ namespace MeshUtils {
                 if (param.seperationDistance > 0) throw new Exception("no gap and max cut");
                 res = PartialAlgorithm.Run(target,plane,param);
             }
-            if (param.seperationDistance <= 0) res = BasicAlgorithm.Run(target,plane,param);
+            else if (param.seperationDistance <= 0) res = BasicAlgorithm.Run(target,plane,param);
             else res = GapAlgorithm.Run(target,plane,param);
             //Debug.Log((DateTime.Now-start).TotalMilliseconds+" elapsed");
             return res;

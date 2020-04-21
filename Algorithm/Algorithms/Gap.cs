@@ -301,22 +301,14 @@ namespace MeshUtils {
 
             List<MeshPart> resParts = new List<MeshPart>();
 
-            // create new MeshParts
-            if (param.polySeperation) {
-                if (pos.vertices.Count > 0)
-                    resParts.AddRange(pos.PolySeperate());
-                if (neg.vertices.Count > 0)
-                    resParts.AddRange(neg.PolySeperate());
-            } else {
-                if (pos.vertices.Count > 0)
-                    resParts.Add(pos);
-                if (neg.vertices.Count > 0)
-                    resParts.Add(neg);
-            }
+            if (pos.vertices.Count > 0)
+                resParts.Add(pos);
+            if (neg.vertices.Count > 0)
+                resParts.Add(neg);
 
             if (resParts.Count < 2 && !param.allowSingleResult) return null;
 
-            return new CutResult(target,resParts,cutting_plane.ToWorldSpace().normal,new List<Ring>());
+            return new CutResult(target,resParts,cutting_plane.ToWorldSpace().normal,new List<Ring>(),false);
 
         }
 
