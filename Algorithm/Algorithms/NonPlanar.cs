@@ -15,8 +15,7 @@ namespace MeshUtils {
 
         public static CutResult Run(
             GameObject target,
-            CuttingTemplate template,
-            bool polySep
+            CuttingTemplate template
         ) {
 
             Mesh mesh = target.GetComponent<MeshFilter>().mesh;

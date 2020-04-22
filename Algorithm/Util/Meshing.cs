@@ -12,14 +12,16 @@ namespace MeshUtils {
         // Generate triangle mesh within possibly concave ring
         // -----------------------------------------------------
         public static void GenerateRingMesh(
-            Ring ring, MeshPart part, Vector3 normal, bool addUVs, Vector2 innerUV, bool addNormals = false
-        ) {GenerateRingMesh(ring.verts,part,normal,addUVs,innerUV,addNormals);}
+            Ring ring, MeshPart part, Vector3 normal, Vector2? innerUV, bool addNormals = false
+        ) {GenerateRingMesh(ring.verts,part,normal,innerUV,addNormals);}
         public static void GenerateRingMesh(
-            List<Vector3> ring, MeshPart part, Vector3 normal, bool addUVs, Vector2 innerUV, bool addNormals = false
-        ) {GenerateRingMesh(ring,part,normal,addUVs,part.side,innerUV,addNormals);}
+            List<Vector3> ring, MeshPart part, Vector3 normal, Vector2? innerUV, bool addNormals = false
+        ) {GenerateRingMesh(ring,part,normal,part.side,innerUV,addNormals);}
         public static void GenerateRingMesh(
-            List<Vector3> ring, MeshPart part, Vector3 normal, bool addUVs, bool side, Vector2 innerUV, bool addNormals = false
+            List<Vector3> ring, MeshPart part, Vector3 normal, bool side, Vector2? innerUV, bool addNormals = false
         ) {
+
+            bool addUVs = innerUV != null;
 
             // List<List<Vector3>> reduceHist = new List<List<Vector3>>();
             // reduceHist.Add(ring);
@@ -63,7 +65,7 @@ namespace MeshUtils {
                 // if they do however, it's just a waste of vertices
 
                 // check convex ear
-                float conv = Vector3.Dot(Vector3.Cross(d1,d2),normal);
+                float conv = Vector3.Dot(Vector3.Cross(d1.normalized,d2.normalized),normal);
                 if (conv > 0) continue;
 
                 // check that there are no other vertices inside this triangle

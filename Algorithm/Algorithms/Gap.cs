@@ -29,7 +29,7 @@ namespace MeshUtils {
             Vector3[] vertices = mesh.vertices;
             int[] triangles = mesh.triangles;
 
-            bool addUVs = uvs.Length > 0;
+            bool addUVs = uvs.Length > 0 && param.innerTextureCoord != null;
 
             // removed indices
             HashSet<int> removed = new HashSet<int>();
@@ -88,6 +88,14 @@ namespace MeshUtils {
                     txc = uvs[i_c];
                 } else txa = txb = txc = Vector2.zero;
 
+                // find original normals
+                Vector3 na, nb, nc;
+                if (addNormals) {
+                    na = normals[i_a];
+                    nb = normals[i_b];
+                    nc = normals[i_c];
+                } else na = nb = nc = Vector3.zero;
+
                 // seperation check
                 bool aAbove = cutting_plane.IsAbove(a),
                     bAbove = cutting_plane.IsAbove(b),
@@ -112,17 +120,19 @@ namespace MeshUtils {
                             GenTwoTriangles(
                                 cutting_plane,
                                 aAbove ? pos : neg,
-                                a, b, c, txa, txb, txc, i_a, i_b, i_c,
+                                a, b, c, txa, txb, txc, i_a, i_b, i_c, na, nb, nc,
                                 aAbove ? pos_rings : neg_rings,
                                 addUVs,
+                                addNormals,
                                 -param.seperationDistance
                             );
                             GenTriangle(
                                 cutting_plane,
                                 cAbove ? pos : neg,
-                                c, a, b, txc, txa, txb, i_c, i_a, i_b,
+                                c, a, b, txc, txa, txb, i_c, i_a, i_b, na, nb, nc,
                                 cAbove ? pos_rings : neg_rings,
                                 addUVs,
+                                addNormals,
                                 param.seperationDistance
                             );
                         } else if (aAbove == cAbove) {
@@ -130,17 +140,19 @@ namespace MeshUtils {
                             GenTwoTriangles(
                                 cutting_plane,
                                 aAbove ? pos : neg,
-                                c, a, b, txc, txa, txb, i_c, i_a, i_b,
+                                c, a, b, txc, txa, txb, i_c, i_a, i_b, na, nb, nc,
                                 aAbove ? pos_rings : neg_rings,
                                 addUVs,
+                                addNormals,
                                 -param.seperationDistance
                             );
                             GenTriangle(
                                 cutting_plane,
                                 bAbove ? pos : neg,
-                                b, c, a, txb, txc, txa, i_b, i_c, i_a,
+                                b, c, a, txb, txc, txa, i_b, i_c, i_a, na, nb, nc,
                                 bAbove ? pos_rings : neg_rings,
                                 addUVs,
+                                addNormals,
                                 param.seperationDistance
                             );
 
@@ -149,17 +161,19 @@ namespace MeshUtils {
                             GenTwoTriangles(
                                 cutting_plane,
                                 bAbove ? pos : neg,
-                                b, c, a, txb, txc, txa, i_b, i_c, i_a,
+                                b, c, a, txb, txc, txa, i_b, i_c, i_a, na, nb, nc,
                                 bAbove ? pos_rings : neg_rings,
                                 addUVs,
+                                addNormals,
                                 -param.seperationDistance
                             );
                             GenTriangle(
                                 cutting_plane,
                                 aAbove ? pos : neg,
-                                a, b, c, txa, txb, txc, i_a, i_b, i_c,
+                                a, b, c, txa, txb, txc, i_a, i_b, i_c, na, nb, nc,
                                 aAbove ? pos_rings : neg_rings,
                                 addUVs,
+                                addNormals,
                                 param.seperationDistance
                             );
                         }
@@ -170,26 +184,29 @@ namespace MeshUtils {
                         GenTriangle(
                             cutting_plane,
                             aAbove ? pos : neg,
-                            a, b, c, txa, txb, txc, i_a, i_b, i_c,
+                            a, b, c, txa, txb, txc, i_a, i_b, i_c, na, nb, nc,
                             aAbove ? pos_rings : neg_rings,
                             addUVs,
+                            addNormals,
                             param.seperationDistance
                         );
                         GenTriangle(
                             cutting_plane,
                             bAbove ? pos : neg,
-                            b, c, a, txb, txc, txa, i_b, i_c, i_a,
+                            b, c, a, txb, txc, txa, i_b, i_c, i_a, na, nb, nc,
                             bAbove ? pos_rings : neg_rings,
                             addUVs,
+                            addNormals,
                             param.seperationDistance
                         );
                     } else {
                         GenTwoTriangles(
                             cutting_plane,
                             aAbove ? pos : neg,
-                            a, b, c, txa, txb, txc, i_a, i_b, i_c,
+                            a, b, c, txa, txb, txc, i_a, i_b, i_c, na, nb, nc,
                             aAbove ? pos_rings : neg_rings,
                             addUVs,
+                            addNormals,
                             -param.seperationDistance
                         );
                     }
@@ -199,26 +216,29 @@ namespace MeshUtils {
                         GenTriangle(
                             cutting_plane,
                             aAbove ? pos : neg,
-                            a, b, c, txa, txb, txc, i_a, i_b, i_c,
+                            a, b, c, txa, txb, txc, i_a, i_b, i_c, na, nb, nc,
                             aAbove ? pos_rings : neg_rings,
                             addUVs,
+                            addNormals,
                             param.seperationDistance
                         );
                         GenTriangle(
                             cutting_plane,
                             cAbove ? pos : neg,
-                            c, a, b, txc, txa, txb, i_c, i_a, i_b,
+                            c, a, b, txc, txa, txb, i_c, i_a, i_b, na, nb, nc,
                             cAbove ? pos_rings : neg_rings,
                             addUVs,
+                            addNormals,
                             param.seperationDistance
                         );
                     } else {
                         GenTwoTriangles(
                             cutting_plane,
                             aAbove ? pos : neg,
-                            c, a, b, txc, txa, txb, i_c, i_a, i_b,
+                            c, a, b, txc, txa, txb, i_c, i_a, i_b, na, nb, nc,
                             aAbove ? pos_rings : neg_rings,
                             addUVs,
+                            addNormals,
                             -param.seperationDistance
                         );
                     }
@@ -228,26 +248,29 @@ namespace MeshUtils {
                         GenTriangle(
                             cutting_plane,
                             bAbove ? pos : neg,
-                            b, c, a, txb, txc, txa, i_b, i_c, i_a,
+                            b, c, a, txb, txc, txa, i_b, i_c, i_a, na, nb, nc,
                             bAbove ? pos_rings : neg_rings,
                             addUVs,
+                            addNormals,
                             param.seperationDistance
                         );
                         GenTriangle(
                             cutting_plane,
                             cAbove ? pos : neg,
-                            c, a, b, txc, txa, txb, i_c, i_a, i_b,
+                            c, a, b, txc, txa, txb, i_c, i_a, i_b, na, nb, nc,
                             cAbove ? pos_rings : neg_rings,
                             addUVs,
+                            addNormals,
                             param.seperationDistance
                         );
                     } else {
                         GenTwoTriangles(
                             cutting_plane,
                             bAbove ? pos : neg,
-                            b, c, a, txb, txc, txa, i_b, i_c, i_a,
+                            b, c, a, txb, txc, txa, i_b, i_c, i_a, na, nb, nc,
                             bAbove ? pos_rings : neg_rings,
                             addUVs,
+                            addNormals,
                             -param.seperationDistance
                         );
                     }
@@ -256,9 +279,10 @@ namespace MeshUtils {
                     GenTriangle(
                         cutting_plane,
                         aAbove ? pos : neg,
-                        a, b, c, txa, txb, txc, i_a, i_b, i_c,
+                        a, b, c, txa, txb, txc, i_a, i_b, i_c, na, nb, nc,
                         aAbove ? pos_rings : neg_rings,
                         addUVs,
+                        addNormals,
                         param.seperationDistance
                     );
                 } else if (!r_b) {
@@ -266,9 +290,10 @@ namespace MeshUtils {
                     GenTriangle(
                         cutting_plane,
                         bAbove ? pos : neg,
-                        b, c, a, txb, txc, txa, i_b, i_c, i_a,
+                        b, c, a, txb, txc, txa, i_b, i_c, i_a, na, nb, nc,
                         bAbove ? pos_rings : neg_rings,
                         addUVs,
+                        addNormals,
                         param.seperationDistance
                     );
                 } else {
@@ -276,9 +301,10 @@ namespace MeshUtils {
                     GenTriangle(
                         cutting_plane,
                         cAbove ? pos : neg,
-                        c, a, b, txc, txa, txb, i_c, i_a, i_b,
+                        c, a, b, txc, txa, txb, i_c, i_a, i_b, na, nb, nc,
                         cAbove ? pos_rings : neg_rings,
                         addUVs,
+                        addNormals,
                         param.seperationDistance
                     );
                 }
@@ -293,10 +319,10 @@ namespace MeshUtils {
 
             // generate seperation meshing
             foreach (var ring in pos_analysis) {
-                GenerateRingMesh(ring,pos,cutting_plane.normal,addUVs,param.innerTextureCoord); 
+                GenerateRingMesh(ring,pos,cutting_plane.normal,param.innerTextureCoord); 
             }
             foreach (var ring in neg_analysis) {
-                GenerateRingMesh(ring,neg,cutting_plane.normal,addUVs,param.innerTextureCoord);
+                GenerateRingMesh(ring,neg,cutting_plane.normal,param.innerTextureCoord);
             }
 
             List<MeshPart> resParts = new List<MeshPart>();

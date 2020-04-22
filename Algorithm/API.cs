@@ -10,6 +10,34 @@ namespace MeshUtils {
 
     static class API {
 
+        public class CutParamsBuilder {
+
+            private bool hiearchyAnalysis = false;
+            
+            private Vector2? innerTextureCoord = null;
+
+            public CutParamsBuilder UseConcaveChecks() {
+                hiearchyAnalysis = true;
+                return this;
+            }
+
+            public CutParamsBuilder WithInnerTexture(Vector2 uv) {
+                innerTextureCoord = uv;
+            }
+
+            public static implicit operator CutParams(CutParamsBuilder builder) => new CutParams(
+                hiearchyAnalysis,
+                false,
+                false,
+                false,
+                Vector3.zero,
+                float.PositiveInfinity,
+                0,
+                innerTextureCoord
+            );
+
+        }
+
         public struct CutParams {
             public readonly bool hiearchyAnalysis;
             public readonly bool allowSingleResult;
@@ -18,17 +46,16 @@ namespace MeshUtils {
             public readonly float seperationDistance;
             public readonly float maxCutDistance;
             public readonly Vector3 originPoint;
-            public readonly Vector2 innerTextureCoord;
+            public readonly Vector2? innerTextureCoord;
             public CutParams (
                 bool hiearchyAnalysis,
-                bool destroyOriginal,
                 bool allowSingleResult,
                 bool selfConnectRings,
                 bool ignorePartialRings,
                 Vector3 originPoint,
                 float maxCutDistance,
                 float gap,
-                Vector2 innerTextureCoord
+                Vector2? innerTextureCoord
             ) {
                 this.hiearchyAnalysis = hiearchyAnalysis;
                 this.allowSingleResult = allowSingleResult;
@@ -362,11 +389,10 @@ namespace MeshUtils {
 
         public static CutResult tmp(
             GameObject target,
-            CuttingTemplate template,
-            bool polySep = false
+            CuttingTemplate template
         ) {
             DateTime start = DateTime.Now;
-            var res = NonPlanarAlgorithm.Run(target,template.ToLocalSpace(target.transform),polySep);
+            var res = NonPlanarAlgorithm.Run(target,template.ToLocalSpace(target.transform));
             Debug.Log((DateTime.Now-start).TotalMilliseconds+" elapsed");
             return res;
         }

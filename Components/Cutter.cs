@@ -89,7 +89,6 @@ namespace MeshUtils {
             CutParams param = new CutParams(
                 cuttable.checkForHoles,
                 true,
-                true,
                 cuttable.closeOpenSurfaces,
                 cuttable.allowOpenSurfaces,
                 Vector3.zero, float.PositiveInfinity, 0,

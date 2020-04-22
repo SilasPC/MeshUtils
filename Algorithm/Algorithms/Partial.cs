@@ -105,7 +105,7 @@ namespace MeshUtils {
             // Start of cutting
             //
 
-            bool addUVs = uvs.Length > 0;
+            bool addUVs = uvs.Length > 0 && param.innerTextureCoord != null;
 
             // transfer vertices into MeshPart
             i = 0;
@@ -191,7 +191,7 @@ namespace MeshUtils {
             if (parts.Count > 0)
             foreach (var ring in analysis)
             foreach (var resPart in parts)
-                GenerateRingMesh(ring,resPart,cutting_plane.normal,addUVs,param.innerTextureCoord);
+                GenerateRingMesh(ring,resPart,cutting_plane.normal,param.innerTextureCoord);
 
             return new CutResult(target,parts,cutting_plane.ToWorldSpace().normal,resulting_rings,true);
 

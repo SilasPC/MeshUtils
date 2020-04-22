@@ -32,7 +32,7 @@ namespace MeshUtils {
             Vector3[] normals = mesh.normals;
             int[] triangles = mesh.triangles;
 
-            bool addUVs = uvs.Length > 0,
+            bool addUVs = uvs.Length > 0 && param.innerTextureCoord != null,
                 addNormals = normals.Length > 0;
 
             // divide mesh in half by vertices
@@ -153,8 +153,8 @@ namespace MeshUtils {
 
             // generate seperation meshing
             foreach (var ring in analysis) {
-                GenerateRingMesh(ring,pos,cutting_plane.normal,addUVs,param.innerTextureCoord,addNormals);
-                GenerateRingMesh(ring,neg,cutting_plane.normal,addUVs,param.innerTextureCoord,addNormals); 
+                GenerateRingMesh(ring,pos,cutting_plane.normal,param.innerTextureCoord,addNormals);
+                GenerateRingMesh(ring,neg,cutting_plane.normal,param.innerTextureCoord,addNormals); 
             }
 
             //Debug.Log((DateTime.Now-start).TotalMilliseconds+" elapsed (3)");

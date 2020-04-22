@@ -162,18 +162,21 @@ namespace MeshUtils {
             MeshPart pos,
             Vector3 a, Vector3 b,Vector3 c,
             Vector2 txa, Vector2 txb, Vector2 txc,
+            Vector3 na, Vector3 nb, Vector3 nc,
             int i_a, int i_b, int i_c,
             RingGenerator rings,
             bool addUVs,
+            bool addNormals,
             float shift
         ) {
 
             // find intersection vertices / uvs
-            var es = plane.Intersection(a, c, txa, txc, shift);
-            var ds = plane.Intersection(b, c, txb, txc, shift);
+            var es = plane.Intersection(a, c, txa, txc, na, nc, shift);
+            var ds = plane.Intersection(b, c, txb, txc, nb, nc, shift);
 
             Vector3 e = es.Item1, d = ds.Item1;
             Vector2 txe = es.Item2, txd = ds.Item2;
+            Vector3 ne = es.Item3, nd = ds.Item3;
 
             // if e == d, the three vertices lie in a line,
             //   and thus do not make up a triangle
@@ -200,6 +203,10 @@ namespace MeshUtils {
             if (addUVs) {
                 pos.uvs.Add(txd);
                 pos.uvs.Add(txe);
+            }
+            if (addNormals) {
+                pos.normals.Add(nd);
+                pos.normals.Add(ne);
             }
 
             // generate triangles for sides ...
@@ -224,18 +231,21 @@ namespace MeshUtils {
             MeshPart pos,
             Vector3 a, Vector3 b,Vector3 c,
             Vector2 txa, Vector2 txb, Vector2 txc,
+            Vector3 na, Vector3 nb, Vector3 nc,
             int i_a, int i_b, int i_c,
             RingGenerator rings,
             bool addUVs,
+            bool addNormals,
             float shift
         ) {
 
             // find intersection vertices / uvs
-            var es = plane.Intersection(c, a, txa, txc, shift);
-            var ds = plane.Intersection(b, a, txb, txc, shift);
+            var es = plane.Intersection(c, a, txa, txc, nc, na, shift);
+            var ds = plane.Intersection(b, a, txb, txc, nb, na, shift);
 
             Vector3 e = es.Item1, d = ds.Item1;
             Vector2 txe = es.Item2, txd = ds.Item2;
+            Vector3 ne = es.Item3, nd = ds.Item3;
 
             // if e == d, the three vertices lie in a line,
             //   and thus do not make up a triangle
@@ -262,6 +272,10 @@ namespace MeshUtils {
             if (addUVs) {
                 pos.uvs.Add(txd);
                 pos.uvs.Add(txe);
+            }
+            if (addNormals) {
+                pos.normals.Add(nd);
+                pos.normals.Add(ne);
             }
 
             // add a,d,e to positive indicies
