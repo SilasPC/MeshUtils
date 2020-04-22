@@ -30,7 +30,7 @@ namespace MeshUtils {
             part.vertices.AddRange(ring);
             if (addUVs || addNormals)
             foreach (var _ in ring) {
-                if (addUVs) part.uvs.Add(innerUV);
+                if (addUVs) part.uvs.Add(innerUV.Value);
                 if (addNormals) part.normals.Add(side ? -normal : normal);
             }
 

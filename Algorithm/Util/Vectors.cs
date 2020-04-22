@@ -20,6 +20,13 @@ namespace MeshUtils {
             if (v.z != 0) return new Vector3(1,1,-(v.x+v.y)/v.z).normalized;
             throw MeshUtilsException.ZeroNormal();*/
         }
+
+        // ------------------
+        // Perturb a vector
+        // ------------------
+        public static Vector3 Perturb(Vector3 v, float magnitude) {
+            return v + UnitPerpendicular(v) * magnitude;
+        }
         
         // ------------------------------------------------------------------------------------
         // Use pseudo inverse matrix to decompose vector to barycentric coordinates

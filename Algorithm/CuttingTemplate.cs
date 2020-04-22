@@ -48,7 +48,7 @@ namespace MeshUtils {
             return this;
         }
 
-        public readonly List<Vector3> points = new List<Vector3>();
+        public List<Vector3> points = new List<Vector3>();
         public readonly MUPlane plane;
         public readonly Vector3 pointInPlane, normal;
         private readonly Vector3 world_pointInPlane, worldNormal;
@@ -133,6 +133,33 @@ namespace MeshUtils {
         public void AddPoints(params Vector3[] ps) {
             foreach (Vector3 p in ps)
                 points.Add(plane.Project(p));
+        }
+
+        public void Inflate(float r) {
+
+            List<Vector3> newList = new List<Vector3>();
+
+            for (int i = 0; i < points.Count - 2; i++) {
+                Vector3 d1 = (points[i+1] - points[i]).normalized,
+                        d2 = (points[i+2] - points[i+1]).normalized;
+                bool side = Vector3.Dot(Vector3.Cross(-d1,d2),normal) > 0;
+                Vector3 res = Vector3.Slerp(-d1,d2,0.5f) * (side ? r : -r);
+
+                newList.Add(points[i+1] + res);
+            }
+
+            for (int i = points.Count - 1; i > 1; i--) {
+                Vector3 d1 = (points[i-1] - points[i]).normalized,
+                        d2 = (points[i-2] - points[i-1]).normalized;
+                bool side = Vector3.Dot(Vector3.Cross(-d1,d2),normal) > 0;
+                Vector3 res = Vector3.Slerp(-d1,d2,0.5f) * (side ? r : -r);
+
+                newList.Add(points[i-1] + res);
+            }
+
+            this.points = newList;
+            this.isClosed = true;
+
         }
 
         public void DrawDebug() {

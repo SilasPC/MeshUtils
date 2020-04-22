@@ -27,9 +27,11 @@ namespace MeshUtils {
 
             Vector2[] uvs = mesh.uv;
             Vector3[] vertices = mesh.vertices;
+            Vector3[] normals = mesh.normals;
             int[] triangles = mesh.triangles;
 
-            bool addUVs = uvs.Length > 0 && param.innerTextureCoord != null;
+            bool addUVs = uvs.Length > 0 && param.innerTextureCoord != null,
+                addNormals = normals.Length > 0;
 
             // removed indices
             HashSet<int> removed = new HashSet<int>();
@@ -47,10 +49,12 @@ namespace MeshUtils {
                     pos.indexMap.Add(i,pos.vertices.Count);
                     pos.vertices.Add(vertex);
                     if (addUVs) pos.uvs.Add(uvs[i]);
+                    if (addNormals) pos.normals.Add(normals[i]);
                 } else {
                     neg.indexMap.Add(i,neg.vertices.Count);
                     neg.vertices.Add(vertex);
                     if (addUVs) neg.uvs.Add(uvs[i]);
+                    if (addNormals) pos.normals.Add(normals[i]);
                 }
             }
 
@@ -120,7 +124,7 @@ namespace MeshUtils {
                             GenTwoTriangles(
                                 cutting_plane,
                                 aAbove ? pos : neg,
-                                a, b, c, txa, txb, txc, i_a, i_b, i_c, na, nb, nc,
+                                a, b, c, txa, txb, txc, na, nb, nc, i_a, i_b, i_c,
                                 aAbove ? pos_rings : neg_rings,
                                 addUVs,
                                 addNormals,
@@ -129,7 +133,7 @@ namespace MeshUtils {
                             GenTriangle(
                                 cutting_plane,
                                 cAbove ? pos : neg,
-                                c, a, b, txc, txa, txb, i_c, i_a, i_b, na, nb, nc,
+                                c, a, b, txc, txa, txb, nc, na, nb, i_c, i_a, i_b,
                                 cAbove ? pos_rings : neg_rings,
                                 addUVs,
                                 addNormals,
@@ -140,7 +144,7 @@ namespace MeshUtils {
                             GenTwoTriangles(
                                 cutting_plane,
                                 aAbove ? pos : neg,
-                                c, a, b, txc, txa, txb, i_c, i_a, i_b, na, nb, nc,
+                                c, a, b, txc, txa, txb, nc, na, nb, i_c, i_a, i_b,
                                 aAbove ? pos_rings : neg_rings,
                                 addUVs,
                                 addNormals,
@@ -149,7 +153,7 @@ namespace MeshUtils {
                             GenTriangle(
                                 cutting_plane,
                                 bAbove ? pos : neg,
-                                b, c, a, txb, txc, txa, i_b, i_c, i_a, na, nb, nc,
+                                b, c, a, txb, txc, txa, nb, nc, na, i_b, i_c, i_a,
                                 bAbove ? pos_rings : neg_rings,
                                 addUVs,
                                 addNormals,
@@ -161,7 +165,7 @@ namespace MeshUtils {
                             GenTwoTriangles(
                                 cutting_plane,
                                 bAbove ? pos : neg,
-                                b, c, a, txb, txc, txa, i_b, i_c, i_a, na, nb, nc,
+                                b, c, a, txb, txc, txa, nb, nc, na, i_b, i_c, i_a,
                                 bAbove ? pos_rings : neg_rings,
                                 addUVs,
                                 addNormals,
@@ -170,7 +174,7 @@ namespace MeshUtils {
                             GenTriangle(
                                 cutting_plane,
                                 aAbove ? pos : neg,
-                                a, b, c, txa, txb, txc, i_a, i_b, i_c, na, nb, nc,
+                                a, b, c, txa, txb, txc, na, nb, nc, i_a, i_b, i_c,
                                 aAbove ? pos_rings : neg_rings,
                                 addUVs,
                                 addNormals,
@@ -184,7 +188,7 @@ namespace MeshUtils {
                         GenTriangle(
                             cutting_plane,
                             aAbove ? pos : neg,
-                            a, b, c, txa, txb, txc, i_a, i_b, i_c, na, nb, nc,
+                            a, b, c, txa, txb, txc, na, nb, nc, i_a, i_b, i_c,
                             aAbove ? pos_rings : neg_rings,
                             addUVs,
                             addNormals,
@@ -193,7 +197,7 @@ namespace MeshUtils {
                         GenTriangle(
                             cutting_plane,
                             bAbove ? pos : neg,
-                            b, c, a, txb, txc, txa, i_b, i_c, i_a, na, nb, nc,
+                            b, c, a, txb, txc, txa, nb, nc, na, i_b, i_c, i_a,
                             bAbove ? pos_rings : neg_rings,
                             addUVs,
                             addNormals,
@@ -203,7 +207,7 @@ namespace MeshUtils {
                         GenTwoTriangles(
                             cutting_plane,
                             aAbove ? pos : neg,
-                            a, b, c, txa, txb, txc, i_a, i_b, i_c, na, nb, nc,
+                            a, b, c, txa, txb, txc, na, nb, nc, i_a, i_b, i_c,
                             aAbove ? pos_rings : neg_rings,
                             addUVs,
                             addNormals,
@@ -216,7 +220,7 @@ namespace MeshUtils {
                         GenTriangle(
                             cutting_plane,
                             aAbove ? pos : neg,
-                            a, b, c, txa, txb, txc, i_a, i_b, i_c, na, nb, nc,
+                            a, b, c, txa, txb, txc, na, nb, nc, i_a, i_b, i_c,
                             aAbove ? pos_rings : neg_rings,
                             addUVs,
                             addNormals,
@@ -225,7 +229,7 @@ namespace MeshUtils {
                         GenTriangle(
                             cutting_plane,
                             cAbove ? pos : neg,
-                            c, a, b, txc, txa, txb, i_c, i_a, i_b, na, nb, nc,
+                            c, a, b, txc, txa, txb, nc, na, nb, i_c, i_a, i_b,
                             cAbove ? pos_rings : neg_rings,
                             addUVs,
                             addNormals,
@@ -235,7 +239,7 @@ namespace MeshUtils {
                         GenTwoTriangles(
                             cutting_plane,
                             aAbove ? pos : neg,
-                            c, a, b, txc, txa, txb, i_c, i_a, i_b, na, nb, nc,
+                            c, a, b, txc, txa, txb, nc, na, nb, i_c, i_a, i_b,
                             aAbove ? pos_rings : neg_rings,
                             addUVs,
                             addNormals,
@@ -248,7 +252,7 @@ namespace MeshUtils {
                         GenTriangle(
                             cutting_plane,
                             bAbove ? pos : neg,
-                            b, c, a, txb, txc, txa, i_b, i_c, i_a, na, nb, nc,
+                            b, c, a, txb, txc, txa, nb, nc, na, i_b, i_c, i_a,
                             bAbove ? pos_rings : neg_rings,
                             addUVs,
                             addNormals,
@@ -257,7 +261,7 @@ namespace MeshUtils {
                         GenTriangle(
                             cutting_plane,
                             cAbove ? pos : neg,
-                            c, a, b, txc, txa, txb, i_c, i_a, i_b, na, nb, nc,
+                            c, a, b, txc, txa, txb, nc, na, nb, i_c, i_a, i_b,
                             cAbove ? pos_rings : neg_rings,
                             addUVs,
                             addNormals,
@@ -267,7 +271,7 @@ namespace MeshUtils {
                         GenTwoTriangles(
                             cutting_plane,
                             bAbove ? pos : neg,
-                            b, c, a, txb, txc, txa, i_b, i_c, i_a, na, nb, nc,
+                            b, c, a, txb, txc, txa, nb, nc, na, i_b, i_c, i_a,
                             bAbove ? pos_rings : neg_rings,
                             addUVs,
                             addNormals,
@@ -279,7 +283,7 @@ namespace MeshUtils {
                     GenTriangle(
                         cutting_plane,
                         aAbove ? pos : neg,
-                        a, b, c, txa, txb, txc, i_a, i_b, i_c, na, nb, nc,
+                        a, b, c, txa, txb, txc, na, nb, nc, i_a, i_b, i_c,
                         aAbove ? pos_rings : neg_rings,
                         addUVs,
                         addNormals,
@@ -290,7 +294,7 @@ namespace MeshUtils {
                     GenTriangle(
                         cutting_plane,
                         bAbove ? pos : neg,
-                        b, c, a, txb, txc, txa, i_b, i_c, i_a, na, nb, nc,
+                        b, c, a, txb, txc, txa, nb, nc, na, i_b, i_c, i_a,
                         bAbove ? pos_rings : neg_rings,
                         addUVs,
                         addNormals,
@@ -301,7 +305,7 @@ namespace MeshUtils {
                     GenTriangle(
                         cutting_plane,
                         cAbove ? pos : neg,
-                        c, a, b, txc, txa, txb, i_c, i_a, i_b, na, nb, nc,
+                        c, a, b, txc, txa, txb, nc, na, nb, i_c, i_a, i_b,
                         cAbove ? pos_rings : neg_rings,
                         addUVs,
                         addNormals,
@@ -317,12 +321,14 @@ namespace MeshUtils {
             List<Ring> pos_analysis = param.hiearchyAnalysis ? Hierarchy.Analyse(pos_ring_res, cutting_plane) : pos_ring_res;
             List<Ring> neg_analysis = param.hiearchyAnalysis ? Hierarchy.Analyse(neg_ring_res, cutting_plane) : neg_ring_res;
 
+            Vector2? innerUV = addUVs ? param.innerTextureCoord : null;
+
             // generate seperation meshing
             foreach (var ring in pos_analysis) {
-                GenerateRingMesh(ring,pos,cutting_plane.normal,param.innerTextureCoord); 
+                GenerateRingMesh(ring,pos,cutting_plane.normal,innerUV); 
             }
             foreach (var ring in neg_analysis) {
-                GenerateRingMesh(ring,neg,cutting_plane.normal,param.innerTextureCoord);
+                GenerateRingMesh(ring,neg,cutting_plane.normal,innerUV);
             }
 
             List<MeshPart> resParts = new List<MeshPart>();

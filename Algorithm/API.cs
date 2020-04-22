@@ -13,7 +13,7 @@ namespace MeshUtils {
         public class CutParamsBuilder {
 
             private bool hiearchyAnalysis = false;
-            
+            private bool ignoreOpenIntersections = false;
             private Vector2? innerTextureCoord = null;
 
             public CutParamsBuilder UseConcaveChecks() {
@@ -23,17 +23,23 @@ namespace MeshUtils {
 
             public CutParamsBuilder WithInnerTexture(Vector2 uv) {
                 innerTextureCoord = uv;
+                return this;
+            }
+
+            public CutParamsBuilder IgnoreOpenIntersections() {
+                ignoreOpenIntersections = true;
+                return this;
             }
 
             public static implicit operator CutParams(CutParamsBuilder builder) => new CutParams(
-                hiearchyAnalysis,
+                builder.hiearchyAnalysis,
                 false,
                 false,
-                false,
+                builder.ignoreOpenIntersections,
                 Vector3.zero,
                 float.PositiveInfinity,
                 0,
-                innerTextureCoord
+                builder.innerTextureCoord
             );
 
         }

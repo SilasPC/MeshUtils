@@ -56,15 +56,16 @@ namespace MeshUtils {
         }
 
         List<GameObject> IterativeCut(GameObject obj, int count) {
-            CutParams param = new CutParams(true,true,false,false,false,Vector3.zero,float.PositiveInfinity,0,Vector3.zero);
+            CutParams param = new CutParams(true,false,false,false,Vector3.zero,float.PositiveInfinity,0,Vector3.zero);
             try {
                 Vector3 pos = obj.transform.position;
                 Collider col;
                 if (obj.TryGetComponent<Collider>(out col))
                     pos = col.bounds.center;
                 CutResult res = API.PerformCut(obj,CuttingPlane.RandomInWorldSpace(obj.transform.position),param);
-                if (res == null) return new List<GameObject>();
+                if (res == null) return new List<GameObject>() {obj};
                 res.DestroyObject();
+                res.PolySeperate();
                 if (count > 1) {
                     List<GameObject> ret = new List<GameObject>();
                     foreach (CutObj robj in res.Results)

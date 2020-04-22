@@ -151,10 +151,12 @@ namespace MeshUtils {
             
             List<Ring> analysis = param.hiearchyAnalysis ? Hierarchy.Analyse(ringOut, cutting_plane) : ringOut;
 
+            Vector2? innerUV = addUVs ? param.innerTextureCoord : null;
+
             // generate seperation meshing
             foreach (var ring in analysis) {
-                GenerateRingMesh(ring,pos,cutting_plane.normal,param.innerTextureCoord,addNormals);
-                GenerateRingMesh(ring,neg,cutting_plane.normal,param.innerTextureCoord,addNormals); 
+                GenerateRingMesh(ring,pos,cutting_plane.normal,innerUV,addNormals);
+                GenerateRingMesh(ring,neg,cutting_plane.normal,innerUV,addNormals); 
             }
 
             //Debug.Log((DateTime.Now-start).TotalMilliseconds+" elapsed (3)");
