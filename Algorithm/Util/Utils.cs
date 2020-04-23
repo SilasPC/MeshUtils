@@ -62,7 +62,7 @@ namespace MeshUtils {
                 throw MeshUtilsException.Internal("Normal/vertex count mismatch ("+normals.Count+" normals, "+vertices.Count+" verts)");
         }
 
-        public List<MeshPart> PolySeperate() {
+        public List<MeshPart> PolySeparate() {
 
             List<Tuple<HashSet<int>, HashSet<Vector3>, List<int>>> list = new List<Tuple<HashSet<int>, HashSet<Vector3>, List<int>>>();
             
@@ -96,7 +96,7 @@ namespace MeshUtils {
 
         }
 
-        public List<MeshPart> PartialPolySeperate(
+        public List<MeshPart> PartialPolySeparate(
             CuttingPlane plane,
             HashSet<Vector3> allow_cut
         ) {

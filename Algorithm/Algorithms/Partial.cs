@@ -181,9 +181,9 @@ namespace MeshUtils {
                 }
             }
 
-            List<Ring> analysis = param.hiearchyAnalysis ? Hierarchy.Analyse(resulting_rings,cutting_plane) : resulting_rings;
+            List<Ring> analysis = param.hiearchyAnalysis ? Hierarchy.Analyse(resulting_rings,cutting_plane.normal) : resulting_rings;
 
-            List<MeshPart> parts = part.PartialPolySeperate(cutting_plane,allow_cut);
+            List<MeshPart> parts = part.PartialPolySeparate(cutting_plane,allow_cut);
 
             if (parts.Count < 2 && !param.allowSingleResult) return null;
 

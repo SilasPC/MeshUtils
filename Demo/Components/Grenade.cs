@@ -65,7 +65,7 @@ namespace MeshUtils {
                 CutResult res = API.PerformCut(obj,CuttingPlane.RandomInWorldSpace(obj.transform.position),param);
                 if (res == null) return new List<GameObject>() {obj};
                 res.DestroyObject();
-                res.PolySeperate();
+                res.PolySeparate();
                 if (count > 1) {
                     List<GameObject> ret = new List<GameObject>();
                     foreach (CutObj robj in res.Results)

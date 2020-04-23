@@ -29,8 +29,8 @@ namespace MeshUtils {
         [Tooltip("Ignore open surfaces. Otherwise an exception is thrown.")]
         public bool allowOpenSurfaces = false;
         
-        [Tooltip("Attempt to seperate disconnected parts of resulting meshes. Note: not terribly fast for big objects.")]
-        public bool polySeperate = false;
+        [Tooltip("Attempt to separate disconnected parts of resulting meshes. Note: not terribly fast for big objects.")]
+        public bool polySeparate = false;
 
         [Tooltip("Number of consecutive cuts allowed. Zero for unlimited.")]
         public uint maxCutCount = 1;
@@ -45,7 +45,7 @@ namespace MeshUtils {
             c.tryApproximation = tryApproximation;
             c.closeOpenSurfaces = closeOpenSurfaces;
             c.allowOpenSurfaces = allowOpenSurfaces;
-            c.polySeperate = polySeperate;
+            c.polySeparate = polySeparate;
             c.maxCutCount = maxCutCount == 0 ? 0 : maxCutCount - 1;
             return true;
         }

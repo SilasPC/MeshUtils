@@ -149,7 +149,7 @@ namespace MeshUtils {
 
             List<Ring> ringOut = rings.GetRings(param.selfConnectRings,param.ignorePartialRings);
             
-            List<Ring> analysis = param.hiearchyAnalysis ? Hierarchy.Analyse(ringOut, cutting_plane) : ringOut;
+            List<Ring> analysis = param.hiearchyAnalysis ? Hierarchy.Analyse(ringOut, cutting_plane.normal) : ringOut;
 
             Vector2? innerUV = addUVs ? param.innerTextureCoord : null;
 

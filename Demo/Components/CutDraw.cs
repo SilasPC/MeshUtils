@@ -16,8 +16,7 @@ namespace MeshUtils {
         
         private Vector3 localCol;
 
-        private HashSet<GameObject> canvases = new HashSet<GameObject>();
-        private int canvasesInTrigger = 0;
+        private GameObject canvas = new GameObject();
 
         private DateTime lastDraw = DateTime.Now;
 
@@ -27,11 +26,7 @@ namespace MeshUtils {
 
             if ((DateTime.Now-lastDraw).TotalSeconds < 1) return;
 
-            var canvas = col.gameObject;
-
-            canvases.Add(canvas);
-
-            canvasesInTrigger++;
+            canvas = col.gameObject;
 
             canvas.GetComponent<Collider>().isTrigger = true;
 
@@ -43,51 +38,46 @@ namespace MeshUtils {
             
         }
 
-        void OnTriggerEnter(Collider col) {
-            if (canvases.Contains(col.gameObject))
-                canvasesInTrigger++;
-        }
-
         void Update() {
 
             if (template == null) return;
-            template.AddPoint(transform.TransformPoint(localCol));
+            template.AddPoint(transform.TransformPoint(localCol),0,0.03f);
 
         }
 
         void OnTriggerExit(Collider col) {
-            
-            if (canvases.Contains(col.gameObject))
-                canvasesInTrigger--;
 
-            if (canvasesInTrigger == 0)
+            if (canvas == col.gameObject)
                 DoDraw();
 
         }
         void DoDraw() {
+            
+            Debug.Log(template.points.Count);
 
-            template.Inflate(0.02f);
+            template.Inflate(0.01f);
             template.DrawDebug();
 
             try {
-                foreach (GameObject canvas in canvases) {
-                    CutResult res = API.tmp(canvas,template);
+                CutResult res = API.tmp(canvas,template);
 
-                    if (res != null) {
-                        res.DestroyObject();
-                        foreach (CutObj obj in res.NegativeResults)
-                            obj
-                                .CopyParent()
-                                .CopyMaterial()
-                                .Instantiate();
-                    }
+                if (res != null) {
+                    res.DestroyObject();
+                    foreach (CutObj obj in res.NegativeResults)
+                        obj
+                            .CopyParent()
+                            .CopyMaterial()
+                            .WithCollider()
+                            .Instantiate()
+                            .tag = "CutCanvas";
                 }
             } catch (MeshUtilsException e) {
                 Debug.LogException(e);
+                canvas.GetComponent<Collider>().isTrigger = false;
             }
 
             lastDraw = DateTime.Now;
-            canvases.Clear();
+            canvas = null;
             template = null;
         }
 

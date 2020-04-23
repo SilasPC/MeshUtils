@@ -11,8 +11,8 @@ namespace MeshUtils {
         [Tooltip("For a less well-formed mesh, this will attempt to merge points in intersection that are almost exactly identical.")]
         public bool tryApproximation = false;
         
-        [Tooltip("Attempt to seperate disconnected parts of resulting meshes. Note: not terribly fast for big objects.")]
-        public bool polySeperate = false;
+        [Tooltip("Attempt to separate disconnected parts of resulting meshes. Note: not terribly fast for big objects.")]
+        public bool polySeparate = false;
 
         [Tooltip("Number of consecutive chops allowed. Zero for unlimited.")]
         public uint maxCutCount = 1;
@@ -21,7 +21,7 @@ namespace MeshUtils {
             if (maxCutCount == 1) return false;
             Chopable c = obj.AddComponent<Chopable>();
             c.tryApproximation = tryApproximation;
-            c.polySeperate = polySeperate;
+            c.polySeparate = polySeparate;
             c.maxCutCount = maxCutCount == 0 ? 0 : maxCutCount - 1;
             return true;
         }

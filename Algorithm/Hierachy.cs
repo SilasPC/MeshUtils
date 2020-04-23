@@ -11,9 +11,9 @@ namespace MeshUtils {
     // -----------------------------------------------
     class Hierarchy {
         
-        public static List<Ring> Analyse(List<Ring> rings, CuttingPlane plane) {
+        public static List<Ring> Analyse(List<Ring> rings, Vector3 normal) {
             List<Hierarchy> siblings = new List<Hierarchy>();
-            List<Hierarchy> list = rings.ConvertAll(r => new Hierarchy(r,plane.normal));
+            List<Hierarchy> list = rings.ConvertAll(r => new Hierarchy(r,normal));
             // sort from largest to smallest
             // when looping forwards, if the next cannot be contained
             //   within any previous, it will never be contained,

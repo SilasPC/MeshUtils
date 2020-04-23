@@ -1,4 +1,7 @@
 
+#define TEST
+#undef TEST
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -404,7 +407,40 @@ namespace MeshUtils {
                 dist_map_old = dist_map;
                 strip_rings = point_data[points[i]].Item2;
             }
-            if (tri_rings.HasComplete()) throw MeshUtilsException.Internal("Template closed and within triangle not handled");
+            if (tri_rings.HasComplete()) {
+            #if !TESTING
+                throw MeshUtilsException.Internal("Template closed and within triangle not handled");
+            #else
+                // Debug.Log("inside");
+                if (tri_rings.HasPartials()) throw MeshUtilsException.Internal("Unexpected condition");
+                List<Ring> ring = tri_rings.GetRings(false, false);
+                if (ring.Count != 1) throw MeshUtilsException.Internal("Multiple rings in single triangle");
+                Debugging.DebugRing(ring[0].verts);
+                GenerateRingMesh(ring[0].verts,partToUse?neg:pos,tri_nor,true,null,addNormals);
+
+                var r0 = new Ring(new List<Vector3>() {a,b,c});
+                var r1 = ring[0];
+
+                r1.verts.Reverse();
+
+                // join indices
+                int i0 = 0, i1 = 0;
+                r0.RingDist(r1, ref i0, ref i1);
+                
+                // the inner ring should have the opposite direction
+                // join by inserting r1 at i0 in r0
+                List<Vector3> res = new List<Vector3>();
+                res.AddRange(r0.verts.GetRange(0,i0+1));      // r0 from start to split
+                res.AddRange(r1.verts.GetRange(i1,r1.verts.Count-i1));  // r1 from split to end
+                res.AddRange(r1.verts.GetRange(0,i1+1));            // r1 from start to split
+                res.AddRange(r0.verts.GetRange(i0,r0.verts.Count-i0));  // r0 from split to end
+
+                // Debugging.DebugRing(res);
+
+                GenerateRingMesh(res,partToUse?pos:neg,tri_nor,true,null,addNormals);
+                return true;
+            #endif
+            }
             if (!tri_rings.HasPartials()) return false;
             // Debugging.DebugRing(points.ConvertAll(p=>tri_plane.DirectionalProject(p,normal)));
             // Debug.Log("tri verts:"+a+" "+b+" "+c);

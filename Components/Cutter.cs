@@ -97,8 +97,8 @@ namespace MeshUtils {
 
             CutResult result = PerformCut(col.gameObject,plane,param);
             if (result != null) {
-                if (cuttable.polySeperate)
-                    result.PolySeperate();
+                if (cuttable.polySeparate)
+                    result.PolySeparate();
                 result.DestroyObject();
                 foreach (CutObj res in result.Results) {
                     GameObject resObj = res

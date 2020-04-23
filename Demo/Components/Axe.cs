@@ -45,7 +45,7 @@ namespace MeshUtils {
             var res = API.tmp(obj,GetTemplate());
             if (res != null) {
                 res.DestroyObject();
-                res.PolySeperatePositive();
+                res.PolySeparatePositive();
                 List<GameObject> robjs = res.PositiveResults.ConvertAll(
                     rm => rm
                         .CopyParent()

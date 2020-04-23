@@ -155,20 +155,20 @@ namespace MeshUtils {
 
             }
 
-            public bool PolySeperate() {
+            public bool PolySeparate() {
                 bool success = false;
-                success |= PolySeperatePositive();
-                success |= PolySeperateNegative();
+                success |= PolySeparatePositive();
+                success |= PolySeparateNegative();
                 return success;
             }
-            public bool PolySeperatePositive() {
+            public bool PolySeparatePositive() {
                 bool success = false;
-                PositiveResults.ForEach(c => success |= c.PolySeperate());
+                PositiveResults.ForEach(c => success |= c.PolySeparate());
                 return success;
             }
-            public bool PolySeperateNegative() {
+            public bool PolySeparateNegative() {
                 bool success = false;
-                NegativeResults.ForEach(c => success |= c.PolySeperate());
+                NegativeResults.ForEach(c => success |= c.PolySeparate());
                 return success;
             }
 
@@ -189,9 +189,9 @@ namespace MeshUtils {
                     this.isPolySeperated = isPolySeperated;
                 }
 
-                public bool PolySeperate() {
+                public bool PolySeparate() {
                     if (isPolySeperated) return false;
-                    List<MeshPart> newParts = part.PolySeperate();
+                    List<MeshPart> newParts = part.PolySeparate();
                     if (newParts.Count > 1) {
                         newParts.ForEach(p => cutResult._results.Add(new CutObj(p, cutResult, true)));
                         cutResult._results.Remove((CutObj)this);

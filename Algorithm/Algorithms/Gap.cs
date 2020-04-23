@@ -318,8 +318,8 @@ namespace MeshUtils {
             List<Ring> pos_ring_res = pos_rings.GetRings(param.selfConnectRings,param.ignorePartialRings);
             List<Ring> neg_ring_res = neg_rings.GetRings(param.selfConnectRings,param.ignorePartialRings);
             
-            List<Ring> pos_analysis = param.hiearchyAnalysis ? Hierarchy.Analyse(pos_ring_res, cutting_plane) : pos_ring_res;
-            List<Ring> neg_analysis = param.hiearchyAnalysis ? Hierarchy.Analyse(neg_ring_res, cutting_plane) : neg_ring_res;
+            List<Ring> pos_analysis = param.hiearchyAnalysis ? Hierarchy.Analyse(pos_ring_res, cutting_plane.normal) : pos_ring_res;
+            List<Ring> neg_analysis = param.hiearchyAnalysis ? Hierarchy.Analyse(neg_ring_res, cutting_plane.normal) : neg_ring_res;
 
             Vector2? innerUV = addUVs ? param.innerTextureCoord : null;
 
