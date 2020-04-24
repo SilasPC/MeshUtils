@@ -1,4 +1,7 @@
 
+#define USE_V2
+#undef USE_V2
+
 using System;
 using System.Linq;
 using System.Collections;
@@ -13,6 +16,8 @@ namespace MeshUtils {
     // Because it is a set of vectors, the polygon is positioned
     //   correctly for any newly generated meshes
     // -----------------------------------------------------------
+#if !USE_V2
+
     class RingGenerator {
 
         protected List<List<Vector3>> complete = new List<List<Vector3>>();
@@ -98,9 +103,11 @@ namespace MeshUtils {
 
     }
 
+#else
+
     // Newer version, not in use atm.
     // Time complexity should be better, not tested much yet
-    public class RingGenerator2 {
+    public class RingGenerator {
 
         protected List<List<Vector3>> complete = new List<List<Vector3>>();
         protected Dictionary<Vector3, List<Vector3>> startMap = new Dictionary<Vector3, List<Vector3>>(), endMap = new Dictionary<Vector3, List<Vector3>>();
@@ -109,8 +116,8 @@ namespace MeshUtils {
             Debug.Log(complete.Count + " complete rings, " +  startMap.Count + " partial rings");
         }
 
-        public RingGenerator2 Duplicate() {
-            RingGenerator2 gen = new RingGenerator2();
+        public RingGenerator Duplicate() {
+            RingGenerator gen = new RingGenerator();
             gen.complete = complete.ConvertAll(r=>new List<Vector3>(r));
             List<List<Vector3>> partials = new List<List<Vector3>>(startMap.Values.Select(l => new List<Vector3>(l)));
             foreach (var p in partials) {
@@ -185,6 +192,8 @@ namespace MeshUtils {
             endMap.Add(v1,pNew);
         }
     }
+
+#endif
 
     public struct Ring {
         public readonly List<Vector3> verts;

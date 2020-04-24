@@ -15,10 +15,6 @@ namespace MeshUtils {
         public static Vector3 UnitPerpendicular(Vector3 v) {
             if (v == Vector3.zero) throw MeshUtilsException.ZeroNormal();
             return new Vector3(v.y-v.z,v.z-v.x,v.x-v.y).normalized;
-            /*if (v.x != 0) return new Vector3(1,1,-(v.y+v.z)/v.x).normalized;
-            if (v.y != 0) return new Vector3(1,1,-(v.x+v.z)/v.y).normalized;
-            if (v.z != 0) return new Vector3(1,1,-(v.x+v.y)/v.z).normalized;
-            throw MeshUtilsException.ZeroNormal();*/
         }
 
         // ------------------
@@ -29,7 +25,7 @@ namespace MeshUtils {
         }
         
         // ------------------------------------------------------------------------------------
-        // Use pseudo inverse matrix to decompose vector to barycentric coordinates
+        // Use pseudo inverse matrix to decompose vector to local coordinates
         // If 's' and 't' fall in the range [0,1] and s+t <= 1, then v is in the triangle
         //
         // We want to solve p = p0 + s * (p1 - p0) + t * (p2 - p0)
@@ -44,7 +40,7 @@ namespace MeshUtils {
         // (M^T * M) is simply found using dot products of v0 and v1,
         //   and it's inverse is pretty easy (2x2 matrix)
         // 
-        // Multiplied by M^T and then v gives P, which encode the barycentric coordinates
+        // Multiplied by M^T and then v gives P, which encode the local coordinates
         // ------------------------------------------------------------------------------------
         public static bool CheckIsInside(Vector3 v0, Vector3 v1, Vector3 v) {
             float x = v0.sqrMagnitude, y = Vector3.Dot(v0,v1), z = v1.sqrMagnitude;
