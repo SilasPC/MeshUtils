@@ -1,8 +1,10 @@
 
 // enable closed ring in triangle handling
 // status: not working
-#define TESTING
-#undef TESTING
+#define HANDLE_CLOSED
+
+// try to ignore triangles that could result in bad directional projections
+#define EPSILON_TEST
 
 using System;
 using System.Collections;
@@ -149,6 +151,12 @@ namespace MeshUtils {
             Vector3 ab_nor = Vector3.Cross(tri_nor,(b-a).normalized), // vector perpendicular to edge and pointing away from triangle
                     bc_nor = Vector3.Cross(tri_nor,(c-b).normalized),
                     ca_nor = Vector3.Cross(tri_nor,(a-c).normalized);
+        #if EPSILON_TEST
+            if (Math.Abs(Vector3.Dot(tri_nor,normal)) < 0.01f) {
+                Debug.LogWarning("epsilon ignore");
+                return false;
+            }
+        #endif
             // Debug.Log("tri verts: "+a+" "+b+" "+c);
             // Debug.Log((b-a).magnitude+" "+(c-b).magnitude+" "+(a-c).magnitude);
             // Debug.Log("edge norms: "+ab_nor+" "+bc_nor+" "+ca_nor);
@@ -410,7 +418,7 @@ namespace MeshUtils {
                 strip_rings = point_data[points[i]].Item2;
             }
             if (tri_rings.HasComplete()) {
-            #if !TESTING
+            #if !HANDLE_CLOSED
                 throw MeshUtilsException.Internal("Template closed and within triangle not handled");
             #else
                 // Debug.Log("inside");
