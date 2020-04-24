@@ -1,6 +1,8 @@
 
-#define TEST
-#undef TEST
+// enable closed ring in triangle handling
+// status: not working
+#define TESTING
+#undef TESTING
 
 using System;
 using System.Collections;

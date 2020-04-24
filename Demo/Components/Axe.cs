@@ -19,16 +19,20 @@ namespace MeshUtils {
 
         public void OnCollisionEnter(Collision col) {
 
-            /*if (col.relativeVelocity.magnitude < 2.5f) return;
+
+            // Rigidbody rb = GetComponentInParent<Rigidbody>();
+            // Vector3 vel = rb.GetPointVelocity(col.GetContact(0).point);
+
+            // if (col.relativeVelocity.magnitude < 1f) return;
 
             Vector3 cutDir = transform.TransformDirection(cutDirection);
 
             Vector3 edge = transform.TransformDirection(edgeDirection);
 
-            Vector3 angleProjection = Vector3.ProjectOnPlane(gameObject.GetComponentInParent<Rigidbody>().velocity,edge);
+            Vector3 angleProjection = Vector3.ProjectOnPlane(col.relativeVelocity,edge);
 
             if (Vector3.Angle(angleProjection,cutDir) > maxAngle) return;
-*/
+
             Chopable chopable;
             TreeChopablePart tcc;
             if (col.gameObject.TryGetComponent(out chopable)) Chop(col.gameObject,chopable);
@@ -98,7 +102,7 @@ namespace MeshUtils {
             CuttingTemplate template = CuttingTemplate.InLocalSpace(Vector3.up,Vector3.zero,transform).ToWorldSpace();
 
             Vector3 r = transform.forward * 0.07f,
-                    f = transform.right * -0.2f,
+                    f = transform.right * -0.17f,
                     p = transform.position;
 
             template.AddPoints(

@@ -107,7 +107,7 @@ namespace MeshUtils {
                         .WithSeperationDistance(seperationDistance)
                         .WithRingWidth(cuttable.highlightWidth)
                         .WithRingColor(cuttable.highLightColor)
-                        .WithColor(new Color(1,0.1f,0.1f))
+                        .FallbackToColor(new Color(1,0.1f,0.1f))
                         .Instantiate();
                     cuttable.CopyTo(resObj);
                     ignoreColliders.Add(resObj.GetComponent<Collider>());
