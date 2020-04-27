@@ -25,13 +25,13 @@ namespace MeshUtils {
 
             // if (col.relativeVelocity.magnitude < 1f) return;
 
-            Vector3 cutDir = transform.TransformDirection(cutDirection);
+            /*Vector3 cutDir = transform.TransformDirection(cutDirection);
 
             Vector3 edge = transform.TransformDirection(edgeDirection);
 
             Vector3 angleProjection = Vector3.ProjectOnPlane(col.relativeVelocity,edge);
 
-            if (Vector3.Angle(angleProjection,cutDir) > maxAngle) return;
+            if (Vector3.Angle(angleProjection,cutDir) > maxAngle) return;*/
 
             Chopable chopable;
             TreeChopablePart tcc;
@@ -42,7 +42,7 @@ namespace MeshUtils {
 
         void Chop(GameObject obj, TreeChopablePart tcc) {
             
-            if ((DateTime.Now-lastChop).TotalSeconds < 2) return;
+            if ((DateTime.Now-lastChop).TotalSeconds < 1) return;
 
             lastChop = DateTime.Now;
 
@@ -101,8 +101,8 @@ namespace MeshUtils {
 
             CuttingTemplate template = CuttingTemplate.InLocalSpace(Vector3.up,Vector3.zero,transform).ToWorldSpace();
 
-            Vector3 r = transform.forward * 0.07f,
-                    f = transform.right * -0.17f,
+            Vector3 r = transform.forward * 0.08f,
+                    f = transform.right * -0.2f,
                     p = transform.position;
 
             template.AddPoints(

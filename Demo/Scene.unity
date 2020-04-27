@@ -8923,11 +8923,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6862a5567133e3e45b5ee2b360522184, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  EdgeDirection: {x: 1, y: 0, z: 0}
-  MaxAngle: 5
-  line: {fileID: 0}
-  entranceDir: {x: 0, y: 0, z: 0}
-  hits: []
 --- !u!65 &825285237
 BoxCollider:
   m_ObjectHideFlags: 0
